@@ -1,13 +1,21 @@
-import { bigint, integer, text, pgTable, varchar } from 'drizzle-orm/pg-core';
+import { bigint, integer, uniqueIndex, text, pgTable, varchar } from 'drizzle-orm/pg-core';
 
 // declaring enum in database
 
-export const user = pgTable('auth_user', {
-	id: varchar('id', {
-		length: 15
-	}).primaryKey()
-	// other user attributes
-});
+export const user = pgTable(
+	'auth_user',
+	{
+		id: varchar('id', {
+			length: 15
+		}).primaryKey(),
+		username: varchar('username', { length: 64 }).notNull()
+	},
+	(user) => {
+		return {
+			nameIndex: uniqueIndex('name_idx').on(user.username)
+		};
+	}
+);
 
 export const session = pgTable('user_session', {
 	id: varchar('id', {

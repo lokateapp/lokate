@@ -8,6 +8,20 @@
       "when": 1697642667128,
       "tag": "0000_swift_boomer",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1697643648896,
+      "tag": "0001_happy_silver_samurai",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1697643931106,
+      "tag": "0002_wealthy_domino",
+      "breakpoints": true
     }
   ]
 }

@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX IF NOT EXISTS "name_idx" ON "auth_user" ("username");
