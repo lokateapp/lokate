@@ -1,4 +1,5 @@
-import { bigint, integer, uniqueIndex, text, pgTable, varchar } from 'drizzle-orm/pg-core';
+import type { InferSelectModel } from 'drizzle-orm';
+import { bigint, uniqueIndex, pgTable, varchar, uuid, text } from 'drizzle-orm/pg-core';
 
 // declaring enum in database
 
@@ -47,3 +48,13 @@ export const key = pgTable('user_key', {
 		length: 255
 	})
 });
+
+export const campaigns = pgTable('campaigns', {
+	id: uuid('id').primaryKey(),
+	name: text('text').notNull(),
+	userId: varchar('user_id', { length: 15 })
+		.notNull()
+		.references(() => user.id)
+});
+
+export type SelectCampaign = InferSelectModel<typeof campaigns>;
