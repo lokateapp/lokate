@@ -2,7 +2,7 @@ import { db } from '$lib/server/db';
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { eq } from 'drizzle-orm';
-import { campaigns, user, type SelectCampaign } from '../../schema';
+import { campaigns, type SelectCampaign } from '../../schema';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const session = await locals.auth.validate();

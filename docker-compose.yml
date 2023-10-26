@@ -14,6 +14,8 @@ services:
       - ./vite.config.ts:/usr/etc/sveltekit/vite.config.ts
       - ./tsconfig.json:/usr/etc/sveltekit/tsconfig.json
       - ./svelte.config.js:/usr/etc/sveltekit/svelte.config.js
+      - ./tailwind.config.js:/usr/etc/sveltekit/tailwind.config.js
+      - ./postcss.config.js:/usr/etc/sveltekit/postcss.config.js
     command: npm run dev
     environment:
       - POSTGRES_CONNECTION_URL=postgres://postgres:postgres@postgres:5432/lokate_dev
