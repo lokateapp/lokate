@@ -13,27 +13,38 @@
 	<button>Create Campaign</button>
 </form>
 
-<div class="grid auto-rows-fr auto-cols-min grid-flow-col gap-3 mx-40">
+<div
+	class="p-6 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 w-[400px] m-auto"
+>
 	<a href="/campaigns/new">
-		<div
-			class="flex flex-col justify-center items-center p-6 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100"
-		>
+		<div class="flex flex-col justify-center items-center bg-white">
 			<div class="text-3xl font-bold">+</div>
 			<span class="mb-2 text-2xl font-bold tracking-tight text-gray-900 whitespace-nowrap"
 				>Create new campaign</span
 			>
 		</div>
 	</a>
+</div>
 
+<div class="campaigns-grid">
 	{#each data.campaigns as campaign}
-		<a href={`/campaign/${campaign.id}`}>
-			<div
-				class="relative flex flex-col justify-center items-center p-6 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 h-full"
-			>
-				<h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 whitespace-nowrap">
-					{campaign.id}
-				</h5>
-			</div>
-		</a>
+		<div
+			class="flex py-6 justify-center items-center mt-2 text-semibold text-xl border border-gray-200 rounded-lg shadow hover:bg-gray-100"
+		>
+			<a href={`/campaign/${campaign.id}`}>
+				<span class="text-ellipsis">{campaign.id}</span>
+			</a>
+		</div>
 	{/each}
 </div>
+
+<style>
+	.campaigns-grid {
+		display: grid;
+		gap: 2rem;
+		grid-template-columns: repeat(3, 1fr);
+		margin-top: 4rem;
+		margin-left: 2rem;
+		margin-right: 2rem;
+	}
+</style>
