@@ -5,18 +5,10 @@
 	export let data: PageData;
 </script>
 
-<form method="POST" action="?/createCampaign">
-	<label>
-		Campaign name
-		<input name="name" type="text" />
-	</label>
-	<button>Create Campaign</button>
-</form>
-
 <div
-	class="p-6 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 w-[400px] m-auto"
+	class="p-6 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 w-[400px] m-auto mt-10"
 >
-	<a href="/campaigns/new">
+	<a href="/create-campaign">
 		<div class="flex flex-col justify-center items-center bg-white">
 			<div class="text-3xl font-bold">+</div>
 			<span class="mb-2 text-2xl font-bold tracking-tight text-gray-900 whitespace-nowrap"
