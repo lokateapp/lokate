@@ -26,6 +26,7 @@ export const actions: Actions = {
 				message: 'Invalid password'
 			});
 		}
+
 		try {
 			// find user by key
 			// and validate password
