@@ -4,4 +4,4 @@
 	export let data: PageData;
 </script>
 
-{data.campaignId}
+<div>Campaign Name: {data.campaign.name}</div>
