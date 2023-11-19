@@ -1,7 +1,5 @@
 import type { InferSelectModel } from 'drizzle-orm';
-import { bigint, uniqueIndex, pgTable, varchar, uuid, text } from 'drizzle-orm/pg-core';
-
-// declaring enum in database
+import { bigint, uniqueIndex, pgTable, varchar, uuid, text, primaryKey } from 'drizzle-orm/pg-core';
 
 export const user = pgTable(
 	'auth_user',
@@ -48,6 +46,32 @@ export const key = pgTable('user_key', {
 		length: 255
 	})
 });
+
+export const beacons = pgTable('beacons', {
+	id: uuid('id').primaryKey(),
+	userId: varchar('user_id', { length: 15 })
+		.notNull()
+		.references(() => user.id)
+});
+
+export const campaignsToBeacons = pgTable(
+	'campaignsToBeacons',
+	{
+		campaignId: uuid('campaign_id')
+			.notNull()
+			.unique()
+			.references(() => campaigns.id),
+		beaconId: uuid('beacon_id')
+			.notNull()
+			.unique()
+			.references(() => beacons.id)
+	},
+	(table) => {
+		return {
+			pk: primaryKey({ columns: [table.campaignId, table.beaconId] })
+		};
+	}
+);
 
 export const campaigns = pgTable('campaigns', {
 	id: uuid('id').primaryKey(),
