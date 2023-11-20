@@ -15,14 +15,26 @@
 </script>
 
 <form method="POST" action="?/createCampaign">
-	<label>
-		Campaign name
-		<input name="name" type="text" />
-	</label>
-	<button>Create Campaign</button>
+	<div class="flex flex-col justify-center items-center mt-10 gap-10">
+		<h1 class="text-2xl font-bold tracking-tight text-gray-900 whitespace-nowrap">
+			Create new campaign
+		</h1>
+		<div class="form-control w-full max-w-xs">
+			<label class="label">
+				<span class="label-text">Campaign name</span>
+			</label>
+			<input
+				class="input input-bordered input-primary w-full max-w-xs join-item"
+				name="name"
+				type="text"
+				placeholder="Campaign name"
+			/>
+		</div>
+		<button class="btn btn-wide btn-lg btn-primary rounded-full">Create Campaign</button>
+	</div>
 </form>
 
-<div class="flex justify-center items-center mx-20 gap-10">
+<div class="flex justify-center items-center my-10 mx-20 gap-10">
 	<div class={beaconStyles(selectedBeacon, 'yellow')} on:click={() => (selectedBeacon = 'yellow')}>
 		<img src={yellowBeacon} />
 	</div>
