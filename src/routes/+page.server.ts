@@ -3,6 +3,18 @@ import { fail, redirect } from '@sveltejs/kit';
 
 import type { Actions, PageServerLoad } from './$types';
 
+export const load: PageServerLoad = async ({ locals }) => {
+	const session = await locals.auth.validate();
+	console.log("Session: ", session);
+	// if (!session) throw redirect(302, "/login");
+	if (!session) return {
+		authenticated: false
+	};
+	return {
+		authenticated: true
+	};
+};
+
 export const actions: Actions = {
 	logout: async ({ locals }) => {
 		const session = await locals.auth.validate();

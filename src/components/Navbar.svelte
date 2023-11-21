@@ -1,4 +1,6 @@
-<script>
+<script lang="ts">
+	import { enhance } from '$app/forms';
+
 	let dropdown = false;
 </script>
 
@@ -58,7 +60,10 @@
 						</a>
 					</li>
 					<li><a>Settings</a></li>
-					<li><a>Logout</a></li>
+					<!-- <form method="POST" action="?/logout" use:enhance> -->
+						<!-- <button class="btn">Sign out</button> -->
+						<!-- <input type="submit" value="Sign out" /> -->
+					<!-- </form> -->
 				</ul>
 			</div>
 		</div>

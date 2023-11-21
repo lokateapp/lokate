@@ -14,9 +14,10 @@
 		}}
 	>
 		<i class="fa-solid fa-plus fa-lg" />
-		<span class="text-2xl font-bold tracking-tight text-gray-900 whitespace-nowrap"
+		<span class="text-xl font-bold tracking-tight text-gray-900 dark:text-white whitespace-nowrap"
 			>Create new campaign</span
 		>
+		<!-- Create new campaign -->
 		<!-- </a> -->
 	</button>
 </div>
