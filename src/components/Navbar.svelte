@@ -60,10 +60,10 @@
 						</a>
 					</li>
 					<li><a>Settings</a></li>
-					<!-- <form method="POST" action="?/logout" use:enhance> -->
-						<!-- <button class="btn">Sign out</button> -->
+					<form method="POST">
+						<button class="btn" formaction="/logout" type="submit" role="button">Sign out</button>
 						<!-- <input type="submit" value="Sign out" /> -->
-					<!-- </form> -->
+					</form>
 				</ul>
 			</div>
 		</div>

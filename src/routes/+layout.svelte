@@ -8,12 +8,11 @@
 </script>
 
 <section class="bg-white min-h-screen flex flex-col">
-	<!-- if data.userId -->
-	{#if data.authenticated}
+	{#if data.user}
 		<Navbar />
 	{/if}
 	<slot />
-	{#if !data.authenticated}
+	{#if !data.user}
 		<div class="flex-grow flex flex-col justify-end">
 			<Footer />
 		</div>

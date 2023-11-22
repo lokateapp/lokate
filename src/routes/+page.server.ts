@@ -5,22 +5,16 @@ import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const session = await locals.auth.validate();
-	console.log("Session: ", session);
-	// if (!session) throw redirect(302, "/login");
-	if (!session) return {
-		authenticated: false
-	};
-	return {
-		authenticated: true
-	};
+	if (session) throw redirect(302, '/dashboard');
+	return {};
 };
 
-export const actions: Actions = {
-	logout: async ({ locals }) => {
-		const session = await locals.auth.validate();
-		if (!session) return fail(401);
-		await auth.invalidateSession(session.sessionId); // invalidate session
-		locals.auth.setSession(null); // remove cookie
-		throw redirect(302, '/login'); // redirect to login page
-	}
-};
+// export const actions: Actions = {
+// 	logout: async ({ locals }) => {
+// 		const session = await locals.auth.validate();
+// 		if (!session) return fail(401);
+// 		await auth.invalidateSession(session.sessionId); // invalidate session
+// 		locals.auth.setSession(null); // remove cookie
+// 		throw redirect(302, '/login'); // redirect to login page
+// 	}
+// };
