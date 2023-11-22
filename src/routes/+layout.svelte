@@ -11,7 +11,9 @@
 	{#if data.user}
 		<Navbar />
 	{/if}
-	<slot />
+	<div class="sm:ml-64">
+		<slot />
+	</div>
 	{#if !data.user}
 		<div class="flex-grow flex flex-col justify-end">
 			<Footer />

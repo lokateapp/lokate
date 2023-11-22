@@ -6,9 +6,6 @@ import { campaigns, type SelectCampaign } from '../../schema';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const session = await locals.auth.validate();
-	console.log(session);
-	if (!session) throw redirect(302, '/login');
-
 	const campaigns: SelectCampaign[] = await getCampaigns(session.user.userId);
 
 	return { campaigns };

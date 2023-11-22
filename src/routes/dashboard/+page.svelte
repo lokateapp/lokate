@@ -5,12 +5,11 @@
 	export let data: PageData;
 </script>
 
-
 <div class="flex justify-center items-center mt-10">
 	<button
 		class="btn items-center"
 		on:click={() => {
-			window.location.href = '/create-campaign';
+			window.location.href = window.location.href + '/create-campaign';
 		}}
 	>
 		<i class="fa-solid fa-plus fa-lg" />
@@ -27,7 +26,7 @@
 		<div
 			class="flex py-6 justify-center items-center mt-2 text-semibold text-xl border border-gray-200 rounded-lg shadow hover:bg-gray-100"
 		>
-			<a href={`/campaign/${campaign.id}`}>
+			<a href={`/dashboard/campaign/${campaign.id}`}>
 				<span class="text-ellipsis">{campaign.id}</span>
 			</a>
 		</div>
