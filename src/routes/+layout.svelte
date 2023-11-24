@@ -10,10 +10,13 @@
 <section class="bg-white min-h-screen flex flex-col">
 	{#if data.user}
 		<Navbar />
-	{/if}
-	<div class="sm:ml-64">
+		<div class="sm:ml-64">
+			<slot />
+		</div>
+	{:else}
 		<slot />
-	</div>
+	{/if}
+
 	{#if !data.user}
 		<div class="flex-grow flex flex-col justify-end">
 			<Footer />
