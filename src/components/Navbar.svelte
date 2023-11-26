@@ -219,15 +219,18 @@
 					tabindex="0"
 					class="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52"
 				>
-					<li>
+					<!-- <li>
 						<a class="justify-between">
 							Profile
 							<span class="badge">New</span>
 						</a>
 					</li>
-					<li><a>Settings</a></li>
+					<li><a>Settings</a></li> -->
 					<form method="POST">
-						<button class="btn" formaction="/logout" type="submit" role="button">Sign out</button>
+						<!-- action="/logout" -->
+						<button class="btn btn-link" formaction="/dashboard/logout" type="submit" role="button"
+							>Sign out</button
+						>
 						<!-- <input type="submit" value="Sign out" /> -->
 					</form>
 				</ul>

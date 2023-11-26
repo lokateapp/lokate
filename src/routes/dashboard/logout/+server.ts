@@ -4,6 +4,8 @@ import { fail, redirect } from '@sveltejs/kit';
 
 export const POST: RequestHandler = async ({ locals }) => {
 	const session = await locals.auth.validate();
+
+	console.log('logout: ', session);
 	if (!session) throw redirect(302, '/');
 	await auth.invalidateSession(session.sessionId); // invalidate session
 	locals.auth.setSession(null); // remove cookie
