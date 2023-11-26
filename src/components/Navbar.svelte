@@ -1,18 +1,104 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
+	import { page } from '$app/stores';
 
-	let dropdown = false;
+	const INITIAL_WIDTH = 4;
+	let sidebarVisible = false;
+	let width = INITIAL_WIDTH;
+	let routeName = '';
+
+	page.subscribe((value) => {
+		// console.log('page changed', value.route);
+		if (value.route.id) {
+			const splittedRouteName = value.route.id.split('/');
+			routeName = splittedRouteName[splittedRouteName.length - 1];
+			// console.log('routeName: ', routeName);
+		}
+	});
+
+	var routes = [
+		{
+			name: 'dashboard',
+			icon: 'fa-solid fa-home fa-lg',
+			link: '/dashboard'
+		},
+		{
+			name: 'analytics',
+			icon: 'fa-solid fa-chart-bar fa-lg',
+			link: '/dashboard/analytics'
+		}
+	];
+
+	var lastRoute = {
+		name: 'settings',
+		icon: 'fa-solid fa-gear fa-lg',
+		link: '/dashboard/settings'
+	};
 </script>
 
+<!-- -translate-x-full sm:translate-x-0 -->
 <aside
 	id="separator-sidebar"
-	class="fixed top-0 left-0 z-10 w-64 h-screen transition-transform -translate-x-full sm:translate-x-0"
+	class="fixed top-0 left-0 z-10 h-screen transition-transform"
+	style="width: {width}rem;"
 	aria-label="Sidebar"
+	on:mouseenter={() => {
+		// bind:clientWidth={width}
+		// console.log('mouse enter');
+		sidebarVisible = true;
+		width = 16;
+	}}
+	on:mouseleave={() => {
+		// console.log('mouse leave');
+		sidebarVisible = false;
+		width = INITIAL_WIDTH;
+	}}
 >
 	<div
 		class="h-full px-3 py-4 pt-20 overflow-y-auto bg-gray-50 dark:bg-gray-800 flex flex-col justify-between"
 	>
 		<ul class="space-y-2 font-medium">
+			{#each routes as route}
+				<!-- if route last item -->
+				<li>
+					<div class="flex flex-row items-center">
+						<button
+							class="btn btn-circle {routeName == route.name
+								? 'btn-primary btn-active'
+								: ''} {sidebarVisible ? 'pl-4 justify-start w-full' : ''}"
+							on:click={() => {
+								window.location.href = route.link;
+							}}
+						>
+							<i class=" {route?.icon}" />
+							{#if sidebarVisible}
+								<!-- first letter is upper -->
+								<span class="ms-3 capitalize">{route?.name}</span>
+							{/if}
+						</button>
+					</div>
+				</li>
+			{/each}
+		</ul>
+		<ul class="pt-4 mt-4 space-y-2">
+			<li>
+				<div class="flex flex-row items-center">
+					<button
+						class="btn btn-circle {routeName == lastRoute.name
+							? 'btn-primary btn-active'
+							: ''} {sidebarVisible ? 'pl-4 justify-start w-full' : ''}"
+						on:click={() => {
+							window.location.href = lastRoute.link;
+						}}
+					>
+						<i class=" {lastRoute.icon}" />
+						{#if sidebarVisible}
+							<span class="ms-3 capitalize">{lastRoute.name}</span>
+						{/if}
+					</button>
+				</div>
+			</li>
+		</ul>
+		<!-- <ul class="space-y-2 font-medium">
 			<li>
 				<a
 					href="/dashboard"
@@ -32,7 +118,9 @@
 							d="M12.5 0c-.157 0-.311.01-.565.027A1 1 0 0 0 11 1.02V10h8.975a1 1 0 0 0 1-.935c.013-.188.028-.374.028-.565A8.51 8.51 0 0 0 12.5 0Z"
 						/>
 					</svg>
-					<span class="ms-3">Dashboard</span>
+					{#if sidebarVisible}
+						<span class="ms-3">Dashboard</span>
+					{/if}
 				</a>
 			</li>
 			<li>
@@ -54,18 +142,19 @@
 					<span class="flex-1 ms-3 whitespace-nowrap">Analytics</span>
 				</a>
 			</li>
-		</ul>
-		<ul class="pt-4 mt-4 space-y-2 font-medium border-t border-gray-200 dark:border-gray-700">
+		</ul> -->
+		<!-- <ul class="pt-4 mt-4 space-y-2 font-medium border-t border-gray-200 dark:border-gray-700">
 			<li>
 				<a
 					href="#"
 					class="flex items-center p-2 text-gray-900 transition duration-75 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group"
 				>
 					<i class="fa-solid fa-gear fa-lg" />
+
 					<span class="ms-3">Settings</span>
 				</a>
 			</li>
-		</ul>
+		</ul> -->
 	</div>
 </aside>
 
@@ -96,12 +185,16 @@
 			aria-controls="separator-sidebar"
 			type="button"
 			class="inline-flex items-center p-2 mt-2 ms-3 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
+			on:click={() => {
+				// sidebar = !sidebar;
+				// separator-sidebar.classList.toggle('-translate-x-full');
+			}}
 		>
 			<span class="sr-only">Open sidebar</span>
 			<!-- <svg class="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"> -->
 			<!-- <path clip-rule="evenodd" fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"></path> -->
 			<!-- </svg> -->
-			<i class="fa-solid fa-xmark" />
+			<i class="fa-solid fa-bars" />
 		</button>
 
 		<div class="flex-1">

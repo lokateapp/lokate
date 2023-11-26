@@ -1,75 +1,101 @@
-<!-- <script lang="ts">
-    import type { PageData } from './$types';
-    
-    export let data: PageData;
-</script> -->
-
 <script lang="ts">
-	// import {d3} from
+	import type { PageData } from './$types';
+
+	import { browser } from '$app/environment';
 	import { onMount } from 'svelte';
-	import * as d3 from 'd3';
-	import data from './volcano.json';
+	import EChart from '../../../components/Chart.svelte';
+	import type { EChartsOption, LineSeriesOption } from 'echarts';
 
-	const n = data.width;
-	const m = data.height;
-	const width = 928;
-	const height = Math.round((m / n) * width);
-	const path = d3.geoPath().projection(d3.geoIdentity().scale(width / n));
-	const contours = d3.contours().size([n, m]);
-	const color = d3.scaleSequential(d3.interpolateTurbo).domain(d3.extent(data.values)).nice();
+	export let data: PageData;
 
-	let el: HTMLDivElement;
+	$: width = browser ? window.innerWidth / 2 : 600;
+	$: height = browser ? window.innerHeight / 2 : 600;
+
 	onMount(() => {
-		d3
-			// .select(el)
-			.select('#chart')
-			.append('svg')
-			// .selectAll("div")
-			.attr('width', width)
-			.attr('height', height)
-			.attr('viewBox', [0, 0, width, height])
-			.attr('style', 'max-width: 100%; height: auto;')
-			.append('g')
-			.attr('stroke', 'black')
-			.selectAll()
-			.data(color.ticks(20))
-			.join('path')
-			.attr('d', (d) => path(contours.contour(data.values, d)))
-			.attr('fill', color);
+		window.addEventListener('resize', () => {
+			width = browser ? window.innerWidth / 2 : 600;
+			height = browser ? window.innerHeight / 2 : 600;
+		});
 	});
 
-	// const svg = d3
-	// 	.create('svg')
-	// 	.attr('width', width)
-	// 	.attr('height', height)
-	// 	.attr('viewBox', [0, 0, width, height])
-	// 	.attr('style', 'max-width: 100%; height: auto;');
+	var seriesStyle: LineSeriesOption;
+	seriesStyle = {
+		symbolSize: 10,
+		lineStyle: {
+			width: 3
+		},
+		stack: 'Total',
+		type: 'line',
+		smooth: true
+	};
 
-	// svg
-	// 	.append('g')
-	// 	.attr('stroke', 'black')
-	// 	.selectAll()
-	// 	.data(color.ticks(20))
-	// 	.join('path')
-	// 	.attr('d', (d) => path(contours.contour(data.values, d)))
-	// 	.attr('fill', color);
+	var option: EChartsOption;
+	option = {
+		animation: true,
+		title: {
+			text: 'Campaigns Performance'
+		},
+		tooltip: {
+			trigger: 'axis'
+		},
+		legend: {
+			// data: ['Email', 'Union Ads', 'Video Ads', 'Direct', 'Search Engine']
+			data: ['Campaign1', 'Campaign2', 'Campaign3', 'Campaign4', 'Campaign5'],
 
-	// return svg.node();
-
-	// Plot.plot({
-	// 	color: {
-	// 		legend: true,
-	// 		label: 'Elevation (m)'
-	// 	},
-	// 	marks: [
-	// 		Plot.contour(data.values, {
-	// 			width: data.width,
-	// 			height: data.height,
-	// 			fill: Plot.identity,
-	// 			stroke: 'black'
-	// 		})
-	// 	]
-	// });
+			lineStyle: {
+				width: 3
+			}
+		},
+		grid: {
+			left: '3%',
+			right: '4%',
+			bottom: '3%',
+			containLabel: true
+		},
+		toolbox: {
+			feature: {
+				saveAsImage: {},
+				dataZoom: {
+					yAxisIndex: 'none'
+				}
+			}
+		},
+		xAxis: {
+			type: 'category',
+			boundaryGap: false,
+			data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+		},
+		yAxis: {
+			type: 'value'
+		},
+		series: [
+			{
+				name: 'Campaign1',
+				data: [120, 132, 101, 134, 90, 230, 210],
+				...seriesStyle
+			},
+			{
+				name: 'Campaign2',
+				data: [220, 182, 191, 234, 290, 330, 310],
+				...seriesStyle
+			},
+			{
+				name: 'Campaign3',
+				data: [150, 232, 201, 154, 190, 330, 410],
+				...seriesStyle
+			},
+			{
+				name: 'Campaign4',
+				data: [320, 332, 301, 334, 390, 330, 320],
+				...seriesStyle
+			},
+			{
+				name: 'Campaign5',
+				data: [820, 932, 901, 934, 1290, 1330, 1320],
+				...seriesStyle
+			}
+		]
+	};
 </script>
 
 <div class="">
@@ -86,9 +112,9 @@
 					<h3 class="text-base font-light text-gray-500 dark:text-gray-400">
 						Number of users this week
 					</h3>
-					<span class="text-xl font-bold leading-none text-gray-900 sm:text-2xl dark:text-white"
+					<!-- <span class="text-xl font-bold leading-none text-gray-900 sm:text-2xl dark:text-white"
 						>Heat Map</span
-					>
+					> -->
 				</div>
 				<div
 					class="flex items-center justify-end flex-1 text-base font-medium text-green-500 dark:text-green-400"
@@ -109,7 +135,19 @@
 				</div>
 			</div>
 			<!-- <div id="main-chart"></div> -->
-			<div bind:this={el} class="chart" id="chart" />
+			<!-- <div bind:this={el} class="chart" id="chart" /> -->
+
+			<div>
+				<EChart
+					id="main-chart"
+					theme="light"
+					bind:width
+					bind:height
+					{option}
+					notMerge={true}
+					lazyUpdate={true}
+				/>
+			</div>
 
 			<!-- Card Footer -->
 			<div
@@ -382,7 +420,7 @@
 						</ul>
 					</div>
 				</div>
-				<div date-rangepicker class="flex items-center space-x-4">
+				<div class="flex items-center space-x-4">
 					<div class="relative">
 						<div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
 							<svg

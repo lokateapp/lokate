@@ -10,7 +10,8 @@
 <section class="bg-white min-h-screen flex flex-col">
 	{#if data.user}
 		<Navbar />
-		<div class="sm:ml-64">
+		<!-- sm:ml-64 -->
+		<div class="ml-20">
 			<slot />
 		</div>
 	{:else}
