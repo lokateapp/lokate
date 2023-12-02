@@ -27,7 +27,7 @@
 			class="flex py-6 justify-center items-center mt-2 text-semibold text-xl border border-gray-200 rounded-lg shadow hover:bg-gray-100"
 		>
 			<a href={`/dashboard/campaign/${campaign.id}`}>
-				<span class="text-ellipsis">{campaign.id}</span>
+				<span class="text-ellipsis">{campaign.name}</span>
 			</a>
 		</div>
 	{/each}
