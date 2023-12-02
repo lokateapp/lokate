@@ -3,27 +3,31 @@
 
 	import { onMount } from 'svelte';
 
-	let canvas: HTMLCanvasElement | null = null;
-	let context: CanvasRenderingContext2D | null = null;
-	onMount(() => {
+	let Konva: any;
+	let layer: any;
+	let stage: any;
+	onMount(async () => {
+		Konva = (await import('konva')).default;
 		const parent: HTMLCanvasElement = document.getElementById('parent')! as HTMLCanvasElement;
-		const canvasElement: HTMLCanvasElement = document.getElementById(
-			'canvas'
-		)! as HTMLCanvasElement;
 
-		console.log(parent.clientHeight);
+		var konvaStage = new Konva.Stage({
+			container: 'canvas', // id of container <div>
+			width: parent.clientWidth,
+			height: parent.clientHeight
+		});
+		stage = konvaStage;
 
-		canvasElement.setAttribute('width', parent.clientWidth.toString());
-		canvasElement.setAttribute('height', parent.clientHeight.toString());
+		// then create layer
+		var konvaLayer = new Konva.Layer();
 
-		console.log('asdads');
+		// add the layer to the stage
+		stage.add(konvaLayer);
 
-		const ctx = canvasElement.getContext('2d')!;
-		context = ctx;
-		canvas = canvasElement;
+		// draw the image
+		konvaLayer.draw();
+		layer = konvaLayer;
 
-		ctx.fillStyle = 'green';
-		ctx.fillRect(10, 10, 150, 100);
+		stage.on('pointerdown', maybeAddBeacon);
 	});
 
 	const BEACON_RADIUS = 15;
@@ -35,82 +39,36 @@
 
 	let beacons: Beacon[] = [];
 
-	function handleClick(event: any) {
-		console.log(event);
+	function maybeAddBeacon(event: any) {
+		if (event.target == stage) {
+			let pos = stage.getPointerPosition();
+			console.log(pos);
 
-		let { x, y } = getMousePosition(canvas!, event);
+			var beacon = new Konva.Circle({
+				x: pos.x,
+				y: pos.y,
+				radius: 15,
+				fill: 'red',
+				draggable: true
+			});
 
-		addBeacon(context!, x, y);
-	}
+			beacon.on('pointerdblclick', removeBeacon);
 
-	function getMousePosition(canvas: HTMLCanvasElement, evt: any) {
-		var rect = canvas.getBoundingClientRect();
-		return {
-			x: evt.clientX - rect.left,
-			y: evt.clientY - rect.top
-		};
-	}
+			layer.add(beacon);
+			layer.draw();
 
-	function findBeacon(x: number, y: number): any {
-		for (let [index, beacon] of beacons.entries()) {
-			if (distance(beacon.x, beacon.y, x, y) <= BEACON_RADIUS) {
-				return [beacon, index];
-			}
-		}
-
-		return null;
-	}
-
-	function distance(x1: number, y1: number, x2: number, y2: number) {
-		return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
-	}
-
-	function canAddBeacon() {}
-
-	function maybeRemoveBeacon(ctx: CanvasRenderingContext2D, x: number, y: number) {
-		// check if there is a beacon there
-		let foundBeacon = findBeacon(x, y);
-		if (foundBeacon) {
-			let [beacon, index] = foundBeacon;
-
-			// remove
-			console.log('removing');
-
-			ctx.clearRect(
-				beacon.x - BEACON_RADIUS,
-				beacon.y - BEACON_RADIUS,
-				BEACON_RADIUS * 3,
-				BEACON_RADIUS * 3
-			);
-
-			beacons.splice(index, 1);
+			beacons.push({ x: pos.x, y: pos.y });
 		}
 	}
 
-	function addBeacon(ctx: CanvasRenderingContext2D, x: number, y: number) {
-		console.log({ x, y });
-
-		ctx.beginPath();
-		ctx.arc(x, y, BEACON_RADIUS, 0, 2 * Math.PI);
-		ctx.fillStyle = 'red';
-		ctx.fill();
-
-		beacons.push({ x, y });
-	}
-
-	function handleMouseDown(event: any) {
-		if (event.button == 2) {
-			let { x, y } = getMousePosition(canvas!, event);
-			maybeRemoveBeacon(context!, x, y);
-			console.log('asdsad');
-		}
-		event.preventDefault();
+	function removeBeacon(event: any) {
+		event.currentTarget.destroy();
 	}
 </script>
 
-<div class="relative max-w-max" id="parent" on:mousedown={handleMouseDown}>
+<div class="relative max-w-max" id="parent">
 	<img src={storePlan} width="600" />
-	<canvas on:click={handleClick} id="canvas" class="absolute top-0" oncontextmenu="return false" />
+	<div id="canvas" class="absolute top-0" oncontextmenu="return false" />
 </div>
 
 <style>
