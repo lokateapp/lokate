@@ -1,15 +1,16 @@
 <script lang="ts">
 	import storePlan from '$lib/assets/store_plan.webp';
-	import yellowBeacon from '$lib/assets/yellowbeacon.png';
-
+	// import yellowBeacon from '$lib/assets/yellowbeacon.png';
+	import BeaconSvg from '$lib/assets/beacon.svg';
 	import { onMount } from 'svelte';
-	// import Konva from 'konva';
 
-	let Konva: any;
-	// let layer: Konva.Layer;
-	// let stage: Konva.Stage;
-	let layer: any;
-	let stage: any;
+	import type KonvaType from 'konva';
+
+	let Konva: typeof KonvaType;
+	let layer: KonvaType.Layer;
+	let stage: KonvaType.Stage;
+	// let layer: any;
+	// let stage: any;
 	let rightSideContent: boolean = false;
 	let rangeOpen: boolean = false;
 	let range: number = 1;
@@ -36,10 +37,64 @@
 		layer = konvaLayer;
 
 		stage.on('pointerdown', maybeAddBeacon);
+
+		// add stage a background image
+		var imageObj = new Image();
+		imageObj.src = storePlan;
+		// imageObj.onload = function () {
+		// 	// change background color to red
+		// 	var background = new Konva.Image({
+		// 		x: 0,
+		// 		y: 0,
+		// 		image: imageObj,
+		// 		width: stage.width(),
+		// 		height: stage.height()
+		// 	});
+
+		// 	// add the shape to the layer
+		// 	konvaLayer.add(background);
+		// 	background.moveToBottom();
+		// 	konvaLayer.draw();
+		// };
+
+		// var scaleBy = 1.01;
+
+		// stage.on('wheel', (e : any) => {
+		// 	// stop default scrolling
+		// 	e.evt.preventDefault();
+		// 	var oldScale = stage.scaleX();
+		// 	var pointer = stage.getPointerPosition();
+		// 	if (!pointer) {
+		// 		return;
+		// 	}
+		// 	var mousePointTo = {
+		// 	x: (pointer.x - stage.x()) / oldScale,
+		// 	y: (pointer.y - stage.y()) / oldScale,
+		// 	};
+		// 	// how to scale? Zoom in? Or zoom out?
+		// 	let direction = e.evt.deltaY > 0 ? 1 : -1;
+		// 	// when we zoom on trackpad, e.evt.ctrlKey is true
+		// 	// in that case lets revert direction
+		// 	if (e.evt.ctrlKey) {
+		// 	direction = -direction;
+		// 	}
+		// 	var newScale = direction > 0 ? oldScale * scaleBy : oldScale / scaleBy;
+		// 	stage.scale({ x: newScale, y: newScale });
+		// 	var newPos = {
+		// 	x: pointer.x - mousePointTo.x * newScale,
+		// 	y: pointer.y - mousePointTo.y * newScale,
+		// 	};
+		// 	stage.position(newPos);
+		// });
 	});
 
 	const BEACON_RADIUS = 15;
 	const BEACON_AREA_RADIUS = 100;
+
+	const BEACON_RANGE = 10;
+
+	// const IMAGE_W = 20;
+	// const IMAGE_H = 25;
 	type Beacon = {
 		x: number;
 		y: number;
@@ -50,7 +105,7 @@
 	function maybeAddBeacon(event: any) {
 		if (event.target == stage) {
 			rangeOpen = true;
-			let pos = stage.getPointerPosition();
+			let pos = stage.getPointerPosition() || { x: 0, y: 0 };
 			console.log('pos:', pos);
 
 			// var beacon = new Konva.Circle({
@@ -62,67 +117,121 @@
 			// });
 
 			var imageObj = new Image();
-			imageObj.src = yellowBeacon;
+			imageObj.src = BeaconSvg;
+			imageObj.onload = function () {
+				// change background color to red
+				const IMAGE_W = imageObj.width / 7;
+				const IMAGE_H = imageObj.height / 7;
+				var beacon = new Konva.Image({
+					x: pos.x,
+					y: pos.y,
+					offsetX: IMAGE_W,
+					offsetY: IMAGE_H,
+					image: imageObj,
+					// crop: {
+					// 	x: 200,
+					// 	y: 100,
+					// 	width: 300,
+					// 	height: 300
+					// },
+					width: IMAGE_W * 2,
+					height: IMAGE_H * 2,
+					draggable: true,
+					// not draggable if outside of the area
+					dragBoundFunc: function (pos: any) {
+						var x = pos.x;
+						var y = pos.y;
+						const DELTA = 30; //BEACON_AREA_RADIUS
+						if (x < DELTA) {
+							x = DELTA;
+						}
+						if (x > stage.width() - DELTA) {
+							x = stage.width() - DELTA;
+						}
+						if (y < DELTA) {
+							y = DELTA;
+						}
+						if (y > stage.height() - DELTA) {
+							y = stage.height() - DELTA;
+						}
+						return {
+							x: x,
+							y: y
+						};
+					}
+				});
 
-			var beacon = new Konva.Image({
-				x: pos.x,
-				y: pos.y,
-				image: imageObj,
-				// crop: {
-				// 	x: 200,
-				// 	y: 100,
-				// 	width: 300,
-				// 	height: 300
-				// },
-				width: 50,
-				height: 50,
-				draggable: true
-			});
+				var padding = 20;
+				var w = imageObj.width;
+				var h = imageObj.height;
 
-			var circleRange = new Konva.Circle({
-				x: pos.x,
-				y: pos.y,
-				radius: BEACON_RADIUS * 3,
-				stroke: 'red',
-				strokeWidth: 1,
-				fill: 'red',
-				opacity: 0.2
-			});
+				// get the aperture we need to fit by taking padding off the stage size.
 
-			// add the shape to the layer
-			beacon.on('pointerdblclick', removeBeacon);
+				var targetW = stage.getSize().width - 2 * padding;
+				var targetH = stage.getSize().height - 2 * padding;
 
-			beacon.on('pointerclick', (event: any) => {
-				rightSideContent = true;
-				// console.log(event);
-				// event.target.fill('blue');
-				// layer.draw();
-			});
+				// compute the ratios of image dimensions to aperture dimensions
+				var widthFit = targetW / w;
+				var heightFit = targetH / h;
 
-			beacon.on('pointerenter', (event: any) => {
-				// scale up
-				event.target.scale({ x: 1.1, y: 1.1 });
+				// compute a scale for best fit and apply it
+				var scale = widthFit > heightFit ? heightFit : widthFit;
+
+				var new_w = w * scale;
+				var new_h = h * scale;
+
+				console.log('new_w:', new_w, 'new_h:', new_h, ' old_w:', w, ' old_h:', h, ' scale:', scale);
+
+				// beacon.size({
+				// 	width: new_w,
+				// 	height: new_h
+				// });
+
+				var circleRange = new Konva.Circle({
+					x: pos.x,
+					y: pos.y,
+					radius: BEACON_RANGE * 1,
+					stroke: 'red',
+					strokeWidth: 1,
+					fill: 'red',
+					opacity: 0.2
+				});
+
+				// add the shape to the layer
+				beacon.on('pointerdblclick', removeBeacon);
+
+				beacon.on('pointerclick', (event: any) => {
+					rightSideContent = true;
+					// console.log(event);
+					// event.target.fill('blue');
+					// layer.draw();
+				});
+
+				beacon.on('pointerenter', (event: any) => {
+					// scale up
+					event.target.scale({ x: 1.1, y: 1.1 });
+					layer.draw();
+				});
+
+				beacon.on('pointerleave', (event: any) => {
+					// scale down
+					event.target.scale({ x: 1, y: 1 });
+					layer.draw();
+				});
+
+				beacon.on('dragmove', (event: any) => {
+					// console.log(event);
+					circleRange.x(event.target.x());
+					circleRange.y(event.target.y());
+					layer.draw();
+				});
+
+				layer.add(circleRange);
+				layer.add(beacon);
 				layer.draw();
-			});
 
-			beacon.on('pointerleave', (event: any) => {
-				// scale down
-				event.target.scale({ x: 1, y: 1 });
-				layer.draw();
-			});
-
-			beacon.on('dragmove', (event: any) => {
-				// console.log(event);
-				circleRange.x(event.target.x());
-				circleRange.y(event.target.y());
-				layer.draw();
-			});
-
-			layer.add(circleRange);
-			layer.add(beacon);
-			layer.draw();
-
-			beacons.push({ x: pos.x, y: pos.y });
+				beacons.push({ x: pos.x, y: pos.y });
+			};
 		}
 	}
 
@@ -149,21 +258,44 @@
 		}
 		// update the circle range
 		circleRange.setAttrs({
-			radius: BEACON_RADIUS * range
+			radius: BEACON_RANGE * range
 		});
 
 		layer.draw();
 	}
 
 	function removeBeacon(event: any) {
+		// find circle range
+
+		var circleRange = layer.find('Circle').find((circle: any) => {
+			return circle.x() == event.target.x() && circle.y() == event.target.y();
+		});
+
+		if (!circleRange) {
+			event.currentTarget.destroy();
+			return;
+		}
+
+		circleRange.destroy();
 		event.currentTarget.destroy();
+		layer.draw();
 	}
 </script>
 
 <div class="grid gap-4 grid-cols-2">
 	<div class="relative max-w-max" id="parent">
 		<img src={storePlan} width="600" alt="Store plan" />
+		<!-- <div class="w-full h-full absolute top-0 left-0 bg-red-500" /> -->
 		<div id="canvas" class="absolute top-0" oncontextmenu="return false" />
+		<!-- <Stage config={{ width: window.innerWidth, height: window.innerHeight }}>
+			<Layer >
+				{#each beacons as beacon}
+					<Circle config={{ x: beacon.x, y: beacon.y, radius: BEACON_RADIUS, fill: 'red' }} />
+				{/each}
+				
+			</Layer>
+		  </Stage> -->
+		<!-- <div>tesg</div> -->
 		<div
 			class="absolute top-0 left-0 w-full h-full bg-gray-900 bg-opacity-50"
 			style={rangeOpen ? 'display: block' : 'display: none'}
@@ -192,7 +324,14 @@
 								placeholder="Range"
 								bind:value={range}
 							/> -->
-							<input type="range" min="1" max="30" class="range" step="0.5" bind:value={range} />
+							<input
+								type="range"
+								min="1"
+								max="30"
+								class="range range-primary range-sm btn-wide"
+								step="0.5"
+								bind:value={range}
+							/>
 							<div class="flex justify-center items-center">
 								<span
 									class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white whitespace-nowrap"
@@ -217,22 +356,20 @@
 			</div>
 		</div>
 	</div>
-	<div
-		class="card w-full bg-base-100 shadow-xl"
-		style={rightSideContent ? 'display: block' : 'display: none'}
-	>
-		<div class="card-body">
-			<h2 class="card-title">
-				<button
-					class="btn btn-ghost btn-circle avatar"
-					on:click={() => {
-						rightSideContent = false;
-					}}
-				>
-					<i class="fa-solid fa-lg fa-xmark" />
-				</button>
-				Beacon
-			</h2>
+	<!-- modal right -->
+</div>
+<dialog id="my_modal_1" class="modal {rightSideContent ? 'modal-open' : ''}">
+	<div class="modal-box absolute top-0 h-full max-h-full right-0 w-1/2">
+		<div class="w-full bg-base-100">
+			<button
+				class="btn btn-ghost btn-circle avatar"
+				on:click={() => {
+					rightSideContent = false;
+				}}
+			>
+				<i class="fa-solid fa-lg fa-xmark" />
+			</button>
+			<h2 class="">Beacon</h2>
 			<p>Beacon ID: 123456</p>
 			<p>Beacon UUID: 123456</p>
 			<p>Beacon Major: 123456</p>
@@ -256,12 +393,12 @@
 			<p>Beacon Location Tags: 123456</p>
 		</div>
 		<!-- <figure class="px-10 pt-10">
-			<img
-				src="https://daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.jpg"
-				alt="Shoes"
-				class="rounded-xl"
-			/>
-		</figure> -->
+		<img
+			src="https://daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.jpg"
+			alt="Shoes"
+			class="rounded-xl"
+		/>
+	</figure> -->
 		<div class="card-body">
 			<h2 class="card-title">Campaigns</h2>
 			<p>Beacon ID: 123456</p>
@@ -270,7 +407,7 @@
 			</div>
 		</div>
 	</div>
-</div>
+</dialog>
 
 <style>
 </style>

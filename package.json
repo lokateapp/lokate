@@ -41,11 +41,13 @@
 	"dependencies": {
 		"@fortawesome/fontawesome-free": "^6.4.2",
 		"@lucia-auth/adapter-postgresql": "^2.0.1",
+		"canvas": "^2.11.2",
 		"dotenv": "^16.3.1",
 		"drizzle-orm": "^0.29.0",
 		"echarts": "^5.4.3",
 		"konva": "^9.2.3",
 		"lucia": "^2.7.1",
-		"postgres": "^3.4.0"
+		"postgres": "^3.4.0",
+		"svelte-konva": "^0.3.1"
 	}
 }
