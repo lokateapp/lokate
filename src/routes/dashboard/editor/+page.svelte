@@ -9,6 +9,7 @@
 	let Konva: typeof KonvaType;
 	let layer: KonvaType.Layer;
 	let stage: KonvaType.Stage;
+	let backgroundImage: KonvaType.Image;
 	// let layer: any;
 	// let stage: any;
 	let rightSideContent: boolean = false;
@@ -17,12 +18,17 @@
 
 	onMount(async () => {
 		Konva = (await import('konva')).default;
-		const parent: HTMLCanvasElement = document.getElementById('parent')! as HTMLCanvasElement;
-
+		// const parent: HTMLCanvasElement = document.getElementById('parent')! as HTMLCanvasElement;
+		// console.log('parent:', parent.clientWidth, parent.clientHeight);
+		const clientHeight = document.documentElement.clientHeight;
+		const clientWidth = document.documentElement.clientWidth;
 		var konvaStage = new Konva.Stage({
 			container: 'canvas', // id of container <div>
-			width: parent.clientWidth,
-			height: parent.clientHeight
+			width: 400,
+			height: 800
+			// height: 400,
+			// width: parent.clientWidth,
+			// height: parent.clientHeight
 		});
 		stage = konvaStage;
 
@@ -36,29 +42,28 @@
 		konvaLayer.draw();
 		layer = konvaLayer;
 
-		stage.on('pointerdown', maybeAddBeacon);
-
 		// add stage a background image
 		var imageObj = new Image();
 		imageObj.src = storePlan;
-		// imageObj.onload = function () {
-		// 	// change background color to red
-		// 	var background = new Konva.Image({
-		// 		x: 0,
-		// 		y: 0,
-		// 		image: imageObj,
-		// 		width: stage.width(),
-		// 		height: stage.height()
-		// 	});
+		imageObj.onload = function () {
+			// change background color to red
+			backgroundImage = new Konva.Image({
+				x: 0,
+				y: 0,
+				image: imageObj,
+				width: stage.width(),
+				height: stage.height()
+			});
 
-		// 	// add the shape to the layer
-		// 	konvaLayer.add(background);
-		// 	background.moveToBottom();
-		// 	konvaLayer.draw();
-		// };
+			// add the shape to the layer
+			konvaLayer.add(backgroundImage);
+			backgroundImage.moveToBottom();
+			konvaLayer.draw();
+		};
+
+		stage.on('pointerdown', maybeAddBeacon);
 
 		// var scaleBy = 1.01;
-
 		// stage.on('wheel', (e : any) => {
 		// 	// stop default scrolling
 		// 	e.evt.preventDefault();
@@ -103,7 +108,8 @@
 	let beacons: Beacon[] = [];
 
 	function maybeAddBeacon(event: any) {
-		if (event.target == stage) {
+		console.log('event:', event);
+		if (event.target == backgroundImage) {
 			rangeOpen = true;
 			let pos = stage.getPointerPosition() || { x: 0, y: 0 };
 			console.log('pos:', pos);
@@ -282,10 +288,13 @@
 	}
 </script>
 
+<!-- grid gap-4 grid-cols-2 
+	flex flex-row items-center justify-center bg-orange-900 p-10
+-->
 <div class="grid gap-4 grid-cols-2">
-	<div class="relative max-w-max" id="parent">
-		<img src={storePlan} width="600" alt="Store plan" />
-		<!-- <div class="w-full h-full absolute top-0 left-0 bg-red-500" /> -->
+	<!-- <div class="bg-slate-200 w-10 h-10"></div> -->
+	<div class="relative max-w-max " id="parent">
+		<!-- <img src={storePlan} width="600" alt="Store plan" /> -->
 		<div id="canvas" class="absolute top-0" oncontextmenu="return false" />
 		<!-- <Stage config={{ width: window.innerWidth, height: window.innerHeight }}>
 			<Layer >
@@ -294,10 +303,10 @@
 				{/each}
 				
 			</Layer>
-		  </Stage> -->
-		<!-- <div>tesg</div> -->
-		<div
-			class="absolute top-0 left-0 w-full h-full bg-gray-900 bg-opacity-50"
+		  </Stage> -->		
+	</div>
+	<div
+			class="relative top-0 left-0 w-full h-full bg-gray-900 bg-opacity-50"
 			style={rangeOpen ? 'display: block' : 'display: none'}
 		>
 			<div class="flex justify-center items-center h-full">
@@ -355,8 +364,6 @@
 				</div>
 			</div>
 		</div>
-	</div>
-	<!-- modal right -->
 </div>
 <dialog id="my_modal_1" class="modal {rightSideContent ? 'modal-open' : ''}">
 	<div class="modal-box absolute top-0 h-full max-h-full right-0 w-1/2">
