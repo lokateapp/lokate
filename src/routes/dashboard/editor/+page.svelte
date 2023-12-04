@@ -26,12 +26,15 @@
 		Button,
 		Label,
 		Input,
-
-		MultiSelect
-
+		MultiSelect,
+		Badge,
+		ImagePlaceholder,
+		Range,
+		Toggle
 	} from 'flowbite-svelte';
 
 	let selectedRows: number[] = [0, 1, 2];
+	let editRow: number;
 	const items = [
 		{
 			name: 'Campaign 1',
@@ -43,7 +46,9 @@
 					position: {
 						x: 100,
 						y: 100
-					}
+					},
+					range: 10,
+					status: 'active'
 				},
 				{
 					id: 2,
@@ -51,7 +56,9 @@
 					position: {
 						x: 200,
 						y: 200
-					}
+					},
+					range: 2,
+					status: 'active'
 				},
 				{
 					id: 3,
@@ -59,10 +66,14 @@
 					position: {
 						x: 300,
 						y: 300
-					}
+					},
+					range: 1,
+					status: 'active'
 				}
 			],
-			created: '2021-09-01'
+			created: '2021-09-01',
+			status: 'active',
+			isCompleted: true
 		},
 		{
 			name: 'Campaign 2',
@@ -71,29 +82,28 @@
 				{
 					id: 1,
 					name: 'Beacon 1',
-					position: {
-						x: 100,
-						y: 100
-					}
+					position: null,
+					range: 10,
+					status: 'active'
 				},
 				{
 					id: 2,
 					name: 'Beacon 2',
-					position: {
-						x: 200,
-						y: 200
-					}
+					position: null,
+					range: 10,
+					status: 'active'
 				},
 				{
 					id: 3,
 					name: 'Beacon 3',
-					position: {
-						x: 300,
-						y: 300
-					}
+					position: null,
+					range: 5,
+					status: 'not-active'
 				}
 			],
-			created: '2021-09-01'
+			created: '2021-09-01',
+			status: 'not-active',
+			isCompleted: false
 		},
 		{
 			name: 'Campaign 3',
@@ -105,7 +115,9 @@
 					position: {
 						x: 100,
 						y: 100
-					}
+					},
+					range: 5,
+					status: 'not-active'
 				},
 				{
 					id: 2,
@@ -113,7 +125,9 @@
 					position: {
 						x: 200,
 						y: 200
-					}
+					},
+					range: 10,
+					status: 'not-active'
 				},
 				{
 					id: 3,
@@ -121,13 +135,16 @@
 					position: {
 						x: 300,
 						y: 300
-					}
+					},
+					range: 5,
+					status: 'active'
 				}
 			],
-			created: '2021-09-01'
+			created: '2021-09-01',
+			status: 'not-active',
+			isCompleted: true
 		}
 	];
-
 
 	let selectedBeaconsForNewCampaign: any[] = [];
 	let availableBeacons = [
@@ -315,7 +332,7 @@
 		y: number;
 	};
 
-	let beacons: Beacon[] = [];
+	let beaconsMap: Beacon[] = [];
 
 	function maybeAddBeacon(event: any) {
 		console.log('event:', event);
@@ -490,7 +507,7 @@
 				layer.add(beacon);
 				layer.draw();
 
-				beacons.push({ x: pos.x, y: pos.y });
+				beaconsMap.push({ x: pos.x, y: pos.y });
 			});
 		}
 	}
@@ -559,8 +576,8 @@
 
 <!-- <Table source={tableSimple} interactive={true}/> -->
 
-<div class="grid gap-4 grid-cols-3">
-	<div class="flex flex-col justify-center items-center gap-5">
+<div class="grid gap-4 grid-cols-2">
+	<div class="flex flex-col gap-5">
 		<Table hoverable={true} shadow>
 			<TableHead>
 				<TableBodyCell class="!p-4">
@@ -578,6 +595,7 @@
 				<TableHeadCell>Campaign name</TableHeadCell>
 				<TableHeadCell>Beacons</TableHeadCell>
 				<TableHeadCell>Created</TableHeadCell>
+				<TableHeadCell>Status</TableHeadCell>
 				<TableHeadCell>
 					<span class="sr-only">Edit</span>
 				</TableHeadCell>
@@ -586,13 +604,27 @@
 				{#each items as item, i}
 					<TableBodyRow
 						on:click={(event) => {
-							console.log('event:', event);
+							// console.log('event:',);
 							toggleRow(i);
 						}}
 						class={selectedRows.includes(i) ? ' bg-gray-300' : 'bg-white'}
 					>
 						<TableBodyCell class="!p-4">
-							<Checkbox checked={selectedRows.includes(i)} />
+							<!-- <Checkbox checked={selectedRows.includes(i)} /> -->
+							<label class="swap">
+								<!-- this hidden checkbox controls the state -->
+								<input
+									type="checkbox"
+									class="hidden"
+									checked={selectedRows.includes(i)}
+									on:change={() => {
+										toggleRow(i);
+									}}
+								/>
+
+								<i class="swap-on fa-solid fa-eye fa-xl" />
+								<i class="swap-off fa-solid fa-eye-slash fa-xl" />
+							</label>
 						</TableBodyCell>
 						<TableBodyCell>{item.name}</TableBodyCell>
 
@@ -612,17 +644,128 @@
 						</TableBodyCell>
 						<TableBodyCell>{item.created}</TableBodyCell>
 						<TableBodyCell>
+							{#if item.status == 'active'}
+								<Badge rounded color="green">Active</Badge>
+								<!-- {:else if item.status == 'not-completed'}
+								<Badge rounded color="yellow">Not-Completed</Badge> -->
+							{:else}
+								<Badge rounded color="red">Not-Active</Badge>
+							{/if}
+
+							{#if !item.isCompleted}
+								<div class="tooltip tooltip-top" data-tip="There are beacons without location">
+									<Badge rounded color="yellow" class="!p-3">
+										<i class="fa-solid fa-exclamation fa-lg" />
+
+										<span class="sr-only">Icon description</span>
+									</Badge>
+								</div>
+							{/if}
+						</TableBodyCell>
+						<TableBodyCell>
 							<Button
 								color="alternative"
 								pill
 								on:click={() => {
 									console.log('Edit');
+									if (editRow === i) {
+										editRow = -1;
+									} else {
+										editRow = i;
+									}
 								}}>Edit</Button
 							>
 
 							<!-- <a href="/dashboard" class="font-medium text-primary-600 hover:underline dark:text-primary-500">Edit</a> -->
 						</TableBodyCell>
 					</TableBodyRow>
+					{#if editRow === i}
+						<!-- <TableBodyCell colspan="4" class="p-0"> -->
+
+						<TableBodyRow>
+							<TableBodyCell colspan="6" class="p-3">
+								<div class="flex flex-row justify-between items-center">
+									<div class="mb-2">
+										<Label for="campaign-name" class="block mb-2">Campaign Name</Label>
+										<Input id="campaign-name" placeholder={item.name} bind:value={item.name} />
+									</div>
+									<div>
+										<Button color="alternative" pill on:click={() => {}}>
+											<i class="fa-solid fa-plus fa-lg me-2" />
+											Add new beacon
+										</Button>
+									</div>
+								</div>
+								<Table>
+									<TableHead>
+										<TableHeadCell>Beacon ID</TableHeadCell>
+										<TableHeadCell>Name</TableHeadCell>
+										<TableHeadCell>Range</TableHeadCell>
+										<TableHeadCell>Status</TableHeadCell>
+									</TableHead>
+									{#each item.beacons as beacon, beacon_index}
+										<TableBodyRow>
+											<TableBodyCell>{beacon.id}</TableBodyCell>
+											<TableBodyCell>{beacon.name}</TableBodyCell>
+											<TableBodyCell>
+												<Label>Range steps</Label>
+												<!-- bind:value={stepValue} -->
+												<Range
+													id="range-steps"
+													min={MIN_RANGE_BEACON}
+													max={MAX_RANGE_BEACON}
+													bind:value={beacon.range}
+													step="0.5"
+												/>
+												<p>Value: {beacon.range}</p>
+											</TableBodyCell>
+											<!-- <TableBodyCell>
+										{#if beacon.status == 'active'}
+											<Badge rounded color="green">Active</Badge>
+										{:else}
+											<Badge rounded color="red">Not-Active</Badge>
+										{/if}
+									</TableBodyCell> -->
+											<TableBodyCell>
+												{#if beacon.status == 'active'}
+													<Toggle color="green" checked />
+												{:else}
+													<Toggle color="green" />
+												{/if}
+											</TableBodyCell>
+											<TableBodyCell>
+												{#if beacon.position != undefined}
+													<Button color="alternative" pill on:click={() => {}}
+														>Change Location</Button
+													>
+												{:else}
+													<Button color="alternative" pill on:click={() => {}}>Add Location</Button>
+												{/if}
+											</TableBodyCell>
+											<TableBodyCell>
+												<Button color="red" pill on:click={() => {}}>Remove</Button>
+											</TableBodyCell>
+										</TableBodyRow>
+									{/each}
+								</Table>
+								<!-- <div class="px-2 py-3">
+									<ImagePlaceholder />
+									<div>Lorem, ipsum dolor sit amet consectetur adipisicing elit. Quibusdam architecto quaerat dolor facere suscipit nobis consequuntur excepturi nulla sed similique quos quas possimus obcaecati asperiores, doloremque explicabo iusto itaque quia!</div>
+								</div> -->
+							</TableBodyCell>
+						</TableBodyRow>
+						<!-- <ListBox multiple>
+								{#each item.beacons as beacon}
+									<ListBoxItem bind:group={selectedCampaignsId} name="medium" value={beacon.id}>
+										{
+											'Id: ' + beacon.id + ' Name: ' + 
+											beacon.name
+										}
+									</ListBoxItem>
+								{/each}
+							</ListBox> -->
+						<!-- </TableBodyCell> -->
+					{/if}
 				{/each}
 			</TableBody>
 		</Table>
@@ -641,7 +784,7 @@
 	<!-- <div class="bg-slate-200 w-10 h-10"></div> -->
 	<div class="relative max-w-fit" id="parent">
 		<!-- <img src={storePlan} width="600" alt="Store plan" /> -->
-		<div id="canvas" class="absolute top-0" oncontextmenu="return false" />
+		<div id="canvas" class="" oncontextmenu="return false" />
 		<!-- <Stage config={{ width: window.innerWidth, height: window.innerHeight }}>
 			<Layer >
 				{#each beacons as beacon}
@@ -703,7 +846,7 @@
 				<button
 					class="btn btn-primary"
 					on:click={() => {
-						addRangeToBeacon(beacons[beacons.length - 1]);
+						addRangeToBeacon(beaconsMap[beaconsMap.length - 1]);
 						rangeOpen = false;
 					}}
 				>
@@ -787,7 +930,7 @@
 				<button
 					class="btn btn-primary"
 					on:click={() => {
-						addRangeToBeacon(beacons[beacons.length - 1]);
+						addRangeToBeacon(beaconsMap[beaconsMap.length - 1]);
 					}}>Apply</button
 				>
 			</div>
@@ -809,8 +952,13 @@
     </label>
 </div>  -->
 
-
-<Modal title="Create a new campaign" bind:open={isNewCampaignModalOpen} autoclose outsideclose>
+<Modal
+	title="Create a new campaign"
+	bind:open={isNewCampaignModalOpen}
+	size="lg"
+	autoclose
+	outsideclose
+>
 	<div class="mb-6">
 		<Label for="campaign-name" class="block mb-2">Campaign Name</Label>
 		<Input id="campaign-name" placeholder="Campaign Name" />
@@ -819,14 +967,27 @@
 	<Label>
 		Select beacons for this campaign
 		<MultiSelect items={availableBeacons} bind:value={selectedBeaconsForNewCampaign} />
-	  </Label>
+	</Label>
+
+	{#each selectedBeaconsForNewCampaign as selectedBeacon}
+		{selectedBeacon.name}
+		<Label>Range steps</Label>
+		<!-- bind:value={stepValue} -->
+		<Range
+			id="range-steps"
+			min={MIN_RANGE_BEACON}
+			max={MAX_RANGE_BEACON}
+			bind:value={selectedBeacon.range}
+			step="0.5"
+		/>
+		<p>Value: {selectedBeacon.range}</p>
+	{/each}
 
 	<svelte:fragment slot="footer">
-    <Button color="green" on:click={() => alert('Handle "success"')}>Create</Button>
-    <Button color="alternative">Cancel</Button>
-  </svelte:fragment>
+		<Button color="green" on:click={() => alert('Handle "success"')}>Create</Button>
+		<Button color="alternative">Cancel</Button>
+	</svelte:fragment>
 </Modal>
-
 
 <!-- FLOATING ACTION BUTTON FOR NEW CAMPAIGN -->
 <!-- <div data-dial-init class="fixed end-10 bottom-10 group">
