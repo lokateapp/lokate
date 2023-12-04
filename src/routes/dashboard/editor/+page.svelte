@@ -35,7 +35,7 @@
 
 	let selectedRows: number[] = [0, 1, 2];
 	let editRow: number;
-	const items = [
+	let items = [
 		{
 			name: 'Campaign 1',
 			description: 'Campaign 1 description',
@@ -147,6 +147,22 @@
 	];
 
 	let selectedBeaconsForNewCampaign: any[] = [];
+	let beaconsForNewCampaign: any[] = [];
+	let newCampaignName: string = '';
+
+	$: if (selectedBeaconsForNewCampaign.length != beaconsForNewCampaign.length) {
+		beaconsForNewCampaign = selectedBeaconsForNewCampaign.map((beaconId) => {
+			return {
+				id: beaconId,
+				name: `Beacon ${beaconId}`,
+				position: null,
+				range: MIN_RANGE_BEACON,
+				status: 'not-active'
+			};
+		});
+		console.log('beaconsForNewCampaign:', beaconsForNewCampaign);
+	}
+
 	let availableBeacons = [
 		{ value: '1', name: 'Beacon 1' },
 		{ value: '2', name: 'Beacon 2' },
@@ -557,6 +573,45 @@
 		event.currentTarget.destroy();
 		layer.draw();
 	}
+
+	const addNewCampaign = () => {
+
+		// newCampaignName
+		// beaconsForNewCampaign
+
+		items.push({
+			name: newCampaignName,
+			description: 'Campaign 3 description',
+			beacons: beaconsForNewCampaign,
+			// created: Date.now(),
+			created: '2021-09-01',
+			status: 'not-active',
+			isCompleted: false
+		});
+
+		console.log('items:', items);
+	};
+
+	const saveChanges = async () => {
+		console.log('items:', items);
+
+		await fetch('/dashboard/editor', {
+			method: 'POST',
+			body: JSON.stringify({
+				items: items
+			}),
+			headers: {
+				'content-type': 'application/json'
+			}
+		}).then((res) => {
+			console.log('res:', res);
+			if (res.status === 200) {
+				console.log('Success');
+			} else {
+				console.log('Error');
+			}
+		});
+	};
 </script>
 
 <!-- grid gap-4 grid-cols-2 
@@ -578,59 +633,76 @@
 
 <div class="grid gap-4 grid-cols-2">
 	<div class="flex flex-col gap-5">
-		<Table hoverable={true} shadow>
-			<TableHead>
-				<TableBodyCell class="!p-4">
-					<Checkbox
-						checked={selectedRows.length === items.length}
-						on:change={() => {
-							if (selectedRows.length === items.length) {
-								selectedRows = [];
-							} else {
-								selectedRows = [...Array(items.length).keys()];
-							}
-						}}
-					/>
-				</TableBodyCell>
-				<TableHeadCell>Campaign name</TableHeadCell>
-				<TableHeadCell>Beacons</TableHeadCell>
-				<TableHeadCell>Created</TableHeadCell>
-				<TableHeadCell>Status</TableHeadCell>
-				<TableHeadCell>
-					<span class="sr-only">Edit</span>
-				</TableHeadCell>
-			</TableHead>
-			<TableBody tableBodyClass="divide-y">
-				{#each items as item, i}
-					<TableBodyRow
-						on:click={(event) => {
-							// console.log('event:',);
-							toggleRow(i);
-						}}
-						class={selectedRows.includes(i) ? ' bg-gray-300' : 'bg-white'}
-					>
-						<TableBodyCell class="!p-4">
-							<!-- <Checkbox checked={selectedRows.includes(i)} /> -->
-							<label class="swap">
-								<!-- this hidden checkbox controls the state -->
-								<input
-									type="checkbox"
-									class="hidden"
-									checked={selectedRows.includes(i)}
-									on:change={() => {
-										toggleRow(i);
-									}}
-								/>
+		<div>
+			<div class="flex flex-row justify-between items-center px-5 py-5 bg-slate-100">
+				<p class="text-xl dark:text-white">Save Changes</p>
+				<!-- <form method="POST" action="?/saveChanges"> -->
+				<Button
+					color="green"
+					pill
+					on:click={() => {
+						saveChanges();
+					}}
+					type="submit"
+				>
+					<i class="fa-solid fa-save fa-lg me-2" />
+					Save
+				</Button>
+				<!-- </form> -->
+			</div>
+			<Table hoverable={true} shadow>
+				<TableHead>
+					<TableBodyCell class="!p-4">
+						<Checkbox
+							checked={selectedRows.length === items.length}
+							on:change={() => {
+								if (selectedRows.length === items.length) {
+									selectedRows = [];
+								} else {
+									selectedRows = [...Array(items.length).keys()];
+								}
+							}}
+						/>
+					</TableBodyCell>
+					<TableHeadCell>Campaign name</TableHeadCell>
+					<TableHeadCell>Beacons</TableHeadCell>
+					<TableHeadCell>Created</TableHeadCell>
+					<TableHeadCell>Status</TableHeadCell>
+					<TableHeadCell>
+						<span class="sr-only">Edit</span>
+					</TableHeadCell>
+				</TableHead>
+				<TableBody tableBodyClass="divide-y">
+					{#each items as item, i}
+						<TableBodyRow
+							on:click={(event) => {
+								// console.log('event:',);
+								toggleRow(i);
+							}}
+							class={selectedRows.includes(i) ? ' bg-gray-300' : 'bg-white'}
+						>
+							<TableBodyCell class="!p-4">
+								<!-- <Checkbox checked={selectedRows.includes(i)} /> -->
+								<label class="swap">
+									<!-- this hidden checkbox controls the state -->
+									<input
+										type="checkbox"
+										class="hidden"
+										checked={selectedRows.includes(i)}
+										on:change={() => {
+											toggleRow(i);
+										}}
+									/>
 
-								<i class="swap-on fa-solid fa-eye fa-xl" />
-								<i class="swap-off fa-solid fa-eye-slash fa-xl" />
-							</label>
-						</TableBodyCell>
-						<TableBodyCell>{item.name}</TableBodyCell>
+									<i class="swap-on fa-solid fa-eye fa-xl" />
+									<i class="swap-off fa-solid fa-eye-slash fa-xl" />
+								</label>
+							</TableBodyCell>
+							<TableBodyCell>{item.name}</TableBodyCell>
 
-						<!-- <TableBodyCell>{item.beacons.length}</TableBodyCell> -->
-						<TableBodyCell>
-							<!-- <ListBox multiple>
+							<!-- <TableBodyCell>{item.beacons.length}</TableBodyCell> -->
+							<TableBodyCell>
+								<!-- <ListBox multiple>
 							{#each item.beacons as beacon}
 								<ListBoxItem bind:group={selectedCampaignsId} name="medium" value={beacon.id}>
 									{
@@ -640,121 +712,122 @@
 								</ListBoxItem>
 							{/each}
 						</ListBox> -->
-							{item.beacons.length}
-						</TableBodyCell>
-						<TableBodyCell>{item.created}</TableBodyCell>
-						<TableBodyCell>
-							{#if item.status == 'active'}
-								<Badge rounded color="green">Active</Badge>
-								<!-- {:else if item.status == 'not-completed'}
+								{item.beacons.length}
+							</TableBodyCell>
+							<TableBodyCell>{item.created}</TableBodyCell>
+							<TableBodyCell>
+								{#if item.status == 'active'}
+									<Badge rounded color="green">Active</Badge>
+									<!-- {:else if item.status == 'not-completed'}
 								<Badge rounded color="yellow">Not-Completed</Badge> -->
-							{:else}
-								<Badge rounded color="red">Not-Active</Badge>
-							{/if}
+								{:else}
+									<Badge rounded color="red">Not-Active</Badge>
+								{/if}
 
-							{#if !item.isCompleted}
-								<div class="tooltip tooltip-top" data-tip="There are beacons without location">
-									<Badge rounded color="yellow" class="!p-3">
-										<i class="fa-solid fa-exclamation fa-lg" />
+								{#if !item.isCompleted}
+									<div class="tooltip tooltip-top" data-tip="There are beacons without location">
+										<Badge rounded color="yellow" class="!p-3">
+											<i class="fa-solid fa-exclamation fa-lg" />
 
-										<span class="sr-only">Icon description</span>
-									</Badge>
-								</div>
-							{/if}
-						</TableBodyCell>
-						<TableBodyCell>
-							<Button
-								color="alternative"
-								pill
-								on:click={() => {
-									console.log('Edit');
-									if (editRow === i) {
-										editRow = -1;
-									} else {
-										editRow = i;
-									}
-								}}>Edit</Button
-							>
-
-							<!-- <a href="/dashboard" class="font-medium text-primary-600 hover:underline dark:text-primary-500">Edit</a> -->
-						</TableBodyCell>
-					</TableBodyRow>
-					{#if editRow === i}
-						<!-- <TableBodyCell colspan="4" class="p-0"> -->
-
-						<TableBodyRow>
-							<TableBodyCell colspan="6" class="p-3">
-								<div class="flex flex-row justify-between items-center">
-									<div class="mb-2">
-										<Label for="campaign-name" class="block mb-2">Campaign Name</Label>
-										<Input id="campaign-name" placeholder={item.name} bind:value={item.name} />
+											<span class="sr-only">Icon description</span>
+										</Badge>
 									</div>
-									<div>
-										<Button color="alternative" pill on:click={() => {}}>
-											<i class="fa-solid fa-plus fa-lg me-2" />
-											Add new beacon
-										</Button>
+								{/if}
+							</TableBodyCell>
+							<TableBodyCell>
+								<Button
+									color="alternative"
+									pill
+									on:click={() => {
+										console.log('Edit');
+										if (editRow === i) {
+											editRow = -1;
+										} else {
+											editRow = i;
+										}
+									}}>Edit</Button
+								>
+
+								<!-- <a href="/dashboard" class="font-medium text-primary-600 hover:underline dark:text-primary-500">Edit</a> -->
+							</TableBodyCell>
+						</TableBodyRow>
+						{#if editRow === i}
+							<!-- <TableBodyCell colspan="4" class="p-0"> -->
+
+							<TableBodyRow>
+								<TableBodyCell colspan="6" class="p-3">
+									<div class="flex flex-row justify-between items-center">
+										<div class="mb-2">
+											<Label for="campaign-name" class="block mb-2">Campaign Name</Label>
+											<Input id="campaign-name" placeholder={item.name} bind:value={item.name} />
+										</div>
+										<div>
+											<Button color="alternative" pill on:click={() => {}}>
+												<i class="fa-solid fa-plus fa-lg me-2" />
+												Add new beacon
+											</Button>
+										</div>
 									</div>
-								</div>
-								<Table>
-									<TableHead>
-										<TableHeadCell>Beacon ID</TableHeadCell>
-										<TableHeadCell>Name</TableHeadCell>
-										<TableHeadCell>Range</TableHeadCell>
-										<TableHeadCell>Status</TableHeadCell>
-									</TableHead>
-									{#each item.beacons as beacon, beacon_index}
-										<TableBodyRow>
-											<TableBodyCell>{beacon.id}</TableBodyCell>
-											<TableBodyCell>{beacon.name}</TableBodyCell>
-											<TableBodyCell>
-												<Label>Range steps</Label>
-												<!-- bind:value={stepValue} -->
-												<Range
-													id="range-steps"
-													min={MIN_RANGE_BEACON}
-													max={MAX_RANGE_BEACON}
-													bind:value={beacon.range}
-													step="0.5"
-												/>
-												<p>Value: {beacon.range}</p>
-											</TableBodyCell>
-											<!-- <TableBodyCell>
+									<Table>
+										<TableHead>
+											<TableHeadCell>Beacon ID</TableHeadCell>
+											<TableHeadCell>Name</TableHeadCell>
+											<TableHeadCell>Range</TableHeadCell>
+											<TableHeadCell>Status</TableHeadCell>
+										</TableHead>
+										{#each item.beacons as beacon, beacon_index}
+											<TableBodyRow>
+												<TableBodyCell>{beacon.id}</TableBodyCell>
+												<TableBodyCell>{beacon.name}</TableBodyCell>
+												<TableBodyCell>
+													<Label>Range steps</Label>
+													<Range
+														id="table-beacon-range"
+														min={MIN_RANGE_BEACON}
+														max={MAX_RANGE_BEACON}
+														bind:value={beacon.range}
+														step="0.5"
+													/>
+													<p>Value: {beacon.range}</p>
+												</TableBodyCell>
+												<!-- <TableBodyCell>
 										{#if beacon.status == 'active'}
 											<Badge rounded color="green">Active</Badge>
 										{:else}
 											<Badge rounded color="red">Not-Active</Badge>
 										{/if}
 									</TableBodyCell> -->
-											<TableBodyCell>
-												{#if beacon.status == 'active'}
-													<Toggle color="green" checked />
-												{:else}
-													<Toggle color="green" />
-												{/if}
-											</TableBodyCell>
-											<TableBodyCell>
-												{#if beacon.position != undefined}
-													<Button color="alternative" pill on:click={() => {}}
-														>Change Location</Button
-													>
-												{:else}
-													<Button color="alternative" pill on:click={() => {}}>Add Location</Button>
-												{/if}
-											</TableBodyCell>
-											<TableBodyCell>
-												<Button color="red" pill on:click={() => {}}>Remove</Button>
-											</TableBodyCell>
-										</TableBodyRow>
-									{/each}
-								</Table>
-								<!-- <div class="px-2 py-3">
+												<TableBodyCell>
+													{#if beacon.status == 'active'}
+														<Toggle color="green" checked />
+													{:else}
+														<Toggle color="green" />
+													{/if}
+												</TableBodyCell>
+												<TableBodyCell>
+													{#if beacon.position != undefined}
+														<Button color="alternative" pill on:click={() => {}}
+															>Change Location</Button
+														>
+													{:else}
+														<Button color="alternative" pill on:click={() => {}}
+															>Add Location</Button
+														>
+													{/if}
+												</TableBodyCell>
+												<TableBodyCell>
+													<Button color="red" pill on:click={() => {}}>Remove</Button>
+												</TableBodyCell>
+											</TableBodyRow>
+										{/each}
+									</Table>
+									<!-- <div class="px-2 py-3">
 									<ImagePlaceholder />
 									<div>Lorem, ipsum dolor sit amet consectetur adipisicing elit. Quibusdam architecto quaerat dolor facere suscipit nobis consequuntur excepturi nulla sed similique quos quas possimus obcaecati asperiores, doloremque explicabo iusto itaque quia!</div>
 								</div> -->
-							</TableBodyCell>
-						</TableBodyRow>
-						<!-- <ListBox multiple>
+								</TableBodyCell>
+							</TableBodyRow>
+							<!-- <ListBox multiple>
 								{#each item.beacons as beacon}
 									<ListBoxItem bind:group={selectedCampaignsId} name="medium" value={beacon.id}>
 										{
@@ -764,11 +837,12 @@
 									</ListBoxItem>
 								{/each}
 							</ListBox> -->
-						<!-- </TableBodyCell> -->
-					{/if}
-				{/each}
-			</TableBody>
-		</Table>
+							<!-- </TableBodyCell> -->
+						{/if}
+					{/each}
+				</TableBody>
+			</Table>
+		</div>
 		<Button
 			size="lg"
 			color="alternative"
@@ -959,32 +1033,35 @@
 	autoclose
 	outsideclose
 >
-	<div class="mb-6">
-		<Label for="campaign-name" class="block mb-2">Campaign Name</Label>
-		<Input id="campaign-name" placeholder="Campaign Name" />
+	<div class="flex flex-col p-5" style="min-height: 400px">
+		<div class="mb-6">
+			<Label for="campaign-name" class="block mb-2">Campaign Name</Label>
+			<Input id="campaign-name" placeholder="Campaign Name" bind:value={newCampaignName}/>
+		</div>
+
+		<Label class="block mb-5">
+			Select beacons for this campaign
+			<MultiSelect items={availableBeacons} bind:value={selectedBeaconsForNewCampaign} />
+		</Label>
+
+		{#each beaconsForNewCampaign as selectedBeacon, selectedBeaconIndex}
+			<div class = "py-2">
+			{selectedBeacon.name}
+			<Label>Range steps</Label>
+			<Range
+				id="new-campaign-beacon-range"
+				min={MIN_RANGE_BEACON}
+				max={MAX_RANGE_BEACON}
+				bind:value={selectedBeacon.range}
+				step="0.5"
+			/>
+			<p>Value: {selectedBeacon.range}</p>
+			</div>
+		{/each}
 	</div>
 
-	<Label>
-		Select beacons for this campaign
-		<MultiSelect items={availableBeacons} bind:value={selectedBeaconsForNewCampaign} />
-	</Label>
-
-	{#each selectedBeaconsForNewCampaign as selectedBeacon}
-		{selectedBeacon.name}
-		<Label>Range steps</Label>
-		<!-- bind:value={stepValue} -->
-		<Range
-			id="range-steps"
-			min={MIN_RANGE_BEACON}
-			max={MAX_RANGE_BEACON}
-			bind:value={selectedBeacon.range}
-			step="0.5"
-		/>
-		<p>Value: {selectedBeacon.range}</p>
-	{/each}
-
 	<svelte:fragment slot="footer">
-		<Button color="green" on:click={() => alert('Handle "success"')}>Create</Button>
+		<Button color="green" on:click={() => addNewCampaign()}>Create</Button>
 		<Button color="alternative">Cancel</Button>
 	</svelte:fragment>
 </Modal>
