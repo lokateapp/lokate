@@ -6,6 +6,214 @@
 
 	import type KonvaType from 'konva';
 
+	import {
+		ListBox,
+		ListBoxItem,
+		Table as SkeletonTable,
+		tableMapperValues,
+		type TableSource
+	} from '@skeletonlabs/skeleton';
+
+	import {
+		Table,
+		TableBody,
+		TableBodyCell,
+		TableBodyRow,
+		TableHead,
+		TableHeadCell,
+		Modal,
+		Checkbox,
+		Button,
+		Label,
+		Input,
+
+		MultiSelect
+
+	} from 'flowbite-svelte';
+
+	let selectedRows: number[] = [0, 1, 2];
+	const items = [
+		{
+			name: 'Campaign 1',
+			description: 'Campaign 1 description',
+			beacons: [
+				{
+					id: 1,
+					name: 'Beacon 1',
+					position: {
+						x: 100,
+						y: 100
+					}
+				},
+				{
+					id: 2,
+					name: 'Beacon 2',
+					position: {
+						x: 200,
+						y: 200
+					}
+				},
+				{
+					id: 3,
+					name: 'Beacon 3',
+					position: {
+						x: 300,
+						y: 300
+					}
+				}
+			],
+			created: '2021-09-01'
+		},
+		{
+			name: 'Campaign 2',
+			description: 'Campaign 2 description',
+			beacons: [
+				{
+					id: 1,
+					name: 'Beacon 1',
+					position: {
+						x: 100,
+						y: 100
+					}
+				},
+				{
+					id: 2,
+					name: 'Beacon 2',
+					position: {
+						x: 200,
+						y: 200
+					}
+				},
+				{
+					id: 3,
+					name: 'Beacon 3',
+					position: {
+						x: 300,
+						y: 300
+					}
+				}
+			],
+			created: '2021-09-01'
+		},
+		{
+			name: 'Campaign 3',
+			description: 'Campaign 3 description',
+			beacons: [
+				{
+					id: 1,
+					name: 'Beacon 1',
+					position: {
+						x: 100,
+						y: 100
+					}
+				},
+				{
+					id: 2,
+					name: 'Beacon 2',
+					position: {
+						x: 200,
+						y: 200
+					}
+				},
+				{
+					id: 3,
+					name: 'Beacon 3',
+					position: {
+						x: 300,
+						y: 300
+					}
+				}
+			],
+			created: '2021-09-01'
+		}
+	];
+
+
+	let selectedBeaconsForNewCampaign: any[] = [];
+	let availableBeacons = [
+		{ value: '1', name: 'Beacon 1' },
+		{ value: '2', name: 'Beacon 2' },
+		{ value: '3', name: 'Beacon 3' },
+		{ value: '4', name: 'Beacon 4' },
+		{ value: '5', name: 'Beacon 5' }
+	];
+
+	const toggleRow = (i: any) => {
+		// console.log('selectedRows:', selectedRows, ' i:', i);
+		if (selectedRows.includes(i)) {
+			selectedRows = selectedRows.filter((row) => row !== i);
+		} else {
+			selectedRows = [...selectedRows, i];
+		}
+	};
+
+	const sourceData = [
+		{ position: 1, name: 'Hydrogen', weight: 1.0079, symbol: 'H' },
+		{ position: 2, name: 'Helium', weight: 4.0026, symbol: 'He' },
+		{ position: 3, name: 'Lithium', weight: 6.941, symbol: 'Li' },
+		{ position: 4, name: 'Beryllium', weight: 9.0122, symbol: 'Be' },
+		{ position: 5, name: 'Boron', weight: 10.811, symbol: 'B' }
+	];
+
+	const tableSimple: TableSource = {
+		// A list of heading labels.
+		head: ['Name', 'Symbol', 'Weight'],
+		// The data visibly shown in your table body UI.
+		body: tableMapperValues(sourceData, ['name', 'symbol', 'weight']),
+		// Optional: The data returned when interactive is enabled and a row is clicked.
+		meta: tableMapperValues(sourceData, ['position', 'name', 'symbol', 'weight']),
+		// Optional: A list of footer labels.
+		foot: ['Total', '', '<code class="code">5</code>']
+	};
+
+	let campaigns: any[] = [
+		{
+			id: 1,
+			name: 'Campaign 1'
+		},
+		{
+			id: 2,
+			name: 'Campaign 2'
+		},
+		{
+			id: 3,
+			name: 'Campaign 3'
+		},
+		{
+			id: 4,
+			name: 'Campaign 4'
+		},
+		{
+			id: 5,
+			name: 'Campaign 5'
+		},
+		{
+			id: 6,
+			name: 'Campaign 6'
+		},
+		{
+			id: 7,
+			name: 'Campaign 7'
+		},
+		{
+			id: 8,
+			name: 'Campaign 8'
+		},
+		{
+			id: 9,
+			name: 'Campaign 9'
+		},
+		{
+			id: 10,
+			name: 'Campaign 10'
+		}
+	];
+	let allCampaignsId: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+	let selectedCampaignsId: number[] = [...allCampaignsId];
+
+	let isNewCampaignModalOpen: boolean = false;
+
 	let Konva: typeof KonvaType;
 	let layer: KonvaType.Layer;
 	let stage: KonvaType.Stage;
@@ -15,6 +223,9 @@
 	let rightSideContent: boolean = false;
 	let rangeOpen: boolean = false;
 	let range: number = 1;
+
+	const MIN_RANGE_BEACON = 1;
+	const MAX_RANGE_BEACON = 15;
 
 	onMount(async () => {
 		Konva = (await import('konva')).default;
@@ -46,7 +257,6 @@
 		var imageObj = new Image();
 		imageObj.src = storePlan;
 		imageObj.onload = function () {
-			// change background color to red
 			backgroundImage = new Konva.Image({
 				x: 0,
 				y: 0,
@@ -122,54 +332,98 @@
 			// 	draggable: true
 			// });
 
-			var imageObj = new Image();
-			imageObj.src = BeaconSvg;
-			imageObj.onload = function () {
+			// var imageObj = new Image();
+			// var imageObj = new Image();
+			// imageObj.src = BeaconSvg;
+			// console.log('imageObj:', imageObj.src);
+			// // change style to fill red NOT WORKING
+			// // imageObj.src = BeaconSvg;
+			// imageObj.onload = function () {
+			Konva.Image.fromURL('/src/lib/assets/beacon.svg', function (beacon) {
+				const IMAGE_W = beacon.getWidth() / 7;
+				const IMAGE_H = beacon.getHeight() / 7;
+				// console.log('beacon:', beacon);
+				// beacon.fill('red');
 				// change background color to red
-				const IMAGE_W = imageObj.width / 7;
-				const IMAGE_H = imageObj.height / 7;
-				var beacon = new Konva.Image({
+				beacon.offset({
+					x: IMAGE_W,
+					y: IMAGE_H
+				});
+				beacon.position({
 					x: pos.x,
-					y: pos.y,
-					offsetX: IMAGE_W,
-					offsetY: IMAGE_H,
-					image: imageObj,
-					// crop: {
-					// 	x: 200,
-					// 	y: 100,
-					// 	width: 300,
-					// 	height: 300
-					// },
+					y: pos.y
+				});
+				beacon.size({
 					width: IMAGE_W * 2,
-					height: IMAGE_H * 2,
-					draggable: true,
-					// not draggable if outside of the area
-					dragBoundFunc: function (pos: any) {
-						var x = pos.x;
-						var y = pos.y;
-						const DELTA = 30; //BEACON_AREA_RADIUS
-						if (x < DELTA) {
-							x = DELTA;
-						}
-						if (x > stage.width() - DELTA) {
-							x = stage.width() - DELTA;
-						}
-						if (y < DELTA) {
-							y = DELTA;
-						}
-						if (y > stage.height() - DELTA) {
-							y = stage.height() - DELTA;
-						}
-						return {
-							x: x,
-							y: y
-						};
+					height: IMAGE_H * 2
+				});
+				beacon.draggable(true);
+				beacon.dragBoundFunc(function (pos: any) {
+					var x = pos.x;
+					var y = pos.y;
+					const DELTA = 30; //BEACON_AREA_RADIUS
+					if (x < DELTA) {
+						x = DELTA;
 					}
+					if (x > stage.width() - DELTA) {
+						x = stage.width() - DELTA;
+					}
+					if (y < DELTA) {
+						y = DELTA;
+					}
+					if (y > stage.height() - DELTA) {
+						y = stage.height() - DELTA;
+					}
+					return {
+						x: x,
+						y: y
+					};
 				});
 
+				// var beacon = new Konva.Image({
+				// 	x: pos.x,
+				// 	y: pos.y,
+				// 	offsetX: IMAGE_W,
+				// 	offsetY: IMAGE_H,
+				// 	image: imageObj,
+				// 	// fillRule: 'nonzero',
+				// 	// fill: 'red',
+				// 	// crop: {
+				// 	// 	x: 200,
+				// 	// 	y: 100,
+				// 	// 	width: 300,
+				// 	// 	height: 300
+				// 	// },
+				// 	width: IMAGE_W * 2,
+				// 	height: IMAGE_H * 2,
+				// 	draggable: true,
+				// 	// not draggable if outside of the area
+				// 	dragBoundFunc: function (pos: any) {
+				// 		var x = pos.x;
+				// 		var y = pos.y;
+				// 		const DELTA = 30; //BEACON_AREA_RADIUS
+				// 		if (x < DELTA) {
+				// 			x = DELTA;
+				// 		}
+				// 		if (x > stage.width() - DELTA) {
+				// 			x = stage.width() - DELTA;
+				// 		}
+				// 		if (y < DELTA) {
+				// 			y = DELTA;
+				// 		}
+				// 		if (y > stage.height() - DELTA) {
+				// 			y = stage.height() - DELTA;
+				// 		}
+				// 		return {
+				// 			x: x,
+				// 			y: y
+				// 		};
+				// 	}
+				// });
+
 				var padding = 20;
-				var w = imageObj.width;
-				var h = imageObj.height;
+				var w = beacon.getWidth();
+				var h = beacon.getHeight();
 
 				// get the aperture we need to fit by taking padding off the stage size.
 
@@ -237,7 +491,7 @@
 				layer.draw();
 
 				beacons.push({ x: pos.x, y: pos.y });
-			};
+			});
 		}
 	}
 
@@ -291,9 +545,101 @@
 <!-- grid gap-4 grid-cols-2 
 	flex flex-row items-center justify-center bg-orange-900 p-10
 -->
-<div class="grid gap-4 grid-cols-2">
+
+<!-- <ListBox multiple>
+	{#each allCampaignsId as campaignId}
+		<ListBoxItem bind:group={selectedCampaignsId} name="medium" value={campaignId}>
+		{
+			 'Id: ' + campaignId + ' Name: ' + 
+			campaigns[campaignId]?.name
+		}
+		</ListBoxItem>
+	{/each}
+</ListBox> -->
+
+<!-- <Table source={tableSimple} interactive={true}/> -->
+
+<div class="grid gap-4 grid-cols-3">
+	<div class="flex flex-col justify-center items-center gap-5">
+		<Table hoverable={true} shadow>
+			<TableHead>
+				<TableBodyCell class="!p-4">
+					<Checkbox
+						checked={selectedRows.length === items.length}
+						on:change={() => {
+							if (selectedRows.length === items.length) {
+								selectedRows = [];
+							} else {
+								selectedRows = [...Array(items.length).keys()];
+							}
+						}}
+					/>
+				</TableBodyCell>
+				<TableHeadCell>Campaign name</TableHeadCell>
+				<TableHeadCell>Beacons</TableHeadCell>
+				<TableHeadCell>Created</TableHeadCell>
+				<TableHeadCell>
+					<span class="sr-only">Edit</span>
+				</TableHeadCell>
+			</TableHead>
+			<TableBody tableBodyClass="divide-y">
+				{#each items as item, i}
+					<TableBodyRow
+						on:click={(event) => {
+							console.log('event:', event);
+							toggleRow(i);
+						}}
+						class={selectedRows.includes(i) ? ' bg-gray-300' : 'bg-white'}
+					>
+						<TableBodyCell class="!p-4">
+							<Checkbox checked={selectedRows.includes(i)} />
+						</TableBodyCell>
+						<TableBodyCell>{item.name}</TableBodyCell>
+
+						<!-- <TableBodyCell>{item.beacons.length}</TableBodyCell> -->
+						<TableBodyCell>
+							<!-- <ListBox multiple>
+							{#each item.beacons as beacon}
+								<ListBoxItem bind:group={selectedCampaignsId} name="medium" value={beacon.id}>
+									{
+										'Id: ' + beacon.id + ' Name: ' + 
+										beacon.name
+									}
+								</ListBoxItem>
+							{/each}
+						</ListBox> -->
+							{item.beacons.length}
+						</TableBodyCell>
+						<TableBodyCell>{item.created}</TableBodyCell>
+						<TableBodyCell>
+							<Button
+								color="alternative"
+								pill
+								on:click={() => {
+									console.log('Edit');
+								}}>Edit</Button
+							>
+
+							<!-- <a href="/dashboard" class="font-medium text-primary-600 hover:underline dark:text-primary-500">Edit</a> -->
+						</TableBodyCell>
+					</TableBodyRow>
+				{/each}
+			</TableBody>
+		</Table>
+		<Button
+			size="lg"
+			color="alternative"
+			pill
+			on:click={() => {
+				isNewCampaignModalOpen = true;
+			}}
+		>
+			<i class="fa-solid fa-plus fa-xl me-2" />
+			Create new campaign
+		</Button>
+	</div>
 	<!-- <div class="bg-slate-200 w-10 h-10"></div> -->
-	<div class="relative max-w-max " id="parent">
+	<div class="relative max-w-fit" id="parent">
 		<!-- <img src={storePlan} width="600" alt="Store plan" /> -->
 		<div id="canvas" class="absolute top-0" oncontextmenu="return false" />
 		<!-- <Stage config={{ width: window.innerWidth, height: window.innerHeight }}>
@@ -303,68 +649,71 @@
 				{/each}
 				
 			</Layer>
-		  </Stage> -->		
+		  </Stage> -->
 	</div>
-	<div
-			class="relative top-0 left-0 w-full h-full bg-gray-900 bg-opacity-50"
-			style={rangeOpen ? 'display: block' : 'display: none'}
-		>
-			<div class="flex justify-center items-center h-full">
-				<div class="flex flex-col justify-center items-center">
+	<!-- <img src="/src/lib/assets/beacon.svg" alt="Beacon" style="" /> -->
+</div>
+<div
+	class="relative top-0 left-0 w-full h-full bg-gray-900 bg-opacity-50"
+	style={rangeOpen ? 'display: block' : 'display: none'}
+>
+	<div class="flex justify-center items-center h-full">
+		<div class="flex flex-col justify-center items-center">
+			<div class="flex justify-center items-center">
+				<button
+					class="btn btn-ghost btn-circle avatar"
+					on:click={() => {
+						rangeOpen = false;
+					}}
+				>
+					<i class="fa-solid fa-lg fa-xmark" />
+				</button>
+			</div>
+			<div class="flex justify-center items-center">
+				<div class="form-control w-full max-w-xs">
+					<label class="label">
+						<span class="label-text">Range</span>
+						<!-- <input
+							class="input input-bordered input-primary w-full max-w-xs join-item"
+							name="name"
+							type="text"
+							placeholder="Range"
+							bind:value={range}
+						/> -->
+						<input
+							type="range"
+							min={MIN_RANGE_BEACON}
+							max={MAX_RANGE_BEACON}
+							class="range range-primary range-sm btn-wide"
+							step="0.5"
+							bind:value={range}
+						/>
+					</label>
+
 					<div class="flex justify-center items-center">
-						<button
-							class="btn btn-ghost btn-circle avatar"
-							on:click={() => {
-								rangeOpen = false;
-							}}
+						<span
+							class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white whitespace-nowrap"
 						>
-							<i class="fa-solid fa-lg fa-xmark" />
-						</button>
-					</div>
-					<div class="flex justify-center items-center">
-						<div class="form-control w-full max-w-xs">
-							<label class="label">
-								<span class="label-text">Range</span>
-							</label>
-							<!-- <input
-								class="input input-bordered input-primary w-full max-w-xs join-item"
-								name="name"
-								type="text"
-								placeholder="Range"
-								bind:value={range}
-							/> -->
-							<input
-								type="range"
-								min="1"
-								max="30"
-								class="range range-primary range-sm btn-wide"
-								step="0.5"
-								bind:value={range}
-							/>
-							<div class="flex justify-center items-center">
-								<span
-									class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white whitespace-nowrap"
-								>
-									{range}m
-								</span>
-							</div>
-						</div>
-					</div>
-					<div class="flex justify-center items-center">
-						<button
-							class="btn btn-primary"
-							on:click={() => {
-								addRangeToBeacon(beacons[beacons.length - 1]);
-								rangeOpen = false;
-							}}
-						>
-							Apply
-						</button>
+							{range}m
+						</span>
 					</div>
 				</div>
 			</div>
+			<div class="flex justify-center items-center">
+				<button
+					class="btn btn-primary"
+					on:click={() => {
+						addRangeToBeacon(beacons[beacons.length - 1]);
+						rangeOpen = false;
+					}}
+				>
+					Apply
+				</button>
+			</div>
 		</div>
+	</div>
 </div>
+
 <dialog id="my_modal_1" class="modal {rightSideContent ? 'modal-open' : ''}">
 	<div class="modal-box absolute top-0 h-full max-h-full right-0 w-1/2">
 		<div class="w-full bg-base-100">
@@ -409,12 +758,208 @@
 		<div class="card-body">
 			<h2 class="card-title">Campaigns</h2>
 			<p>Beacon ID: 123456</p>
+			<label class="label">
+				<span class="label-text">Range</span>
+				<!-- <input
+				class="input input-bordered input-primary w-full max-w-xs join-item"
+				name="name"
+				type="text"
+				placeholder="Range"
+				bind:value={range}
+			/> -->
+				<input
+					type="range"
+					min={MIN_RANGE_BEACON}
+					max={MAX_RANGE_BEACON}
+					class="range range-primary range-sm btn-wide"
+					step="0.5"
+					bind:value={range}
+				/>
+			</label>
+			<div class="flex justify-center items-center">
+				<span
+					class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white whitespace-nowrap"
+				>
+					{range}m
+				</span>
+			</div>
 			<div class="card-actions">
-				<button class="btn btn-primary">Edit</button>
+				<button
+					class="btn btn-primary"
+					on:click={() => {
+						addRangeToBeacon(beacons[beacons.length - 1]);
+					}}>Apply</button
+				>
 			</div>
 		</div>
 	</div>
 </dialog>
+
+<!-- UPLOAD FILE -->
+<!-- <div class="flex items-center justify-center w-full">
+    <label for="dropzone-file" class="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
+        <div class="flex flex-col items-center justify-center pt-5 pb-6">
+            <svg class="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
+            </svg>
+            <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Click to upload</span> or drag and drop</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">SVG, PNG, JPG (MAX 10 MB)</p>
+        </div>
+        <input id="dropzone-file" type="file" class="hidden" />
+    </label>
+</div>  -->
+
+
+<Modal title="Create a new campaign" bind:open={isNewCampaignModalOpen} autoclose outsideclose>
+	<div class="mb-6">
+		<Label for="campaign-name" class="block mb-2">Campaign Name</Label>
+		<Input id="campaign-name" placeholder="Campaign Name" />
+	</div>
+
+	<Label>
+		Select beacons for this campaign
+		<MultiSelect items={availableBeacons} bind:value={selectedBeaconsForNewCampaign} />
+	  </Label>
+
+	<svelte:fragment slot="footer">
+    <Button color="green" on:click={() => alert('Handle "success"')}>Create</Button>
+    <Button color="alternative">Cancel</Button>
+  </svelte:fragment>
+</Modal>
+
+
+<!-- FLOATING ACTION BUTTON FOR NEW CAMPAIGN -->
+<!-- <div data-dial-init class="fixed end-10 bottom-10 group">
+	<div id="speed-dial-menu-default" class="flex flex-col items-center hidden mb-4 space-y-2">
+		<button
+			type="button"
+			data-tooltip-target="tooltip-share"
+			data-tooltip-placement="left"
+			class="flex justify-center items-center w-[52px] h-[52px] text-gray-500 hover:text-gray-900 bg-white rounded-full border border-gray-200 dark:border-gray-600 shadow-sm dark:hover:text-white dark:text-gray-400 hover:bg-gray-50 dark:bg-gray-700 dark:hover:bg-gray-600 focus:ring-4 focus:ring-gray-300 focus:outline-none dark:focus:ring-gray-400"
+		>
+			<svg
+				class="w-5 h-5"
+				aria-hidden="true"
+				xmlns="http://www.w3.org/2000/svg"
+				fill="currentColor"
+				viewBox="0 0 18 18"
+			>
+				<path
+					d="M14.419 10.581a3.564 3.564 0 0 0-2.574 1.1l-4.756-2.49a3.54 3.54 0 0 0 .072-.71 3.55 3.55 0 0 0-.043-.428L11.67 6.1a3.56 3.56 0 1 0-.831-2.265c.006.143.02.286.043.428L6.33 6.218a3.573 3.573 0 1 0-.175 4.743l4.756 2.491a3.58 3.58 0 1 0 3.508-2.871Z"
+				/>
+			</svg>
+			<span class="sr-only">Share</span>
+		</button>
+		<div
+			id="tooltip-share"
+			role="tooltip"
+			class="absolute z-10 invisible inline-block w-auto px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700"
+		>
+			Share
+			<div class="tooltip-arrow" data-popper-arrow />
+		</div>
+		<button
+			type="button"
+			data-tooltip-target="tooltip-print"
+			data-tooltip-placement="left"
+			class="flex justify-center items-center w-[52px] h-[52px] text-gray-500 hover:text-gray-900 bg-white rounded-full border border-gray-200 dark:border-gray-600 shadow-sm dark:hover:text-white dark:text-gray-400 hover:bg-gray-50 dark:bg-gray-700 dark:hover:bg-gray-600 focus:ring-4 focus:ring-gray-300 focus:outline-none dark:focus:ring-gray-400"
+		>
+			<svg
+				class="w-5 h-5"
+				aria-hidden="true"
+				xmlns="http://www.w3.org/2000/svg"
+				fill="currentColor"
+				viewBox="0 0 20 20"
+			>
+				<path d="M5 20h10a1 1 0 0 0 1-1v-5H4v5a1 1 0 0 0 1 1Z" />
+				<path
+					d="M18 7H2a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2v-3a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Zm-1-2V2a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v3h14Z"
+				/>
+			</svg>
+			<span class="sr-only">Print</span>
+		</button>
+		<div
+			id="tooltip-print"
+			role="tooltip"
+			class="absolute z-10 invisible inline-block w-auto px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700"
+		>
+			Print
+			<div class="tooltip-arrow" data-popper-arrow />
+		</div>
+		<button
+			type="button"
+			data-tooltip-target="tooltip-download"
+			data-tooltip-placement="left"
+			class="flex justify-center items-center w-[52px] h-[52px] text-gray-500 hover:text-gray-900 bg-white rounded-full border border-gray-200 dark:border-gray-600 shadow-sm dark:hover:text-white dark:text-gray-400 hover:bg-gray-50 dark:bg-gray-700 dark:hover:bg-gray-600 focus:ring-4 focus:ring-gray-300 focus:outline-none dark:focus:ring-gray-400"
+		>
+			<svg
+				class="w-5 h-5"
+				aria-hidden="true"
+				xmlns="http://www.w3.org/2000/svg"
+				fill="currentColor"
+				viewBox="0 0 20 20"
+			>
+				<path
+					d="M14.707 7.793a1 1 0 0 0-1.414 0L11 10.086V1.5a1 1 0 0 0-2 0v8.586L6.707 7.793a1 1 0 1 0-1.414 1.414l4 4a1 1 0 0 0 1.416 0l4-4a1 1 0 0 0-.002-1.414Z"
+				/>
+				<path
+					d="M18 12h-2.55l-2.975 2.975a3.5 3.5 0 0 1-4.95 0L4.55 12H2a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2Zm-3 5a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"
+				/>
+			</svg>
+			<span class="sr-only">Download</span>
+		</button>
+		<div
+			id="tooltip-download"
+			role="tooltip"
+			class="absolute z-10 invisible inline-block w-auto px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700"
+		>
+			Download
+			<div class="tooltip-arrow" data-popper-arrow />
+		</div>
+		<button
+			type="button"
+			data-tooltip-target="tooltip-copy"
+			data-tooltip-placement="left"
+			class="flex justify-center items-center w-[52px] h-[52px] text-gray-500 hover:text-gray-900 bg-white rounded-full border border-gray-200 dark:border-gray-600 dark:hover:text-white shadow-sm dark:text-gray-400 hover:bg-gray-50 dark:bg-gray-700 dark:hover:bg-gray-600 focus:ring-4 focus:ring-gray-300 focus:outline-none dark:focus:ring-gray-400"
+		>
+			<svg
+				class="w-5 h-5"
+				aria-hidden="true"
+				xmlns="http://www.w3.org/2000/svg"
+				fill="currentColor"
+				viewBox="0 0 18 20"
+			>
+				<path
+					d="M5 9V4.13a2.96 2.96 0 0 0-1.293.749L.879 7.707A2.96 2.96 0 0 0 .13 9H5Zm11.066-9H9.829a2.98 2.98 0 0 0-2.122.879L7 1.584A.987.987 0 0 0 6.766 2h4.3A3.972 3.972 0 0 1 15 6v10h1.066A1.97 1.97 0 0 0 18 14V2a1.97 1.97 0 0 0-1.934-2Z"
+				/>
+				<path
+					d="M11.066 4H7v5a2 2 0 0 1-2 2H0v7a1.969 1.969 0 0 0 1.933 2h9.133A1.97 1.97 0 0 0 13 18V6a1.97 1.97 0 0 0-1.934-2Z"
+				/>
+			</svg>
+			<span class="sr-only">Copy</span>
+		</button>
+		<div
+			id="tooltip-copy"
+			role="tooltip"
+			class="absolute z-10 invisible inline-block w-auto px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700"
+		>
+			Copy
+			<div class="tooltip-arrow" data-popper-arrow />
+		</div>
+	</div>
+	<div class="tooltip tooltip-top" data-tip="New campaign">
+		<button
+			type="button"
+			data-dial-toggle="speed-dial-menu-default"
+			aria-controls="speed-dial-menu-default"
+			aria-expanded="false"
+			class="flex items-center justify-center text-white bg-blue-700 rounded-full w-14 h-14 hover:bg-blue-800 dark:bg-blue-600 dark:hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 focus:outline-none dark:focus:ring-blue-800"
+		>
+			<i class="fa-solid fa-plus fa-lg" />
+			<span class="sr-only">Open actions menu</span>
+		</button>
+	</div>
+</div> -->
 
 <style>
 </style>

@@ -16,6 +16,8 @@
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.28.1",
+		"@skeletonlabs/skeleton": "^2.5.1",
+		"@skeletonlabs/tw-plugin": "^0.2.4",
 		"@sveltejs/adapter-auto": "^2.0.0",
 		"@sveltejs/kit": "^1.20.4",
 		"@typescript-eslint/eslint-plugin": "^6.0.0",
@@ -26,6 +28,8 @@
 		"eslint": "^8.51.0",
 		"eslint-config-prettier": "^8.5.0",
 		"eslint-plugin-svelte": "^2.30.0",
+		"flowbite": "^2.2.0",
+		"flowbite-svelte": "^0.44.20",
 		"postcss": "^8.4.31",
 		"prettier": "^2.8.8",
 		"prettier-plugin-svelte": "^2.10.1",
