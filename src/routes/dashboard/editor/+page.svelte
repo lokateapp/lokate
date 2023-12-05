@@ -7,14 +7,6 @@
 	import type KonvaType from 'konva';
 
 	import {
-		ListBox,
-		ListBoxItem,
-		Table as SkeletonTable,
-		tableMapperValues,
-		type TableSource
-	} from '@skeletonlabs/skeleton';
-
-	import {
 		Table,
 		TableBody,
 		TableBodyCell,
@@ -28,15 +20,45 @@
 		Input,
 		MultiSelect,
 		Badge,
-		ImagePlaceholder,
 		Range,
-		Toggle
+		Toggle,
+		PaginationItem
 	} from 'flowbite-svelte';
+
+	type CampaignType = {
+		id: number;
+		name: string;
+		description: string;
+		beacons: CampaignBeaconType[];
+		created: string;
+		status: string;
+		isCompleted: boolean;
+	};
+
+	type CampaignBeaconType = {
+		id: number;
+		name: string;
+		position: {
+			x: number;
+			y: number;
+		} | null;
+		range: number;
+		status: string;
+	};
+
+	type Beacon = {
+		id: number;
+		position: {
+			x: number;
+			y: number;
+		};
+	};
 
 	let selectedRows: number[] = [0, 1, 2];
 	let editRow: number;
-	let items = [
+	let items: CampaignType[] = [
 		{
+			id: 1,
 			name: 'Campaign 1',
 			description: 'Campaign 1 description',
 			beacons: [
@@ -76,6 +98,7 @@
 			isCompleted: true
 		},
 		{
+			id: 2,
 			name: 'Campaign 2',
 			description: 'Campaign 2 description',
 			beacons: [
@@ -106,6 +129,7 @@
 			isCompleted: false
 		},
 		{
+			id: 3,
 			name: 'Campaign 3',
 			description: 'Campaign 3 description',
 			beacons: [
@@ -147,7 +171,7 @@
 	];
 
 	let selectedBeaconsForNewCampaign: any[] = [];
-	let beaconsForNewCampaign: any[] = [];
+	let beaconsForNewCampaign: CampaignBeaconType[] = [];
 	let newCampaignName: string = '';
 
 	$: if (selectedBeaconsForNewCampaign.length != beaconsForNewCampaign.length) {
@@ -164,11 +188,11 @@
 	}
 
 	let availableBeacons = [
-		{ value: '1', name: 'Beacon 1' },
-		{ value: '2', name: 'Beacon 2' },
-		{ value: '3', name: 'Beacon 3' },
-		{ value: '4', name: 'Beacon 4' },
-		{ value: '5', name: 'Beacon 5' }
+		{ value: '1', name: 'Beacon 1', inUse: true },
+		{ value: '2', name: 'Beacon 2', inUse: false },
+		{ value: '3', name: 'Beacon 3', inUse: true },
+		{ value: '4', name: 'Beacon 4', inUse: false },
+		{ value: '5', name: 'Beacon 5', inUse: true }
 	];
 
 	const toggleRow = (i: any) => {
@@ -180,85 +204,23 @@
 		}
 	};
 
-	const sourceData = [
-		{ position: 1, name: 'Hydrogen', weight: 1.0079, symbol: 'H' },
-		{ position: 2, name: 'Helium', weight: 4.0026, symbol: 'He' },
-		{ position: 3, name: 'Lithium', weight: 6.941, symbol: 'Li' },
-		{ position: 4, name: 'Beryllium', weight: 9.0122, symbol: 'Be' },
-		{ position: 5, name: 'Boron', weight: 10.811, symbol: 'B' }
-	];
-
-	const tableSimple: TableSource = {
-		// A list of heading labels.
-		head: ['Name', 'Symbol', 'Weight'],
-		// The data visibly shown in your table body UI.
-		body: tableMapperValues(sourceData, ['name', 'symbol', 'weight']),
-		// Optional: The data returned when interactive is enabled and a row is clicked.
-		meta: tableMapperValues(sourceData, ['position', 'name', 'symbol', 'weight']),
-		// Optional: A list of footer labels.
-		foot: ['Total', '', '<code class="code">5</code>']
-	};
-
-	let campaigns: any[] = [
-		{
-			id: 1,
-			name: 'Campaign 1'
-		},
-		{
-			id: 2,
-			name: 'Campaign 2'
-		},
-		{
-			id: 3,
-			name: 'Campaign 3'
-		},
-		{
-			id: 4,
-			name: 'Campaign 4'
-		},
-		{
-			id: 5,
-			name: 'Campaign 5'
-		},
-		{
-			id: 6,
-			name: 'Campaign 6'
-		},
-		{
-			id: 7,
-			name: 'Campaign 7'
-		},
-		{
-			id: 8,
-			name: 'Campaign 8'
-		},
-		{
-			id: 9,
-			name: 'Campaign 9'
-		},
-		{
-			id: 10,
-			name: 'Campaign 10'
-		}
-	];
-	let allCampaignsId: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-
-	let selectedCampaignsId: number[] = [...allCampaignsId];
-
 	let isNewCampaignModalOpen: boolean = false;
 
 	let Konva: typeof KonvaType;
 	let layer: KonvaType.Layer;
+	let tooltipLayer: KonvaType.Layer;
+	let tooltip: KonvaType.Label;
 	let stage: KonvaType.Stage;
 	let backgroundImage: KonvaType.Image;
-	// let layer: any;
-	// let stage: any;
 	let rightSideContent: boolean = false;
 	let rangeOpen: boolean = false;
 	let range: number = 1;
 
 	const MIN_RANGE_BEACON = 1;
 	const MAX_RANGE_BEACON = 15;
+
+	const CANVAS_WIDTH = 600;
+	const CANVAS_HEIGHT = 1000;
 
 	onMount(async () => {
 		Konva = (await import('konva')).default;
@@ -268,8 +230,8 @@
 		const clientWidth = document.documentElement.clientWidth;
 		var konvaStage = new Konva.Stage({
 			container: 'canvas', // id of container <div>
-			width: 400,
-			height: 800
+			width: CANVAS_WIDTH,
+			height: CANVAS_HEIGHT
 			// height: 400,
 			// width: parent.clientWidth,
 			// height: parent.clientHeight
@@ -278,13 +240,62 @@
 
 		// then create layer
 		var konvaLayer = new Konva.Layer();
+		var konvaTooltipLayer = new Konva.Layer();
 
 		// add the layer to the stage
 		stage.add(konvaLayer);
+		stage.add(konvaTooltipLayer);
 
 		// draw the image
 		konvaLayer.draw();
 		layer = konvaLayer;
+
+		tooltipLayer = konvaTooltipLayer;
+
+		// tooltip = new Konva.Text({
+		// 	text: '',
+		// 	fontFamily: 'Calibri',
+		// 	fontSize: 12,
+		// 	padding: 5,
+		// 	textFill: 'white',
+		// 	fill: 'black',
+		// 	alpha: 0.75,
+		// 	visible: false,
+		// });
+
+		tooltip = new Konva.Label({
+			x: 0,
+			y: 0,
+			opacity: 0.9
+		});
+
+		tooltip.add(
+			new Konva.Tag({
+				fill: 'black',
+				pointerDirection: 'down',
+				pointerWidth: 10,
+				pointerHeight: 10,
+				lineJoin: 'round',
+				shadowColor: 'black',
+				shadowBlur: 10,
+				shadowOffsetX: 10,
+				shadowOffsetY: 10,
+				shadowOpacity: 0.5
+			})
+		);
+
+		tooltip.add(
+			new Konva.Text({
+				text: '',
+				fontFamily: 'Calibri',
+				fontSize: 18,
+				padding: 5,
+				fill: 'white'
+			})
+		);
+		
+		tooltipLayer.add(tooltip);
+		tooltip.hide();
 
 		// add stage a background image
 		var imageObj = new Image();
@@ -340,13 +351,6 @@
 	const BEACON_AREA_RADIUS = 100;
 
 	const BEACON_RANGE = 10;
-
-	// const IMAGE_W = 20;
-	// const IMAGE_H = 25;
-	type Beacon = {
-		x: number;
-		y: number;
-	};
 
 	let beaconsMap: Beacon[] = [];
 
@@ -503,6 +507,17 @@
 				beacon.on('pointerenter', (event: any) => {
 					// scale up
 					event.target.scale({ x: 1.1, y: 1.1 });
+
+					// update tooltip
+					// tooltip.getText().text(`Beacon ${beaconsMap.length}`);
+					tooltip.getText().setText(`Beacon ${beaconsMap.length}`);
+
+					tooltip.position({
+						x: event.target.x(),
+						y: event.target.y()
+					});
+					// tooltip.text(`Beacon ${beaconsMap.length}`);
+					tooltip.show();
 					layer.draw();
 				});
 
@@ -510,6 +525,9 @@
 					// scale down
 					event.target.scale({ x: 1, y: 1 });
 					layer.draw();
+					// setTimeout(() => {
+					// }, 1000);
+					tooltip.hide();
 				});
 
 				beacon.on('dragmove', (event: any) => {
@@ -523,12 +541,18 @@
 				layer.add(beacon);
 				layer.draw();
 
-				beaconsMap.push({ x: pos.x, y: pos.y });
+				beaconsMap.push({
+					id: beaconsMap.length + 1,
+					position: {
+						x: beacon.x(),
+						y: beacon.y()
+					}
+				});
 			});
 		}
 	}
 
-	function addRangeToBeacon(beacon: any) {
+	function addRangeToBeacon(beacon: Beacon) {
 		// // var circleRange = new Konva.Circle({
 		// // 	x: beacon.x,
 		// // 	y: beacon.y,
@@ -543,7 +567,7 @@
 
 		// find the beacon in the layer and its circle range
 		var circleRange = layer.find('Circle').find((circle: any) => {
-			return circle.x() == beacon.x && circle.y() == beacon.y;
+			return circle.x() == beacon.position.x && circle.y() == beacon.position.y;
 		});
 
 		if (!circleRange) {
@@ -575,21 +599,39 @@
 	}
 
 	const addNewCampaign = () => {
-
-		// newCampaignName
-		// beaconsForNewCampaign
-
-		items.push({
-			name: newCampaignName,
-			description: 'Campaign 3 description',
-			beacons: beaconsForNewCampaign,
-			// created: Date.now(),
-			created: '2021-09-01',
-			status: 'not-active',
-			isCompleted: false
-		});
+		// console.log('newCampaignName:', newCampaignName);
+		items = [
+			...items,
+			{
+				id: items.length + 1,
+				name: newCampaignName,
+				description: 'Campaign 3 description',
+				beacons: beaconsForNewCampaign,
+				// created: Date.now(),
+				created: '2021-09-01',
+				status: 'not-active',
+				isCompleted: false
+			}
+		];
 
 		console.log('items:', items);
+
+		newCampaignName = '';
+		selectedBeaconsForNewCampaign = [];
+	};
+
+	const removeBeaconFromCampaign = (campaignId: number, beaconId: number) => {
+		console.log('removeBeaconFromCampaign campaignId:', campaignId, ' beaconId:', beaconId);
+		items = items.map((item) => {
+			if (item.id == campaignId) {
+				item.beacons = item.beacons.filter((beacon: any) => beacon.id != beaconId);
+			}
+			return item;
+		});
+	};
+
+	const addNewBeaconToCampaign = () => {
+		console.log('addNewBeaconToCampaign');
 	};
 
 	const saveChanges = async () => {
@@ -612,6 +654,13 @@
 			}
 		});
 	};
+
+	const previousTable = () => {
+		alert('Previous btn clicked. Make a call to your server to fetch data.');
+	};
+	const nextTable = () => {
+		alert('Next btn clicked. Make a call to your server to fetch data.');
+	};
 </script>
 
 <!-- grid gap-4 grid-cols-2 
@@ -629,28 +678,43 @@
 	{/each}
 </ListBox> -->
 
-<!-- <Table source={tableSimple} interactive={true}/> -->
-
-<div class="grid gap-4 grid-cols-2">
+<div class="grid grid-cols-2 p-5 gap-5">
 	<div class="flex flex-col gap-5">
 		<div>
 			<div class="flex flex-row justify-between items-center px-5 py-5 bg-slate-100">
-				<p class="text-xl dark:text-white">Save Changes</p>
+				<p class="text-xl font-semibold text-gray-900 dark:text-white ">Campaigns</p>
 				<!-- <form method="POST" action="?/saveChanges"> -->
-				<Button
-					color="green"
-					pill
-					on:click={() => {
-						saveChanges();
-					}}
-					type="submit"
-				>
-					<i class="fa-solid fa-save fa-lg me-2" />
-					Save
-				</Button>
+				<div>
+					<Button
+						color="green"
+						pill
+						on:click={() => {
+							saveChanges();
+						}}
+						type="submit"
+					>
+						<i class="fa-solid fa-save fa-lg me-2" />
+						Save
+					</Button>
+					<Button
+						color="blue"
+						pill
+						on:click={() => {
+							isNewCampaignModalOpen = true;
+						}}
+						type="submit"
+					>
+						<i class="fa-solid fa-plus fa-lg me-2" />
+						New Campaign
+					</Button>
+				</div>
 				<!-- </form> -->
 			</div>
 			<Table hoverable={true} shadow>
+				<!-- <caption class="p-5 text-lg font-semibold text-left text-gray-900 bg-white dark:text-white dark:bg-gray-800">
+					Our products
+					<p class="mt-1 text-sm font-normal text-gray-500 dark:text-gray-400">Browse a list of Flowbite products designed to help you work and play, stay organized, get answers, keep in touch, grow your business, and more.</p>
+				  </caption> -->
 				<TableHead>
 					<TableBodyCell class="!p-4">
 						<Checkbox
@@ -702,16 +766,6 @@
 
 							<!-- <TableBodyCell>{item.beacons.length}</TableBodyCell> -->
 							<TableBodyCell>
-								<!-- <ListBox multiple>
-							{#each item.beacons as beacon}
-								<ListBoxItem bind:group={selectedCampaignsId} name="medium" value={beacon.id}>
-									{
-										'Id: ' + beacon.id + ' Name: ' + 
-										beacon.name
-									}
-								</ListBoxItem>
-							{/each}
-						</ListBox> -->
 								{item.beacons.length}
 							</TableBodyCell>
 							<TableBodyCell>{item.created}</TableBodyCell>
@@ -747,13 +801,9 @@
 										}
 									}}>Edit</Button
 								>
-
-								<!-- <a href="/dashboard" class="font-medium text-primary-600 hover:underline dark:text-primary-500">Edit</a> -->
 							</TableBodyCell>
 						</TableBodyRow>
 						{#if editRow === i}
-							<!-- <TableBodyCell colspan="4" class="p-0"> -->
-
 							<TableBodyRow>
 								<TableBodyCell colspan="6" class="p-3">
 									<div class="flex flex-row justify-between items-center">
@@ -798,52 +848,54 @@
 										{/if}
 									</TableBodyCell> -->
 												<TableBodyCell>
-													{#if beacon.status == 'active'}
-														<Toggle color="green" checked />
-													{:else}
-														<Toggle color="green" />
-													{/if}
+													<Toggle
+														color="green"
+														checked={beacon.status == 'active'}
+														bind:value={beacon.status}
+														on:change={() => {
+															if (beacon.status == 'active') {
+																beacon.status = 'not-active';
+															} else {
+																beacon.status = 'active';
+															}
+														}}
+													/>
 												</TableBodyCell>
 												<TableBodyCell>
 													{#if beacon.position != undefined}
-														<Button color="alternative" pill on:click={() => {}}
-															>Change Location</Button
-														>
+														<Button color="alternative" pill on:click={() => {}}>
+															Change Location
+														</Button>
 													{:else}
-														<Button color="alternative" pill on:click={() => {}}
-															>Add Location</Button
-														>
+														<Button color="alternative" pill on:click={() => {}}>
+															Add Location
+														</Button>
 													{/if}
 												</TableBodyCell>
 												<TableBodyCell>
-													<Button color="red" pill on:click={() => {}}>Remove</Button>
+													<Button
+														color="red"
+														pill
+														on:click={() => {
+															removeBeaconFromCampaign(item.id, beacon.id);
+														}}>Remove</Button
+													>
 												</TableBodyCell>
 											</TableBodyRow>
 										{/each}
 									</Table>
-									<!-- <div class="px-2 py-3">
-									<ImagePlaceholder />
-									<div>Lorem, ipsum dolor sit amet consectetur adipisicing elit. Quibusdam architecto quaerat dolor facere suscipit nobis consequuntur excepturi nulla sed similique quos quas possimus obcaecati asperiores, doloremque explicabo iusto itaque quia!</div>
-								</div> -->
 								</TableBodyCell>
 							</TableBodyRow>
-							<!-- <ListBox multiple>
-								{#each item.beacons as beacon}
-									<ListBoxItem bind:group={selectedCampaignsId} name="medium" value={beacon.id}>
-										{
-											'Id: ' + beacon.id + ' Name: ' + 
-											beacon.name
-										}
-									</ListBoxItem>
-								{/each}
-							</ListBox> -->
-							<!-- </TableBodyCell> -->
 						{/if}
 					{/each}
 				</TableBody>
 			</Table>
+			<div class="flex justify-end space-x-3 py-5">
+				<PaginationItem large on:click={previousTable}>Previous</PaginationItem>
+				<PaginationItem large on:click={nextTable}>Next</PaginationItem>
+			</div>
 		</div>
-		<Button
+		<!-- <Button
 			size="lg"
 			color="alternative"
 			pill
@@ -853,7 +905,7 @@
 		>
 			<i class="fa-solid fa-plus fa-xl me-2" />
 			Create new campaign
-		</Button>
+		</Button> -->
 	</div>
 	<!-- <div class="bg-slate-200 w-10 h-10"></div> -->
 	<div class="relative max-w-fit" id="parent">
@@ -1036,7 +1088,7 @@
 	<div class="flex flex-col p-5" style="min-height: 400px">
 		<div class="mb-6">
 			<Label for="campaign-name" class="block mb-2">Campaign Name</Label>
-			<Input id="campaign-name" placeholder="Campaign Name" bind:value={newCampaignName}/>
+			<Input id="campaign-name" placeholder="Campaign Name" bind:value={newCampaignName} />
 		</div>
 
 		<Label class="block mb-5">
@@ -1045,17 +1097,17 @@
 		</Label>
 
 		{#each beaconsForNewCampaign as selectedBeacon, selectedBeaconIndex}
-			<div class = "py-2">
-			{selectedBeacon.name}
-			<Label>Range steps</Label>
-			<Range
-				id="new-campaign-beacon-range"
-				min={MIN_RANGE_BEACON}
-				max={MAX_RANGE_BEACON}
-				bind:value={selectedBeacon.range}
-				step="0.5"
-			/>
-			<p>Value: {selectedBeacon.range}</p>
+			<div class="py-2">
+				{selectedBeacon.name}
+				<Label>Range steps</Label>
+				<Range
+					id="new-campaign-beacon-range"
+					min={MIN_RANGE_BEACON}
+					max={MAX_RANGE_BEACON}
+					bind:value={selectedBeacon.range}
+					step="0.5"
+				/>
+				<p>Value: {selectedBeacon.range}</p>
 			</div>
 		{/each}
 	</div>
