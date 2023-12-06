@@ -6,6 +6,7 @@
 
 	import type KonvaType from 'konva';
 
+	import { notify } from '../../../components/notify';
 	import {
 		Table,
 		TableBody,
@@ -219,8 +220,8 @@
 	const MIN_RANGE_BEACON = 1;
 	const MAX_RANGE_BEACON = 15;
 
-	const CANVAS_WIDTH = 600;
-	const CANVAS_HEIGHT = 1000;
+	const CANVAS_WIDTH = 500;
+	const CANVAS_HEIGHT = 800;
 
 	onMount(async () => {
 		Konva = (await import('konva')).default;
@@ -293,7 +294,7 @@
 				fill: 'white'
 			})
 		);
-		
+
 		tooltipLayer.add(tooltip);
 		tooltip.hide();
 
@@ -377,8 +378,8 @@
 			// // imageObj.src = BeaconSvg;
 			// imageObj.onload = function () {
 			Konva.Image.fromURL('/src/lib/assets/beacon.svg', function (beacon) {
-				const IMAGE_W = beacon.getWidth() / 7;
-				const IMAGE_H = beacon.getHeight() / 7;
+				const IMAGE_W = beacon.getWidth() / 5;
+				const IMAGE_H = beacon.getHeight() / 5;
 				// console.log('beacon:', beacon);
 				// beacon.fill('red');
 				// change background color to red
@@ -504,6 +505,7 @@
 					// layer.draw();
 				});
 
+				// mousemove
 				beacon.on('pointerenter', (event: any) => {
 					// scale up
 					event.target.scale({ x: 1.1, y: 1.1 });
@@ -521,6 +523,7 @@
 					layer.draw();
 				});
 
+				// mouseout
 				beacon.on('pointerleave', (event: any) => {
 					// scale down
 					event.target.scale({ x: 1, y: 1 });
@@ -600,6 +603,11 @@
 
 	const addNewCampaign = () => {
 		// console.log('newCampaignName:', newCampaignName);
+		if (newCampaignName == '') {
+			notify('Please enter a name for the new campaign', 'error');
+			// alert('Please enter a name for the new campaign');
+			return;
+		}
 		items = [
 			...items,
 			{
@@ -618,6 +626,7 @@
 
 		newCampaignName = '';
 		selectedBeaconsForNewCampaign = [];
+		notify('New campaign added', 'success');
 	};
 
 	const removeBeaconFromCampaign = (campaignId: number, beaconId: number) => {
@@ -682,7 +691,7 @@
 	<div class="flex flex-col gap-5">
 		<div>
 			<div class="flex flex-row justify-between items-center px-5 py-5 bg-slate-100">
-				<p class="text-xl font-semibold text-gray-900 dark:text-white ">Campaigns</p>
+				<p class="text-xl font-semibold text-gray-900 dark:text-white">Campaigns</p>
 				<!-- <form method="POST" action="?/saveChanges"> -->
 				<div>
 					<Button
@@ -824,6 +833,8 @@
 											<TableHeadCell>Name</TableHeadCell>
 											<TableHeadCell>Range</TableHeadCell>
 											<TableHeadCell>Status</TableHeadCell>
+											<TableHeadCell />
+											<TableHeadCell />
 										</TableHead>
 										{#each item.beacons as beacon, beacon_index}
 											<TableBodyRow>
@@ -863,23 +874,71 @@
 												</TableBodyCell>
 												<TableBodyCell>
 													{#if beacon.position != undefined}
-														<Button color="alternative" pill on:click={() => {}}>
-															Change Location
-														</Button>
+														<div class="tooltip tooltip-top" data-tip="Change location">
+															<Button color="blue" pill class="!p-2" on:click={() => {}}>
+																<!-- Change Location
+															<i class="fa-solid fa-location-dot"></i> -->
+																<svg
+																	xmlns="http://www.w3.org/2000/svg"
+																	height="24"
+																	viewBox="0 0 24 24"
+																	width="24"
+																	fill="white"
+																>
+																	<path d="M0 0h24v24H0z" fill="none" />
+																	<path
+																		d="M12 2C8.14 2 5 5.14 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.86-3.14-7-7-7zm-1.56 10H9v-1.44l3.35-3.34 1.43 1.43L10.44 12zm4.45-4.45l-.7.7-1.44-1.44.7-.7c.15-.15.39-.15.54 0l.9.9c.15.15.15.39 0 .54z"
+																	/>
+																</svg>
+																<!-- <svg
+																xmlns="http://www.w3.org/2000/svg"
+																xmlns:xlink="http://www.w3.org/1999/xlink"
+																version="1.1"
+																x="10px"
+																y="10px"
+																class = "w-7 h-7"
+																viewBox="0 0 53.56 68.375"
+																stroke="currentColor"
+																stroke-width="1.5"
+																xml:space="preserve"
+																><g
+																	><path
+																		fill="#000000"
+																		d="M52.69,29.45l-2.85-2.85c-1.13-1.13-3.09-1.13-4.22,0L30.23,42l-2.12,7.78l-0.52,0.52   c-0.39,0.39-0.39,1.01-0.01,1.41l-0.01,0.02l0.02-0.01c0.19,0.19,0.45,0.29,0.7,0.29c0.26,0,0.51-0.1,0.71-0.29l0.52-0.52   l7.78-2.12l15.39-15.39C53.85,32.51,53.85,30.62,52.69,29.45z M32.54,42.51l10.24-10.24l4.24,4.24L36.78,46.76L32.54,42.51z    M31.63,44.44l3.22,3.22l-4.43,1.21L31.63,44.44z M51.27,32.26l-2.84,2.84l-4.24-4.24l2.84-2.84c0.37-0.37,1.02-0.37,1.39,0   l2.85,2.85C51.66,31.25,51.66,31.88,51.27,32.26z"
+																	/><path
+																		fill="#000000"
+																		d="M19.35,12c-3.86,0-7,3.14-7,7s3.14,7,7,7s7-3.14,7-7S23.21,12,19.35,12z M19.35,24c-2.76,0-5-2.24-5-5   s2.24-5,5-5s5,2.24,5,5S22.11,24,19.35,24z"
+																	/><path
+																		fill="#000000"
+																		d="M22.21,47.39l-2.99,3.91L5.44,31.4c-5.2-6.93-4.45-18.32,1.6-24.37C10.28,3.79,14.59,2,19.18,2   s8.9,1.79,12.15,5.03c4.43,4.43,6.16,11.95,4.29,18.7c-0.15,0.53,0.17,1.08,0.7,1.23c0.53,0.15,1.08-0.17,1.23-0.7   c2.05-7.43,0.12-15.73-4.81-20.65C29.11,2,24.3,0,19.18,0C14.05,0,9.24,2,5.62,5.62c-6.7,6.7-7.54,19.31-1.8,26.95L19.14,54.7   l4.66-6.09c0.34-0.44,0.25-1.07-0.19-1.4C23.17,46.87,22.54,46.95,22.21,47.39z"
+																	/></g
+																></svg
+															> -->
+															</Button>
+														</div>
 													{:else}
-														<Button color="alternative" pill on:click={() => {}}>
-															Add Location
-														</Button>
+														<div class="tooltip tooltip-top" data-tip="Add location">
+															<Button color="alternative" pill on:click={() => {}}>
+																Add Location
+															</Button>
+														</div>
 													{/if}
 												</TableBodyCell>
 												<TableBodyCell>
-													<Button
-														color="red"
-														pill
-														on:click={() => {
-															removeBeaconFromCampaign(item.id, beacon.id);
-														}}>Remove</Button
-													>
+													<div class="tooltip tooltip-top" data-tip="Delete beacon">
+														<Button
+															color="red"
+															pill
+															class="!p-2"
+															size="lg"
+															on:click={() => {
+																removeBeaconFromCampaign(item.id, beacon.id);
+															}}
+														>
+															<!-- Remove -->
+															<i class="fa-solid fa-trash" />
+														</Button>
+													</div>
 												</TableBodyCell>
 											</TableBodyRow>
 										{/each}
@@ -1107,7 +1166,7 @@
 					bind:value={selectedBeacon.range}
 					step="0.5"
 				/>
-				<p>Value: {selectedBeacon.range}</p>
+				<p>Range: {selectedBeacon.range} meters</p>
 			</div>
 		{/each}
 	</div>

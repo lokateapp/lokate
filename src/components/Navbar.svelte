@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import BeaconSvg from '$lib/assets/beacon.svg';
+	import { Button } from 'flowbite-svelte';
 
 	const INITIAL_WIDTH = 4;
 	let sidebarVisible = false;
@@ -18,19 +20,33 @@
 	var routes = [
 		{
 			name: 'dashboard',
-			icon: 'fa-solid fa-home fa-lg',
-			link: '/dashboard'
+			icon: 'fa-solid fa-home fa-xl',
+			// link: '/dashboard'
+			link: '/dashboard/editor'
 		},
 		{
+			name: 'beacons',
+			// icon: 'fa-solid fa-mobile-android-alt fa-lg',
+			icon: 'fa-solid fa-tower-broadcast',
+			// icon : BeaconSvg,
+			// svg: BeaconSvg,
+			link: '/dashboard/devices'
+		},
+		// {
+		// 	name: 'users',
+		// 	icon: 'fa-solid fa-users fa-lg',
+		// 	link: '/dashboard/users'
+		// },
+		{
 			name: 'analytics',
-			icon: 'fa-solid fa-chart-bar fa-lg',
+			icon: 'fa-solid fa-chart-bar fa-xl',
 			link: '/dashboard/analytics'
 		}
 	];
 
 	var lastRoute = {
 		name: 'settings',
-		icon: 'fa-solid fa-gear fa-lg',
+		icon: 'fa-solid fa-gear fa-xl',
 		link: '/dashboard/settings'
 	};
 </script>
@@ -60,21 +76,46 @@
 			{#each routes as route}
 				<!-- if route last item -->
 				<li>
-					<div class="flex flex-row items-center">
-						<button
-							class="btn btn-circle {routeName == route.name
-								? 'btn-primary btn-active'
-								: ''} {sidebarVisible ? 'pl-4 justify-start w-full' : ''}"
+					<div class="flex flex-row items-center {sidebarVisible ? 'justify-start' : ''}">
+						<Button
+							color="blue"
+							pill
+							active={routeName == route.name}
+							class="w-full text-left {sidebarVisible ? 'justify-start p-4' : '!p-6'}"
 							on:click={() => {
 								window.location.href = route.link;
 							}}
 						>
-							<i class=" {route?.icon}" />
+							<!-- {#if route.svg}
+								<img src={route.svg} class="w-7 h-7" alt="Beacon" />
+							{:else} -->
+							<!-- {/if} -->
+							<i class={route?.icon} />
 							{#if sidebarVisible}
 								<!-- first letter is upper -->
-								<span class="ms-3 capitalize">{route?.name}</span>
+								<span class="ml-3 capitalize">{route?.name}</span>
+							{:else}
+								<span>{''}</span>
 							{/if}
-						</button>
+						</Button>
+						<!-- <button
+
+							class="btn btn-circle{routeName == route.name
+								? 'btn-primary btn-active'
+								: ''} {sidebarVisible ? 'justify-start' : ''}"
+							on:click={() => {
+								window.location.href = route.link;
+							}}
+						>
+							{#if route.svg}
+								<img src="{route.svg}" class="w-7 h-7" alt="Beacon" />
+							{:else}
+								<i class=" {route?.icon}" />
+							{/if}
+							{#if sidebarVisible}
+								<span class="ml-3 capitalize">{route?.name}</span>
+							{/if}
+						</button> -->
 					</div>
 				</li>
 			{/each}
@@ -82,7 +123,7 @@
 		<ul class="pt-4 mt-4 space-y-2">
 			<li>
 				<div class="flex flex-row items-center">
-					<button
+					<!-- <button
 						class="btn btn-circle {routeName == lastRoute.name
 							? 'btn-primary btn-active'
 							: ''} {sidebarVisible ? 'pl-4 justify-start w-full' : ''}"
@@ -94,7 +135,24 @@
 						{#if sidebarVisible}
 							<span class="ms-3 capitalize">{lastRoute.name}</span>
 						{/if}
-					</button>
+					</button> -->
+					<Button
+						color="dark"
+						pill
+						active={routeName == lastRoute.name}
+						class="w-full text-left {sidebarVisible ? 'justify-start p-4' : '!p-6'}"
+						on:click={() => {
+							window.location.href = lastRoute.link;
+						}}
+					>
+						<i class={lastRoute?.icon} />
+						{#if sidebarVisible}
+							<!-- first letter is upper -->
+							<span class="ml-3 capitalize">{lastRoute?.name}</span>
+						{:else}
+							<span>{''}</span>
+						{/if}
+					</Button>
 				</div>
 			</li>
 		</ul>
