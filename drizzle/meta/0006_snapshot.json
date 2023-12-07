@@ -1,6 +1,6 @@
 {
-  "id": "e968e4ac-5031-47a0-8bc0-44343d3d78d5",
-  "prevId": "189f4507-4236-4388-8125-d1bfecb691e0",
+  "id": "07544587-5f5b-4494-a899-c081a755fdb9",
+  "prevId": "e968e4ac-5031-47a0-8bc0-44343d3d78d5",
   "version": "5",
   "dialect": "pg",
   "tables": {
@@ -17,6 +17,12 @@
         "user_id": {
           "name": "user_id",
           "type": "varchar(15)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "radius": {
+          "name": "radius",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true
         }
