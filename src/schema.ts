@@ -1,5 +1,14 @@
 import type { InferSelectModel } from 'drizzle-orm';
-import { bigint, uniqueIndex, pgTable, varchar, uuid, text, primaryKey } from 'drizzle-orm/pg-core';
+import {
+	bigint,
+	uniqueIndex,
+	pgTable,
+	varchar,
+	uuid,
+	text,
+	primaryKey,
+	integer
+} from 'drizzle-orm/pg-core';
 
 export const user = pgTable(
 	'auth_user',
@@ -51,7 +60,8 @@ export const beacons = pgTable('beacons', {
 	id: uuid('id').primaryKey(),
 	userId: varchar('user_id', { length: 15 })
 		.notNull()
-		.references(() => user.id)
+		.references(() => user.id),
+	radius: integer('radius').notNull()
 });
 
 export const campaignsToBeacons = pgTable(
@@ -60,11 +70,11 @@ export const campaignsToBeacons = pgTable(
 		campaignId: uuid('campaign_id')
 			.notNull()
 			.unique()
-			.references(() => campaigns.id),
+			.references(() => campaigns.id, { onDelete: 'cascade' }),
 		beaconId: uuid('beacon_id')
 			.notNull()
 			.unique()
-			.references(() => beacons.id)
+			.references(() => beacons.id, { onDelete: 'cascade' })
 	},
 	(table) => {
 		return {
@@ -82,3 +92,4 @@ export const campaigns = pgTable('campaigns', {
 });
 
 export type SelectCampaign = InferSelectModel<typeof campaigns>;
+export type SelectBeacon = InferSelectModel<typeof beacons>;

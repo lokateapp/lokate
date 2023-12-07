@@ -1,0 +1,1 @@
+ALTER TABLE "beacons" ADD COLUMN "radius" integer NOT NULL;
