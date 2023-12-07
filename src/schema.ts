@@ -7,7 +7,8 @@ import {
 	uuid,
 	text,
 	primaryKey,
-	integer
+	integer,
+	timestamp
 } from 'drizzle-orm/pg-core';
 
 export const user = pgTable(
@@ -89,6 +90,20 @@ export const campaigns = pgTable('campaigns', {
 	userId: varchar('user_id', { length: 15 })
 		.notNull()
 		.references(() => user.id)
+});
+
+export const customers = pgTable('customers', {
+	id: uuid('id').primaryKey(),
+	customerId: varchar('customer_id', { length: 15 }).notNull()
+});
+
+export const events = pgTable('events', {
+	id: uuid('id').primaryKey(),
+	status: text('status').notNull(),
+	enteredTime: timestamp('entered_time').notNull(),
+	exitedTime: timestamp('exited_time'),
+	customerId: uuid('customer_id').notNull().references(() => customers.id),
+	campaignId: uuid('campaign_id').notNull().references(() => campaigns.id)
 });
 
 export type SelectCampaign = InferSelectModel<typeof campaigns>;
