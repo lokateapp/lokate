@@ -7,9 +7,9 @@ import {
 	uuid,
 	text,
 	primaryKey,
-	integer
+	integer,
+	timestamp
 } from 'drizzle-orm/pg-core';
-import { bigint, uniqueIndex, pgTable, varchar, uuid, text, primaryKey, timestamp } from 'drizzle-orm/pg-core';
 
 export const user = pgTable(
 	'auth_user',
