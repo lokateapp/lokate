@@ -92,3 +92,4 @@ export const campaigns = pgTable('campaigns', {
 });
 
 export type SelectCampaign = InferSelectModel<typeof campaigns>;
+export type SelectBeacon = InferSelectModel<typeof beacons>;
