@@ -44,19 +44,9 @@
 			y: number;
 		} | null;
 		range: number;
-		status: string;
+		// status: string;
 	};
 
-	type Beacon = {
-		id: number;
-		position: {
-			x: number;
-			y: number;
-		};
-	};
-
-	let selectedRows: number[] = [0, 1, 2];
-	let editRow: number;
 	let items: CampaignType[] = [
 		{
 			id: 1,
@@ -70,8 +60,8 @@
 						x: 100,
 						y: 100
 					},
-					range: 10,
-					status: 'active'
+					range: 10
+					// status: 'active'
 				},
 				{
 					id: 2,
@@ -80,8 +70,8 @@
 						x: 200,
 						y: 200
 					},
-					range: 2,
-					status: 'active'
+					range: 2
+					// status: 'active'
 				},
 				{
 					id: 3,
@@ -90,8 +80,8 @@
 						x: 300,
 						y: 300
 					},
-					range: 1,
-					status: 'active'
+					range: 1
+					// status: 'active'
 				}
 			],
 			created: '2021-09-01',
@@ -107,22 +97,22 @@
 					id: 1,
 					name: 'Beacon 1',
 					position: null,
-					range: 10,
-					status: 'active'
+					range: 10
+					// status: 'active'
 				},
 				{
 					id: 2,
 					name: 'Beacon 2',
 					position: null,
-					range: 10,
-					status: 'active'
+					range: 10
+					// status: 'active'
 				},
 				{
 					id: 3,
 					name: 'Beacon 3',
 					position: null,
-					range: 5,
-					status: 'not-active'
+					range: 5
+					// status: 'not-active'
 				}
 			],
 			created: '2021-09-01',
@@ -138,21 +128,21 @@
 					id: 1,
 					name: 'Beacon 1',
 					position: {
-						x: 100,
-						y: 100
+						x: 200,
+						y: 51
 					},
-					range: 5,
-					status: 'not-active'
+					range: 5
+					// status: 'not-active'
 				},
 				{
 					id: 2,
 					name: 'Beacon 2',
 					position: {
-						x: 200,
-						y: 200
+						x: 100,
+						y: 150
 					},
-					range: 10,
-					status: 'not-active'
+					range: 10
+					// status: 'not-active'
 				},
 				{
 					id: 3,
@@ -161,8 +151,8 @@
 						x: 300,
 						y: 300
 					},
-					range: 5,
-					status: 'active'
+					range: 5
+					// status: 'active'
 				}
 			],
 			created: '2021-09-01',
@@ -170,6 +160,9 @@
 			isCompleted: true
 		}
 	];
+
+	let selectedRows: number[] = []; // = [0, 1, 2]
+	let editRow: number;
 
 	let selectedBeaconsForNewCampaign: any[] = [];
 	let beaconsForNewCampaign: CampaignBeaconType[] = [];
@@ -196,19 +189,35 @@
 		{ value: '5', name: 'Beacon 5', inUse: true }
 	];
 
-	const toggleRow = (i: any) => {
+	const toggleCampaign = (i: any) => {
+		isDraggable = false;
 		// console.log('selectedRows:', selectedRows, ' i:', i);
-		if (selectedRows.includes(i)) {
+		if (selectedRows?.includes(i)) {
 			selectedRows = selectedRows.filter((row) => row !== i);
 		} else {
 			selectedRows = [...selectedRows, i];
 		}
 	};
 
+	const toggleAllCampaigns = () => {
+		isDraggable = false;
+		if (selectedRows.length === items.length) {
+			selectedRows = [];
+		} else {
+			selectedRows = items.map((_, i) => i);
+		}
+	};
+
+	const closeAllCampaigns = () => {
+		isDraggable = false;
+		selectedRows = [];
+	};
+
 	let isNewCampaignModalOpen: boolean = false;
 
 	let Konva: typeof KonvaType;
 	let layer: KonvaType.Layer;
+	let beaconLayer: KonvaType.Layer;
 	let tooltipLayer: KonvaType.Layer;
 	let tooltip: KonvaType.Label;
 	let stage: KonvaType.Stage;
@@ -217,8 +226,13 @@
 	let rangeOpen: boolean = false;
 	let range: number = 1;
 
+	let isAddLocationToBeacon: boolean = false;
+	let beaconToAddLocation: CampaignBeaconType | null = null;
+	let isDraggable: boolean = false;
+
 	const MIN_RANGE_BEACON = 1;
 	const MAX_RANGE_BEACON = 15;
+	const BEACON_RANGE_STEP = 1;
 
 	const CANVAS_WIDTH = 500;
 	const CANVAS_HEIGHT = 800;
@@ -241,10 +255,12 @@
 
 		// then create layer
 		var konvaLayer = new Konva.Layer();
+		var konvaBackgroundLayer = new Konva.Layer();
 		var konvaTooltipLayer = new Konva.Layer();
 
 		// add the layer to the stage
 		stage.add(konvaLayer);
+		stage.add(konvaBackgroundLayer);
 		stage.add(konvaTooltipLayer);
 
 		// draw the image
@@ -311,12 +327,12 @@
 			});
 
 			// add the shape to the layer
-			konvaLayer.add(backgroundImage);
-			backgroundImage.moveToBottom();
-			konvaLayer.draw();
+			konvaBackgroundLayer.add(backgroundImage);
+			konvaBackgroundLayer.moveToBottom();
+			konvaBackgroundLayer.draw();
 		};
 
-		stage.on('pointerdown', maybeAddBeacon);
+		stage.on('pointerdown', addLocationToBeacon);
 
 		// var scaleBy = 1.01;
 		// stage.on('wheel', (e : any) => {
@@ -353,14 +369,212 @@
 
 	const BEACON_RANGE = 10;
 
-	let beaconsMap: Beacon[] = [];
+	let beaconsMap: CampaignBeaconType[] = [];
 
-	function maybeAddBeacon(event: any) {
-		console.log('event:', event);
+	$: {
+		updateMapDelete();
+		if (beaconsMap.length > 0) {
+			beaconsMap.forEach((beacon: CampaignBeaconType) => {
+				addBeaconToMap(beacon, isDraggable);
+			});
+		}
+	}
+
+	$: items.forEach((item) => {
+		item.beacons.forEach((beacon) => {
+			if (beaconsMap.includes(beacon)) {
+				beaconsMap = beaconsMap.map((beaconMap) => {
+					if (beaconMap.id == beacon.id) {
+						beaconMap = beacon;
+					}
+					return beaconMap;
+				});
+			}
+		});
+	});
+
+	$: {
+		if (layer) {
+			updateMapDelete();
+			if (!isDraggable && selectedRows && selectedRows.length > 0) {
+				console.log('selectedRows:', selectedRows);
+				selectedRows.forEach((row) => {
+					if (items[row].beacons.length > 0) {
+						items[row].beacons.forEach((beacon) => {
+							addBeaconToMap(beacon);
+						});
+					}
+				});
+			}
+		}
+	}
+
+	const addBeaconToMap = (beacon: CampaignBeaconType, draggable: boolean = false) => {
+		// let pos = stage.getPointerPosition() || { x: 0, y: 0 };
+		const pos = beacon.position;
+		const beaconName = beacon.name;
+		if (!pos) {
+			return;
+		}
+
+		const circles = layer.find('Circle');
+		if (circles && circles.length > 0) {
+			circles.forEach((circle: any) => {
+				if (circle.x() == pos.x && circle.y() == pos.y) {
+					return;
+				}
+			});
+		}
+		const beaconRange = beacon.range;
+		Konva.Image.fromURL('/src/lib/assets/beacon.svg', function (beaconSvg) {
+			const IMAGE_W = beaconSvg.getWidth() / 5;
+			const IMAGE_H = beaconSvg.getHeight() / 5;
+			// console.log('beacon:', beacon);
+			// beacon.fill('red');
+			// change background color to red
+			beaconSvg.offset({
+				x: IMAGE_W,
+				y: IMAGE_H
+			});
+			beaconSvg.position({
+				x: pos.x,
+				y: pos.y
+			});
+			beaconSvg.size({
+				width: IMAGE_W * 2,
+				height: IMAGE_H * 2
+			});
+			beaconSvg.draggable(draggable);
+			if (draggable) {
+				beaconSvg.dragBoundFunc(function (pos: any) {
+					var x = pos.x;
+					var y = pos.y;
+					const DELTA = 30; //BEACON_AREA_RADIUS
+					if (x < DELTA) {
+						x = DELTA;
+					}
+					if (x > stage.width() - DELTA) {
+						x = stage.width() - DELTA;
+					}
+					if (y < DELTA) {
+						y = DELTA;
+					}
+					if (y > stage.height() - DELTA) {
+						y = stage.height() - DELTA;
+					}
+					return {
+						x: x,
+						y: y
+					};
+				});
+			}
+
+			beaconSvg.id(beacon.id.toString());
+
+			var circleRange = new Konva.Circle({
+				x: pos.x,
+				y: pos.y,
+				radius: BEACON_RANGE * beaconRange,
+				stroke: 'red',
+				strokeWidth: 1,
+				fill: 'red',
+				opacity: 0.2
+			});
+
+			circleRange.id(beacon.id.toString());
+
+			// add the shape to the layer
+			beaconSvg.on('pointerdblclick', removeBeacon);
+
+			beaconSvg.on('pointerclick', (event: any) => {
+				rightSideContent = true;
+				// console.log(event);
+				// event.target.fill('blue');
+				// layer.draw();
+			});
+
+			// mousemove
+			beaconSvg.on('pointerenter', (event: any) => {
+				// scale up
+				event.target.scale({ x: 1.1, y: 1.1 });
+
+				// update tooltip
+				// tooltip.getText().text(`Beacon ${beaconsMap.length}`);
+				tooltip.getText().setText(`${beaconName}`);
+
+				tooltip.position({
+					x: event.target.x(),
+					y: event.target.y()
+				});
+				// tooltip.text(`Beacon ${beaconsMap.length}`);
+				tooltip.show();
+				layer.draw();
+			});
+
+			// mouseout
+			beaconSvg.on('pointerleave', (event: any) => {
+				// scale down
+				event.target.scale({ x: 1, y: 1 });
+				layer.draw();
+				// setTimeout(() => {
+				// }, 1000);
+				tooltip.hide();
+			});
+
+			if (draggable) {
+				beaconSvg.on('dragmove', (event: any) => {
+					// bind beacon position
+					beacon.position = {
+						x: event.target.x(),
+						y: event.target.y()
+					};
+					// update beaconsMap position
+					// beaconsMap = beaconsMap.map((beaconMap) => {
+					// 	if (beaconMap.id == beacon.id) {
+					// 		beaconMap.position = {
+					// 			x: event.target.x(),
+					// 			y: event.target.y()
+					// 		};
+					// 	}
+					// 	return beaconMap;
+					// });
+					// console.log(event);
+					circleRange.x(event.target.x());
+					circleRange.y(event.target.y());
+					layer.draw();
+				});
+			}
+
+			layer.add(circleRange);
+			layer.add(beaconSvg);
+			layer.draw();
+		});
+	};
+
+	const addLocationToBeacon = (event: any) => {
+		if (!isAddLocationToBeacon || beaconToAddLocation == null) {
+			return;
+		}
+		// console.log('event:', event);
 		if (event.target == backgroundImage) {
-			rangeOpen = true;
+
+			const beaconRange = beaconToAddLocation.range;
+			const beaconName = beaconToAddLocation.name;
+
+			
 			let pos = stage.getPointerPosition() || { x: 0, y: 0 };
 			console.log('pos:', pos);
+
+			items.forEach((item) => {
+				item.beacons.forEach((beacon) => {
+					if (beacon.id == beaconToAddLocation?.id) {
+						beacon.position = {
+							x: pos.x,
+							y: pos.y
+						};
+					}
+				});
+			});
 
 			// var beacon = new Konva.Circle({
 			// 	x: pos.x,
@@ -417,78 +631,11 @@
 						y: y
 					};
 				});
-
-				// var beacon = new Konva.Image({
-				// 	x: pos.x,
-				// 	y: pos.y,
-				// 	offsetX: IMAGE_W,
-				// 	offsetY: IMAGE_H,
-				// 	image: imageObj,
-				// 	// fillRule: 'nonzero',
-				// 	// fill: 'red',
-				// 	// crop: {
-				// 	// 	x: 200,
-				// 	// 	y: 100,
-				// 	// 	width: 300,
-				// 	// 	height: 300
-				// 	// },
-				// 	width: IMAGE_W * 2,
-				// 	height: IMAGE_H * 2,
-				// 	draggable: true,
-				// 	// not draggable if outside of the area
-				// 	dragBoundFunc: function (pos: any) {
-				// 		var x = pos.x;
-				// 		var y = pos.y;
-				// 		const DELTA = 30; //BEACON_AREA_RADIUS
-				// 		if (x < DELTA) {
-				// 			x = DELTA;
-				// 		}
-				// 		if (x > stage.width() - DELTA) {
-				// 			x = stage.width() - DELTA;
-				// 		}
-				// 		if (y < DELTA) {
-				// 			y = DELTA;
-				// 		}
-				// 		if (y > stage.height() - DELTA) {
-				// 			y = stage.height() - DELTA;
-				// 		}
-				// 		return {
-				// 			x: x,
-				// 			y: y
-				// 		};
-				// 	}
-				// });
-
-				var padding = 20;
-				var w = beacon.getWidth();
-				var h = beacon.getHeight();
-
-				// get the aperture we need to fit by taking padding off the stage size.
-
-				var targetW = stage.getSize().width - 2 * padding;
-				var targetH = stage.getSize().height - 2 * padding;
-
-				// compute the ratios of image dimensions to aperture dimensions
-				var widthFit = targetW / w;
-				var heightFit = targetH / h;
-
-				// compute a scale for best fit and apply it
-				var scale = widthFit > heightFit ? heightFit : widthFit;
-
-				var new_w = w * scale;
-				var new_h = h * scale;
-
-				console.log('new_w:', new_w, 'new_h:', new_h, ' old_w:', w, ' old_h:', h, ' scale:', scale);
-
-				// beacon.size({
-				// 	width: new_w,
-				// 	height: new_h
-				// });
-
+				
 				var circleRange = new Konva.Circle({
 					x: pos.x,
 					y: pos.y,
-					radius: BEACON_RANGE * 1,
+					radius: BEACON_RANGE * beaconRange,
 					stroke: 'red',
 					strokeWidth: 1,
 					fill: 'red',
@@ -512,7 +659,7 @@
 
 					// update tooltip
 					// tooltip.getText().text(`Beacon ${beaconsMap.length}`);
-					tooltip.getText().setText(`Beacon ${beaconsMap.length}`);
+					tooltip.getText().setText(`${beaconName}`);
 
 					tooltip.position({
 						x: event.target.x(),
@@ -544,18 +691,23 @@
 				layer.add(beacon);
 				layer.draw();
 
-				beaconsMap.push({
-					id: beaconsMap.length + 1,
-					position: {
-						x: beacon.x(),
-						y: beacon.y()
-					}
-				});
+				// beaconsMap.push({
+				// 	id: beaconsMap.length + 1,
+				// 	position: {
+				// 		x: beacon.x(),
+				// 		y: beacon.y()
+				// 	}
+				// });
 			});
+			beaconToAddLocation = null;
+			isAddLocationToBeacon = false;
 		}
-	}
+	};
 
-	function addRangeToBeacon(beacon: Beacon) {
+	const addRangeToBeacon = (beacon: CampaignBeaconType) => {
+		if (!beacon.position) {
+			return;
+		}
 		// // var circleRange = new Konva.Circle({
 		// // 	x: beacon.x,
 		// // 	y: beacon.y,
@@ -570,6 +722,9 @@
 
 		// find the beacon in the layer and its circle range
 		var circleRange = layer.find('Circle').find((circle: any) => {
+			if (!beacon.position) {
+				return;
+			}
 			return circle.x() == beacon.position.x && circle.y() == beacon.position.y;
 		});
 
@@ -584,7 +739,7 @@
 		layer.draw();
 	}
 
-	function removeBeacon(event: any) {
+	const removeBeacon = (event: any) => {
 		// find circle range
 
 		var circleRange = layer.find('Circle').find((circle: any) => {
@@ -643,6 +798,14 @@
 		console.log('addNewBeaconToCampaign');
 	};
 
+	const addNewLocationToBeacon = (beacon: CampaignBeaconType) => {
+		console.log('addNewLocationToBeacon beacon:', beacon);
+		closeAllCampaigns();
+		isAddLocationToBeacon = true;
+		beaconToAddLocation = beacon;
+		updateMapDelete();
+	};
+
 	const saveChanges = async () => {
 		console.log('items:', items);
 
@@ -662,6 +825,133 @@
 				console.log('Error');
 			}
 		});
+	};
+
+	const changeBeaconLocation = (beacon: CampaignBeaconType) => {
+		// console.log('changeBeaconLocation beaconId:', beaconId, ' location:', location);
+		// add beacon to map
+		// beaconsMap.push(beacon);
+		// beaconsMap.forEach((beaconFromMap) => {
+		// 	// layer.find('Circle').forEach((circle: Konva.Circle) => {
+		// 	// 	if (
+		// 	// 		circle.x() == beaconFromMap.position?.x &&
+		// 	// 		circle.y() == beaconFromMap.position?.y
+		// 	// 	) {
+		// 	// 		circle.destroy();
+		// 	// 	}
+		// 	// });
+
+		// 	let beaconSvgs: KonvaType.Image[];
+		// 	let beaconRanges: KonvaType.Circle[];
+		// 	beaconSvgs = layer.find('Image');
+		// 	beaconRanges = layer.find('Circle');
+
+		// 	beaconSvgs.forEach((beaconSvg: KonvaType.Image) => {
+		// 		if (
+		// 			beaconSvg.x() == beaconFromMap.position?.x &&
+		// 			beaconSvg.y() == beaconFromMap.position?.y
+		// 		) {
+		// 			beaconSvg.destroy();
+		// 		}
+		// 	});
+
+		// 	beaconRanges.forEach((beaconRange: KonvaType.Circle) => {
+		// 		if (
+		// 			beaconRange.x() == beaconFromMap.position?.x &&
+		// 			beaconRange.y() == beaconFromMap.position?.y
+		// 		) {
+		// 			beaconRange.destroy();
+		// 		}
+		// 	});
+
+		// 	// beaconSvgs.forEach((beaconSvg: KonvaType.Image) => {
+		// 	// 	if (
+		// 	// 		beaconSvg.x() == beaconFromMap.position?.x &&
+		// 	// 		beaconSvg.y() == beaconFromMap.position?.y
+		// 	// 	) {
+		// 	// 		beaconSvg.destroy();
+		// 	// 	}
+		// 	// });
+		// });
+
+		
+
+		closeAllCampaigns();
+		isDraggable = true;
+		beaconsMap = [beacon];
+	};
+
+	const updateMapDelete = () => {
+		// beaconsInMap: CampaignBeaconType[]
+		console.log('updateMapDelete');
+		if (!layer) {
+			return;
+		}
+
+		let beaconSvgs: KonvaType.Image[];
+		let beaconRanges: KonvaType.Circle[];
+
+		beaconSvgs = layer.find('Image');
+		beaconRanges = layer.find('Circle');
+
+		beaconSvgs.forEach((beaconSvg: KonvaType.Image) => {
+			beaconSvg.destroy();
+		});
+
+		beaconRanges.forEach((beaconRange: KonvaType.Circle) => {
+			beaconRange.destroy();
+		});
+
+		// beaconsInMap.forEach((beaconFromMap) => {
+		// 	// layer.find('Circle').forEach((circle: Konva.Circle) => {
+		// 	// 	if (
+		// 	// 		circle.x() == beaconFromMap.position?.x &&
+		// 	// 		circle.y() == beaconFromMap.position?.y
+		// 	// 	) {
+		// 	// 		circle.destroy();
+		// 	// 	}
+		// 	// });
+
+		// 	let beaconSvgs: KonvaType.Image[];
+		// 	let beaconRanges: KonvaType.Circle[];
+		// 	beaconSvgs = layer.find('Image');
+		// 	beaconRanges = layer.find('Circle');
+
+		// 	beaconSvgs.forEach((beaconSvg: KonvaType.Image) => {
+		// 		// if (
+		// 		// 	beaconSvg.x() != beaconFromMap.position?.x &&
+		// 		// 	beaconSvg.y() != beaconFromMap.position?.y
+		// 		// ) {
+		// 		// 	beaconSvg.destroy();
+		// 		// }
+		// 		// else{
+		// 		// 	const foundBeaconRange = beaconRanges.find((beaconRange: KonvaType.Circle) => {
+		// 		// 		beaconRange.id() == beaconSvg.id();
+		// 		// 	});
+		// 		// }
+		// 		beaconSvg.destroy();
+
+		// 	});
+
+		// 	beaconRanges.forEach((beaconRange: KonvaType.Circle) => {
+		// 		// if (
+		// 		// 	beaconRange.x() != beaconFromMap.position?.x &&
+		// 		// 	beaconRange.y() != beaconFromMap.position?.y &&
+		// 		// 	beaconRange.radius() != beaconFromMap.range
+		// 		// ) {
+		// 		// }
+		// 		beaconRange.destroy();
+		// 	});
+
+		// 	// beaconSvgs.forEach((beaconSvg: KonvaType.Image) => {
+		// 	// 	if (
+		// 	// 		beaconSvg.x() == beaconFromMap.position?.x &&
+		// 	// 		beaconSvg.y() == beaconFromMap.position?.y
+		// 	// 	) {
+		// 	// 		beaconSvg.destroy();
+		// 	// 	}
+		// 	// });
+		// });
 	};
 
 	const previousTable = () => {
@@ -727,13 +1017,16 @@
 				<TableHead>
 					<TableBodyCell class="!p-4">
 						<Checkbox
-							checked={selectedRows.length === items.length}
+							checked={selectedRows?.length === items.length}
 							on:change={() => {
-								if (selectedRows.length === items.length) {
-									selectedRows = [];
-								} else {
-									selectedRows = [...Array(items.length).keys()];
-								}
+								// isDraggable = false;
+								// console.log('isDraggable:', isDraggable);
+								// if (selectedRows?.length === items.length) {
+								// 	selectedRows = [];
+								// } else {
+								// 	selectedRows = [...Array(items.length).keys()];
+								// }
+								toggleAllCampaigns();
 							}}
 						/>
 					</TableBodyCell>
@@ -747,13 +1040,19 @@
 				</TableHead>
 				<TableBody tableBodyClass="divide-y">
 					{#each items as item, i}
-						<TableBodyRow
+						<TableBodyRow class={selectedRows?.includes(i) ? ' bg-gray-300' : 'bg-white'}>
+							<!-- id = {item.id}
 							on:click={(event) => {
-								// console.log('event:',);
+								const getDocument = document.getElementById(item.id.toString());
+								if (getDocument) {
+									console.log('getDocument:', getDocument);
+									console.log('event.target:', event.target);
+									if (event.target != getDocument) {
+										return;
+									}
+								}
 								toggleRow(i);
-							}}
-							class={selectedRows.includes(i) ? ' bg-gray-300' : 'bg-white'}
-						>
+							}} -->
 							<TableBodyCell class="!p-4">
 								<!-- <Checkbox checked={selectedRows.includes(i)} /> -->
 								<label class="swap">
@@ -763,7 +1062,7 @@
 										class="hidden"
 										checked={selectedRows.includes(i)}
 										on:change={() => {
-											toggleRow(i);
+											toggleCampaign(i);
 										}}
 									/>
 
@@ -820,11 +1119,27 @@
 											<Label for="campaign-name" class="block mb-2">Campaign Name</Label>
 											<Input id="campaign-name" placeholder={item.name} bind:value={item.name} />
 										</div>
-										<div>
-											<Button color="alternative" pill on:click={() => {}}>
-												<i class="fa-solid fa-plus fa-lg me-2" />
-												Add new beacon
-											</Button>
+										<div class="flex flex-row gap-2 items-center">
+											<TableBodyCell>
+												<Toggle
+													color="green"
+													checked={item.status == 'active'}
+													bind:value={item.status}
+													on:change={() => {
+														if (item.status == 'active') {
+															item.status = 'not-active';
+														} else {
+															item.status = 'active';
+														}
+													}}
+												/>
+											</TableBodyCell>
+											<div>
+												<Button color="blue" pill on:click={() => {}}>
+													<i class="fa-solid fa-plus fa-lg me-2" />
+													Add new beacon
+												</Button>
+											</div>
 										</div>
 									</div>
 									<Table>
@@ -832,7 +1147,7 @@
 											<TableHeadCell>Beacon ID</TableHeadCell>
 											<TableHeadCell>Name</TableHeadCell>
 											<TableHeadCell>Range</TableHeadCell>
-											<TableHeadCell>Status</TableHeadCell>
+											<!-- <TableHeadCell>Status</TableHeadCell> -->
 											<TableHeadCell />
 											<TableHeadCell />
 										</TableHead>
@@ -847,18 +1162,18 @@
 														min={MIN_RANGE_BEACON}
 														max={MAX_RANGE_BEACON}
 														bind:value={beacon.range}
-														step="0.5"
+														step={BEACON_RANGE_STEP}
 													/>
-													<p>Value: {beacon.range}</p>
+													<p>Value: {beacon.range} meters</p>
 												</TableBodyCell>
 												<!-- <TableBodyCell>
-										{#if beacon.status == 'active'}
-											<Badge rounded color="green">Active</Badge>
-										{:else}
-											<Badge rounded color="red">Not-Active</Badge>
-										{/if}
-									</TableBodyCell> -->
-												<TableBodyCell>
+													{#if beacon.status == 'active'}
+														<Badge rounded color="green">Active</Badge>
+													{:else}
+														<Badge rounded color="red">Not-Active</Badge>
+													{/if}
+												</TableBodyCell> -->
+												<!-- <TableBodyCell>
 													<Toggle
 														color="green"
 														checked={beacon.status == 'active'}
@@ -871,11 +1186,18 @@
 															}
 														}}
 													/>
-												</TableBodyCell>
+												</TableBodyCell> -->
 												<TableBodyCell>
 													{#if beacon.position != undefined}
 														<div class="tooltip tooltip-top" data-tip="Change location">
-															<Button color="blue" pill class="!p-2" on:click={() => {}}>
+															<Button
+																color="blue"
+																pill
+																class="!p-2"
+																on:click={() => {
+																	changeBeaconLocation(beacon);
+																}}
+															>
 																<!-- Change Location
 															<i class="fa-solid fa-location-dot"></i> -->
 																<svg
@@ -890,35 +1212,17 @@
 																		d="M12 2C8.14 2 5 5.14 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.86-3.14-7-7-7zm-1.56 10H9v-1.44l3.35-3.34 1.43 1.43L10.44 12zm4.45-4.45l-.7.7-1.44-1.44.7-.7c.15-.15.39-.15.54 0l.9.9c.15.15.15.39 0 .54z"
 																	/>
 																</svg>
-																<!-- <svg
-																xmlns="http://www.w3.org/2000/svg"
-																xmlns:xlink="http://www.w3.org/1999/xlink"
-																version="1.1"
-																x="10px"
-																y="10px"
-																class = "w-7 h-7"
-																viewBox="0 0 53.56 68.375"
-																stroke="currentColor"
-																stroke-width="1.5"
-																xml:space="preserve"
-																><g
-																	><path
-																		fill="#000000"
-																		d="M52.69,29.45l-2.85-2.85c-1.13-1.13-3.09-1.13-4.22,0L30.23,42l-2.12,7.78l-0.52,0.52   c-0.39,0.39-0.39,1.01-0.01,1.41l-0.01,0.02l0.02-0.01c0.19,0.19,0.45,0.29,0.7,0.29c0.26,0,0.51-0.1,0.71-0.29l0.52-0.52   l7.78-2.12l15.39-15.39C53.85,32.51,53.85,30.62,52.69,29.45z M32.54,42.51l10.24-10.24l4.24,4.24L36.78,46.76L32.54,42.51z    M31.63,44.44l3.22,3.22l-4.43,1.21L31.63,44.44z M51.27,32.26l-2.84,2.84l-4.24-4.24l2.84-2.84c0.37-0.37,1.02-0.37,1.39,0   l2.85,2.85C51.66,31.25,51.66,31.88,51.27,32.26z"
-																	/><path
-																		fill="#000000"
-																		d="M19.35,12c-3.86,0-7,3.14-7,7s3.14,7,7,7s7-3.14,7-7S23.21,12,19.35,12z M19.35,24c-2.76,0-5-2.24-5-5   s2.24-5,5-5s5,2.24,5,5S22.11,24,19.35,24z"
-																	/><path
-																		fill="#000000"
-																		d="M22.21,47.39l-2.99,3.91L5.44,31.4c-5.2-6.93-4.45-18.32,1.6-24.37C10.28,3.79,14.59,2,19.18,2   s8.9,1.79,12.15,5.03c4.43,4.43,6.16,11.95,4.29,18.7c-0.15,0.53,0.17,1.08,0.7,1.23c0.53,0.15,1.08-0.17,1.23-0.7   c2.05-7.43,0.12-15.73-4.81-20.65C29.11,2,24.3,0,19.18,0C14.05,0,9.24,2,5.62,5.62c-6.7,6.7-7.54,19.31-1.8,26.95L19.14,54.7   l4.66-6.09c0.34-0.44,0.25-1.07-0.19-1.4C23.17,46.87,22.54,46.95,22.21,47.39z"
-																	/></g
-																></svg
-															> -->
 															</Button>
 														</div>
 													{:else}
 														<div class="tooltip tooltip-top" data-tip="Add location">
-															<Button color="alternative" pill on:click={() => {}}>
+															<Button
+																color="alternative"
+																pill
+																on:click={() => {
+																	addNewLocationToBeacon(beacon);
+																}}
+															>
 																Add Location
 															</Button>
 														</div>
@@ -981,7 +1285,8 @@
 	</div>
 	<!-- <img src="/src/lib/assets/beacon.svg" alt="Beacon" style="" /> -->
 </div>
-<div
+
+<!-- <div
 	class="relative top-0 left-0 w-full h-full bg-gray-900 bg-opacity-50"
 	style={rangeOpen ? 'display: block' : 'display: none'}
 >
@@ -1001,19 +1306,12 @@
 				<div class="form-control w-full max-w-xs">
 					<label class="label">
 						<span class="label-text">Range</span>
-						<!-- <input
-							class="input input-bordered input-primary w-full max-w-xs join-item"
-							name="name"
-							type="text"
-							placeholder="Range"
-							bind:value={range}
-						/> -->
 						<input
 							type="range"
 							min={MIN_RANGE_BEACON}
 							max={MAX_RANGE_BEACON}
 							class="range range-primary range-sm btn-wide"
-							step="0.5"
+							step={BEACON_RANGE_STEP}
 							bind:value={range}
 						/>
 					</label>
@@ -1040,7 +1338,7 @@
 			</div>
 		</div>
 	</div>
-</div>
+</div> -->
 
 <dialog id="my_modal_1" class="modal {rightSideContent ? 'modal-open' : ''}">
 	<div class="modal-box absolute top-0 h-full max-h-full right-0 w-1/2">
@@ -1100,7 +1398,7 @@
 					min={MIN_RANGE_BEACON}
 					max={MAX_RANGE_BEACON}
 					class="range range-primary range-sm btn-wide"
-					step="0.5"
+					step={BEACON_RANGE_STEP}
 					bind:value={range}
 				/>
 			</label>
@@ -1164,7 +1462,7 @@
 					min={MIN_RANGE_BEACON}
 					max={MAX_RANGE_BEACON}
 					bind:value={selectedBeacon.range}
-					step="0.5"
+					step={BEACON_RANGE_STEP}
 				/>
 				<p>Range: {selectedBeacon.range} meters</p>
 			</div>
@@ -1176,139 +1474,3 @@
 		<Button color="alternative">Cancel</Button>
 	</svelte:fragment>
 </Modal>
-
-<!-- FLOATING ACTION BUTTON FOR NEW CAMPAIGN -->
-<!-- <div data-dial-init class="fixed end-10 bottom-10 group">
-	<div id="speed-dial-menu-default" class="flex flex-col items-center hidden mb-4 space-y-2">
-		<button
-			type="button"
-			data-tooltip-target="tooltip-share"
-			data-tooltip-placement="left"
-			class="flex justify-center items-center w-[52px] h-[52px] text-gray-500 hover:text-gray-900 bg-white rounded-full border border-gray-200 dark:border-gray-600 shadow-sm dark:hover:text-white dark:text-gray-400 hover:bg-gray-50 dark:bg-gray-700 dark:hover:bg-gray-600 focus:ring-4 focus:ring-gray-300 focus:outline-none dark:focus:ring-gray-400"
-		>
-			<svg
-				class="w-5 h-5"
-				aria-hidden="true"
-				xmlns="http://www.w3.org/2000/svg"
-				fill="currentColor"
-				viewBox="0 0 18 18"
-			>
-				<path
-					d="M14.419 10.581a3.564 3.564 0 0 0-2.574 1.1l-4.756-2.49a3.54 3.54 0 0 0 .072-.71 3.55 3.55 0 0 0-.043-.428L11.67 6.1a3.56 3.56 0 1 0-.831-2.265c.006.143.02.286.043.428L6.33 6.218a3.573 3.573 0 1 0-.175 4.743l4.756 2.491a3.58 3.58 0 1 0 3.508-2.871Z"
-				/>
-			</svg>
-			<span class="sr-only">Share</span>
-		</button>
-		<div
-			id="tooltip-share"
-			role="tooltip"
-			class="absolute z-10 invisible inline-block w-auto px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700"
-		>
-			Share
-			<div class="tooltip-arrow" data-popper-arrow />
-		</div>
-		<button
-			type="button"
-			data-tooltip-target="tooltip-print"
-			data-tooltip-placement="left"
-			class="flex justify-center items-center w-[52px] h-[52px] text-gray-500 hover:text-gray-900 bg-white rounded-full border border-gray-200 dark:border-gray-600 shadow-sm dark:hover:text-white dark:text-gray-400 hover:bg-gray-50 dark:bg-gray-700 dark:hover:bg-gray-600 focus:ring-4 focus:ring-gray-300 focus:outline-none dark:focus:ring-gray-400"
-		>
-			<svg
-				class="w-5 h-5"
-				aria-hidden="true"
-				xmlns="http://www.w3.org/2000/svg"
-				fill="currentColor"
-				viewBox="0 0 20 20"
-			>
-				<path d="M5 20h10a1 1 0 0 0 1-1v-5H4v5a1 1 0 0 0 1 1Z" />
-				<path
-					d="M18 7H2a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2v-3a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Zm-1-2V2a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v3h14Z"
-				/>
-			</svg>
-			<span class="sr-only">Print</span>
-		</button>
-		<div
-			id="tooltip-print"
-			role="tooltip"
-			class="absolute z-10 invisible inline-block w-auto px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700"
-		>
-			Print
-			<div class="tooltip-arrow" data-popper-arrow />
-		</div>
-		<button
-			type="button"
-			data-tooltip-target="tooltip-download"
-			data-tooltip-placement="left"
-			class="flex justify-center items-center w-[52px] h-[52px] text-gray-500 hover:text-gray-900 bg-white rounded-full border border-gray-200 dark:border-gray-600 shadow-sm dark:hover:text-white dark:text-gray-400 hover:bg-gray-50 dark:bg-gray-700 dark:hover:bg-gray-600 focus:ring-4 focus:ring-gray-300 focus:outline-none dark:focus:ring-gray-400"
-		>
-			<svg
-				class="w-5 h-5"
-				aria-hidden="true"
-				xmlns="http://www.w3.org/2000/svg"
-				fill="currentColor"
-				viewBox="0 0 20 20"
-			>
-				<path
-					d="M14.707 7.793a1 1 0 0 0-1.414 0L11 10.086V1.5a1 1 0 0 0-2 0v8.586L6.707 7.793a1 1 0 1 0-1.414 1.414l4 4a1 1 0 0 0 1.416 0l4-4a1 1 0 0 0-.002-1.414Z"
-				/>
-				<path
-					d="M18 12h-2.55l-2.975 2.975a3.5 3.5 0 0 1-4.95 0L4.55 12H2a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2Zm-3 5a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"
-				/>
-			</svg>
-			<span class="sr-only">Download</span>
-		</button>
-		<div
-			id="tooltip-download"
-			role="tooltip"
-			class="absolute z-10 invisible inline-block w-auto px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700"
-		>
-			Download
-			<div class="tooltip-arrow" data-popper-arrow />
-		</div>
-		<button
-			type="button"
-			data-tooltip-target="tooltip-copy"
-			data-tooltip-placement="left"
-			class="flex justify-center items-center w-[52px] h-[52px] text-gray-500 hover:text-gray-900 bg-white rounded-full border border-gray-200 dark:border-gray-600 dark:hover:text-white shadow-sm dark:text-gray-400 hover:bg-gray-50 dark:bg-gray-700 dark:hover:bg-gray-600 focus:ring-4 focus:ring-gray-300 focus:outline-none dark:focus:ring-gray-400"
-		>
-			<svg
-				class="w-5 h-5"
-				aria-hidden="true"
-				xmlns="http://www.w3.org/2000/svg"
-				fill="currentColor"
-				viewBox="0 0 18 20"
-			>
-				<path
-					d="M5 9V4.13a2.96 2.96 0 0 0-1.293.749L.879 7.707A2.96 2.96 0 0 0 .13 9H5Zm11.066-9H9.829a2.98 2.98 0 0 0-2.122.879L7 1.584A.987.987 0 0 0 6.766 2h4.3A3.972 3.972 0 0 1 15 6v10h1.066A1.97 1.97 0 0 0 18 14V2a1.97 1.97 0 0 0-1.934-2Z"
-				/>
-				<path
-					d="M11.066 4H7v5a2 2 0 0 1-2 2H0v7a1.969 1.969 0 0 0 1.933 2h9.133A1.97 1.97 0 0 0 13 18V6a1.97 1.97 0 0 0-1.934-2Z"
-				/>
-			</svg>
-			<span class="sr-only">Copy</span>
-		</button>
-		<div
-			id="tooltip-copy"
-			role="tooltip"
-			class="absolute z-10 invisible inline-block w-auto px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700"
-		>
-			Copy
-			<div class="tooltip-arrow" data-popper-arrow />
-		</div>
-	</div>
-	<div class="tooltip tooltip-top" data-tip="New campaign">
-		<button
-			type="button"
-			data-dial-toggle="speed-dial-menu-default"
-			aria-controls="speed-dial-menu-default"
-			aria-expanded="false"
-			class="flex items-center justify-center text-white bg-blue-700 rounded-full w-14 h-14 hover:bg-blue-800 dark:bg-blue-600 dark:hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 focus:outline-none dark:focus:ring-blue-800"
-		>
-			<i class="fa-solid fa-plus fa-lg" />
-			<span class="sr-only">Open actions menu</span>
-		</button>
-	</div>
-</div> -->
-
-<style>
-</style>
