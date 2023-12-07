@@ -60,11 +60,11 @@ export const campaignsToBeacons = pgTable(
 		campaignId: uuid('campaign_id')
 			.notNull()
 			.unique()
-			.references(() => campaigns.id),
+			.references(() => campaigns.id, { onDelete: 'cascade' }),
 		beaconId: uuid('beacon_id')
 			.notNull()
 			.unique()
-			.references(() => beacons.id)
+			.references(() => beacons.id, { onDelete: 'cascade' })
 	},
 	(table) => {
 		return {
