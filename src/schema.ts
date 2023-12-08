@@ -100,10 +100,13 @@ export const customers = pgTable('customers', {
 export const events = pgTable('events', {
 	id: uuid('id').primaryKey(),
 	status: text('status').notNull(),
-	enteredTime: timestamp('entered_time').notNull(),
-	exitedTime: timestamp('exited_time'),
-	customerId: uuid('customer_id').notNull().references(() => customers.id),
-	campaignId: uuid('campaign_id').notNull().references(() => campaigns.id)
+	timestamp: timestamp('timestamp').notNull(),
+	customerId: uuid('customer_id')
+		.notNull()
+		.references(() => customers.id),
+	campaignId: uuid('campaign_id')
+		.notNull()
+		.references(() => campaigns.id)
 });
 
 export type SelectCampaign = InferSelectModel<typeof campaigns>;
