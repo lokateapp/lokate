@@ -90,7 +90,7 @@ const handleExitEvent = async ( timestamp, customer, campaign) => {
     }
 
     await db.update(events)
-        .set({status: 'EXIT', exitedTime: new Date(timestamp * 1000)})
+        .set({status: 'EXIT'})
         .where(and(
             eq(events.id, event[0].id)
         )); // TODO fix the warning for new Date..
