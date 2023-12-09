@@ -1,5 +1,5 @@
 {
-  "id": "daace7a1-6a75-4999-a3e0-08e86f4cc544",
+  "id": "5dc87703-157f-44ac-90b5-b78276b99c7b",
   "prevId": "626f0ed3-656e-4578-a9ce-3a5affd561c1",
   "version": "5",
   "dialect": "pg",
@@ -30,19 +30,19 @@
           "name": "name",
           "type": "varchar(40)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "major": {
           "name": "major",
           "type": "varchar(100)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "minor": {
           "name": "minor",
           "type": "varchar(100)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         }
       },
       "indexes": {},
