@@ -62,7 +62,10 @@ export const beacons = pgTable('beacons', {
 	userId: varchar('user_id', { length: 15 })
 		.notNull()
 		.references(() => user.id),
-	radius: integer('radius').notNull()
+	radius: integer('radius').notNull(),
+	name: varchar('name', { length: 40 }).notNull(),
+	major: varchar('major', { length: 100 }).notNull(),
+	minor: varchar('minor', { length: 100 }).notNull()
 });
 
 export const campaignsToBeacons = pgTable(

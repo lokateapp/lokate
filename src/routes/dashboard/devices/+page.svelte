@@ -10,25 +10,9 @@
 	} from 'flowbite-svelte';
 	import type { PageData } from './$types';
 	export let data: PageData;
-	// let devices = data.devices;
-	let devices = [
-		{
-			id: '1',
-			name: 'Beacon 1',
-			uid: '1234567',
-			major: '100',
-			minor: '10',
-			charge: '100'
-		},
-		{
-			id: '2',
-			name: 'Beacon 2',
-			uid: '1234568',
-			major: '101',
-			minor: '11',
-			charge: '100'
-		}
-	];
+
+	let devices = data.beacons;
+
 	const MIN_RANGE_BEACON = 1;
 	const MAX_RANGE_BEACON = 15;
 </script>
@@ -48,9 +32,8 @@
 				<TableHeadCell />
 				<TableHeadCell>Beacon ID</TableHeadCell>
 				<TableHeadCell>Name</TableHeadCell>
-				<TableHeadCell>Device Uid</TableHeadCell>
+				<TableHeadCell>Range</TableHeadCell>
 				<TableHeadCell>Major</TableHeadCell>
-				<!-- <TableHeadCell>Range</TableHeadCell> -->
 				<TableHeadCell>Minor</TableHeadCell>
 			</TableHead>
 			{#each devices as device}
@@ -58,9 +41,9 @@
 					<TableBodyCell />
 					<TableBodyCell>{device.id}</TableBodyCell>
 					<TableBodyCell>{device.name}</TableBodyCell>
+					<TableBodyCell>{device.radius}</TableBodyCell>
 					<TableBodyCell>{device.major}</TableBodyCell>
 					<TableBodyCell>{device.minor}</TableBodyCell>
-					<TableBodyCell>{device.uid}</TableBodyCell>
 					<!-- <TableBodyCell>
 					<Label>Range steps</Label>
 					<Range
