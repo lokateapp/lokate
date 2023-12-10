@@ -1,13 +1,22 @@
 import type { RequestHandler } from './$types';
 import { db } from "../../../lib/server/db";
-import {beacons} from "../../../schema";
+import {beacons, campaigns, campaignsToBeacons, SelectBeacon} from "../../../schema";
+import {eq} from "drizzle-orm";
 
-export const GET: RequestHandler = async ({ request }) => {
+// export async function GET({ url }): Promise<SelectBeacon[]>
+export const GET: RequestHandler = async ({ url }) : Promise<SelectBeacon[]> => {
     try {
-        const { branchId } = await request.json();
-        console.log(branchId);
+        let branchId : string = url.searchParams.get('branchId') ?? '-1';
         const activeBeacons = await db.select().from(beacons);
-        return new Response(activeBeacons, {status: 200});
+        for (const beacon of activeBeacons) {
+            const campaignBeacon = await db.select().from(campaignsToBeacons).where(eq(campaignsToBeacons.beaconId, beacon.id)).limit(1);
+            const campaign = await db.select().from(campaigns).where(eq(campaigns.id, campaignBeacon[0].campaignId)).limit(1);
+            beacon.campaign = campaign[0];
+        }
+
+        // beaconsWithCampaigns;
+        const response = new Response(JSON.stringify(activeBeacons), { status: 200, headers: { 'Content-Type': 'application/json' } });
+        return response;
         // it is
     } catch (error) {
         console.error('Error:', error);
