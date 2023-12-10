@@ -19,11 +19,12 @@ export const GET: RequestHandler = async ({ url }) => {
 				username: 'asd'
 			}
 		});
-		userId = user.id;
+		userId = user.userId;
 	}
-
+	console.log(userId);
+	const beacon1_id = crypto.randomUUID();
 	await db.insert(beacons).values({
-		id: crypto.randomUUID(),
+		id: beacon1_id,
 		userId: userId,
 		radius: 0,
 		major: '100',
@@ -31,16 +32,38 @@ export const GET: RequestHandler = async ({ url }) => {
 		name: 'test beacon 1'
 	});
 
-	// await db.insert(campaigns).values({
-	// 	id: 'a34c784f-7c44-473e-9810-d521d36d7541',
-	// 	userId: userId,
-	// 	name: 'test campaign'
-	// });
+	const beacon2_id = crypto.randomUUID();
+	await db.insert(beacons).values({
+		id: beacon2_id,
+		userId: userId,
+		radius: 1,
+		major: '100',
+		minor: '12',
+		name: 'test beacon 2'
+	});
 
-	// await db.insert(campaignsToBeacons).values({
-	// 	campaignId: 'a34c784f-7c44-473e-9810-d521d36d7541',
-	// 	beaconId: '152edb85-4bc6-40a0-a537-9b81967e3eb7'
-	// });
+	const campaing1_id = crypto.randomUUID();
+	await db.insert(campaigns).values({
+		id: campaing1_id,
+		userId: userId,
+		name: 'test campaign1'
+	});
+	const campaing2_id = crypto.randomUUID();
+	await db.insert(campaigns).values({
+		id: campaing2_id,
+		userId: userId,
+		name: 'test campaign2'
+	});
+
+	await db.insert(campaignsToBeacons).values({
+		campaignId: campaing1_id,
+		beaconId: beacon1_id
+	});
+
+	await db.insert(campaignsToBeacons).values({
+		campaignId: campaing2_id,
+		beaconId: beacon2_id
+	});
 
 	return new Response('Build successful');
 };
