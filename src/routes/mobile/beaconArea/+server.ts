@@ -71,7 +71,7 @@ const handleEnterEvent = async (timestamp, customer, campaign) => {
     const newEvent = {
         id: crypto.randomUUID(),
         status: 'ENTER',
-        enteredTime: new Date(timestamp * 1000),
+        timestamp: new Date(timestamp * 1000),
         customerId: customer.id,
         campaignId: campaign.campaignId,
     };
@@ -90,7 +90,7 @@ const handleExitEvent = async ( timestamp, customer, campaign) => {
     }
 
     await db.update(events)
-        .set({status: 'EXIT', exitedTime: new Date(timestamp * 1000)})
+        .set({status: 'EXIT', timestamp: new Date(timestamp * 1000)})
         .where(and(
             eq(events.id, event[0].id)
         )); // TODO fix the warning for new Date..
