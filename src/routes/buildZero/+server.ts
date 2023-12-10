@@ -5,22 +5,22 @@ import { auth } from '$lib/server/lucia';
 import crypto from 'crypto';
 
 export const GET: RequestHandler = async ({ url }) => {
-	let userId = "ao0184uzs1xo32i";
-	// if (url.searchParams.get('userId')) {
-	// 	userId = Number(url.searchParams.get('userId'));
-	// } else {
-	// 	const user = await auth.createUser({
-	// 		key: {
-	// 			providerId: 'username', // auth method
-	// 			providerUserId: 'asd'.toLowerCase(), // unique id when using "username" auth method
-	// 			password: 'qwe' // hashed by Lucia
-	// 		},
-	// 		attributes: {
-	// 			username: 'asd'
-	// 		}
-	// 	});
-	// 	userId = user.userId;
-	// }
+	let userId;
+	if (url.searchParams.get('userId')) {
+		userId = Number(url.searchParams.get('userId'));
+	} else {
+		const user = await auth.createUser({
+			key: {
+				providerId: 'username', // auth method
+				providerUserId: 'asd'.toLowerCase(), // unique id when using "username" auth method
+				password: 'qwe' // hashed by Lucia
+			},
+			attributes: {
+				username: 'asd'
+			}
+		});
+		userId = user.userId;
+	}
 
 	const beacon1_id = crypto.randomUUID();
 	await db.insert(beacons).values({
