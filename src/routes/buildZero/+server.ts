@@ -21,7 +21,7 @@ export const GET: RequestHandler = async ({ url }) => {
 		});
 		userId = user.userId;
 	}
-	console.log(userId);
+
 	const beacon1_id = crypto.randomUUID();
 	await db.insert(beacons).values({
 		id: beacon1_id,
@@ -65,5 +65,25 @@ export const GET: RequestHandler = async ({ url }) => {
 		beaconId: beacon2_id
 	});
 
-	return new Response('Build successful');
-};
+	// Build the response object with information about the created entities
+	const responseObj = {
+		createdBeacons: [
+			{ id: beacon1_id, name: 'test beacon 1' },
+			{ id: beacon2_id, name: 'test beacon 2' }
+		],
+		createdCampaigns: [
+			{ id: campaing1_id, name: 'test campaign1' },
+			{ id: campaing2_id, name: 'test campaign2' }
+		],
+		createdCampaignsToBeacons: [
+			{ campaignId: campaing1_id, beaconId: beacon1_id },
+			{ campaignId: campaing2_id, beaconId: beacon2_id }
+		]
+	};
+
+	// Convert the response object to JSON and include it in the response
+	const responseBody = JSON.stringify(responseObj);
+
+	return new Response(responseBody, {
+		headers: { 'Content-Type': 'application/json' }
+	});};
