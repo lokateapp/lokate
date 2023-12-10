@@ -50,6 +50,20 @@
       "when": 1701964338595,
       "tag": "0006_goofy_black_bird",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1702065662525,
+      "tag": "0007_productive_warlock",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1702134114439,
+      "tag": "0008_orange_kat_farrell",
+      "breakpoints": true
     }
   ]
 }
