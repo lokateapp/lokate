@@ -1,6 +1,6 @@
 import type { RequestHandler } from './$types';
 import { db } from '../../lib/server/db';
-import { beacons, campaigns, campaignsToBeacons, user } from '../../schema';
+import { beacons, campaigns, campaignsToBeacons, user, customers } from '../../schema';
 import { auth } from '$lib/server/lucia';
 import crypto from 'crypto';
 
@@ -30,6 +30,11 @@ export const GET: RequestHandler = async ({ url }) => {
 		major: '1',
 		minor: '1',
 		name: 'test beacon 1'
+	});
+
+	await db.insert(customers).values({
+		id: "00000000-0000-0000-0000-000000000000",
+		customerId: "customer1"
 	});
 
 	const beacon2_id = "b9407f30-f5f8-466e-aff9-25556b57fe6d"	// red
