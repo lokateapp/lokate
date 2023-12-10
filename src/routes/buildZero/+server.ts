@@ -22,23 +22,23 @@ export const GET: RequestHandler = async ({ url }) => {
 		userId = user.userId;
 	}
 
-	const beacon1_id = crypto.randomUUID();
+	const beacon1_id = "5d72cc30-5c61-4c09-889f-9ae750fa84ec"	// pink
 	await db.insert(beacons).values({
 		id: beacon1_id,
 		userId: userId,
-		radius: 0,
-		major: '100',
-		minor: '12',
+		radius: 2,	// immediate
+		major: '1',
+		minor: '1',
 		name: 'test beacon 1'
 	});
 
-	const beacon2_id = crypto.randomUUID();
+	const beacon2_id = "b9407f30-f5f8-466e-aff9-25556b57fe6d"	// red
 	await db.insert(beacons).values({
 		id: beacon2_id,
 		userId: userId,
-		radius: 1,
-		major: '100',
-		minor: '12',
+		radius: 9,	// far
+		major: '24719',
+		minor: '28241',
 		name: 'test beacon 2'
 	});
 
