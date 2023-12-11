@@ -22,7 +22,7 @@ export const POST: RequestHandler = async ({ request }) => {
             .where(eq(customers.customerId, customerId))
             .limit(1);
         let customer = retrivedCustomer[0];
-        if (customer.length === 0) {
+        if (customer === undefined || customer.length === 0) {
             const newCustomer = {
                 id: crypto.randomUUID(),
                 customerId: customerId
@@ -34,15 +34,23 @@ export const POST: RequestHandler = async ({ request }) => {
         const failedEvents = [];
         for( const campaign of campaigns) {
             for (const campaign of campaigns) {
-                let failedEvent = null;
-                if (status === 'ENTER') {
-                    failedEvent =  await handleEnterEvent(timestamp, customer, campaign);
-                } else if (status === 'EXIT') {
-                    failedEvent = await handleExitEvent(timestamp, customer, campaign);
-                }
-                if (failedEvent !== null) {
-                    failedEvents.push(failedEvent);
-                }
+                const newEvent = {
+                    id: crypto.randomUUID(),
+                    status: status,
+                    timestamp: new Date(timestamp * 1000),
+                    customerId: customer.id,
+                    campaignId: campaign.campaignId,
+                };
+                await db.insert(events).values(newEvent);
+                // let failedEvent = null;
+                // if (status === 'ENTER') {
+                //     failedEvent =  await handleEnterEvent(timestamp, customer, campaign);
+                // } else if (status === 'EXIT') {
+                //     failedEvent = await handleExitEvent(timestamp, customer, campaign);
+                // }
+                // if (failedEvent !== null) {
+                //     failedEvents.push(failedEvent);
+                // }
             }
         }
         for (const failedEvent of failedEvents) {
