@@ -126,6 +126,6 @@ export type SelectCampaignsWIthBeacons = {
 
 export type SelectEvents = {
 	[events._.name]: typeof events.$inferSelect;
-	[customers._.name]: typeof customers.$inferSelect;
+	// [customers._.name]: typeof customers.$inferSelect;
 	[campaigns._.name]: typeof campaigns.$inferSelect;
  };
