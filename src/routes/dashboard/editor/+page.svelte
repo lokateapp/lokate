@@ -25,11 +25,11 @@
 		Toggle,
 		PaginationItem
 	} from 'flowbite-svelte';
+	import type { PageData } from './$types';
 
 	type CampaignType = {
-		id: number;
+		id: string;
 		name: string;
-		description: string;
 		beacons: CampaignBeaconType[];
 		created: string;
 		status: string;
@@ -37,8 +37,8 @@
 	};
 
 	type CampaignBeaconType = {
-		id: number;
-		name: string;
+		id: string;
+		name: string | null;
 		position: {
 			x: number;
 			y: number;
@@ -47,119 +47,144 @@
 		// status: string;
 	};
 
-	let items: CampaignType[] = [
-		{
-			id: 1,
-			name: 'Campaign 1',
-			description: 'Campaign 1 description',
-			beacons: [
-				{
-					id: 1,
-					name: 'Beacon 1',
+	export let data: PageData;
+
+	const campaigns = data.allCampaigns.map((campaign) => {
+		return {
+			id: campaign.id,
+			name: campaign.name,
+			beacons: campaign.campaignsToBeacons.map(({ beacon }) => {
+				return {
+					id: beacon.id,
+					name: beacon.name || null,
 					position: {
-						x: 100,
-						y: 100
-					},
-					range: 10
-					// status: 'active'
-				},
-				{
-					id: 2,
-					name: 'Beacon 2',
-					position: {
-						x: 200,
-						y: 200
-					},
-					range: 2
-					// status: 'active'
-				},
-				{
-					id: 3,
-					name: 'Beacon 3',
-					position: {
-						x: 300,
-						y: 300
-					},
-					range: 1
-					// status: 'active'
-				}
-			],
-			created: '2021-09-01',
-			status: 'active',
-			isCompleted: true
-		},
-		{
-			id: 2,
-			name: 'Campaign 2',
-			description: 'Campaign 2 description',
-			beacons: [
-				{
-					id: 1,
-					name: 'Beacon 1',
-					position: null,
-					range: 10
-					// status: 'active'
-				},
-				{
-					id: 2,
-					name: 'Beacon 2',
-					position: null,
-					range: 10
-					// status: 'active'
-				},
-				{
-					id: 3,
-					name: 'Beacon 3',
-					position: null,
-					range: 5
-					// status: 'not-active'
-				}
-			],
-			created: '2021-09-01',
-			status: 'not-active',
+						x: 0,
+						y: 0
+					} || null,
+					range: beacon.radius
+				};
+			}),
+			created: campaign.createdAt,
+			status: campaign.status || 'not-active',
 			isCompleted: false
-		},
-		{
-			id: 3,
-			name: 'Campaign 3',
-			description: 'Campaign 3 description',
-			beacons: [
-				{
-					id: 1,
-					name: 'Beacon 1',
-					position: {
-						x: 200,
-						y: 51
-					},
-					range: 5
-					// status: 'not-active'
-				},
-				{
-					id: 2,
-					name: 'Beacon 2',
-					position: {
-						x: 100,
-						y: 150
-					},
-					range: 10
-					// status: 'not-active'
-				},
-				{
-					id: 3,
-					name: 'Beacon 3',
-					position: {
-						x: 300,
-						y: 300
-					},
-					range: 5
-					// status: 'active'
-				}
-			],
-			created: '2021-09-01',
-			status: 'not-active',
-			isCompleted: true
-		}
-	];
+			// isCompleted: campaign.campaignsToBeacons.find(({beacon}) => !beacon.position) ? false : true
+		};
+	});
+
+	console.log('data:', data.allCampaigns);
+
+	let items = campaigns;
+
+	// let items: CampaignType[] = [
+	// 	{
+	// 		id: 1,
+	// 		name: 'Campaign 1',
+	// 		beacons: [
+	// 			{
+	// 				id: 1,
+	// 				name: 'Beacon 1',
+	// 				position: {
+	// 					x: 100,
+	// 					y: 100
+	// 				},
+	// 				range: 10
+	// 				// status: 'active'
+	// 			},
+	// 			{
+	// 				id: 2,
+	// 				name: 'Beacon 2',
+	// 				position: {
+	// 					x: 200,
+	// 					y: 200
+	// 				},
+	// 				range: 2
+	// 				// status: 'active'
+	// 			},
+	// 			{
+	// 				id: 3,
+	// 				name: 'Beacon 3',
+	// 				position: {
+	// 					x: 300,
+	// 					y: 300
+	// 				},
+	// 				range: 1
+	// 				// status: 'active'
+	// 			}
+	// 		],
+	// 		created: '2021-09-01',
+	// 		status: 'active',
+	// 		isCompleted: true
+	// 	},
+	// 	{
+	// 		id: 2,
+	// 		name: 'Campaign 2',
+	// 		beacons: [
+	// 			{
+	// 				id: 1,
+	// 				name: 'Beacon 1',
+	// 				position: null,
+	// 				range: 10
+	// 				// status: 'active'
+	// 			},
+	// 			{
+	// 				id: 2,
+	// 				name: 'Beacon 2',
+	// 				position: null,
+	// 				range: 10
+	// 				// status: 'active'
+	// 			},
+	// 			{
+	// 				id: 3,
+	// 				name: 'Beacon 3',
+	// 				position: null,
+	// 				range: 5
+	// 				// status: 'not-active'
+	// 			}
+	// 		],
+	// 		created: '2021-09-01',
+	// 		status: 'not-active',
+	// 		isCompleted: false
+	// 	},
+	// 	{
+	// 		id: 3,
+	// 		name: 'Campaign 3',
+	// 		beacons: [
+	// 			{
+	// 				id: 1,
+	// 				name: 'Beacon 1',
+	// 				position: {
+	// 					x: 200,
+	// 					y: 51
+	// 				},
+	// 				range: 5
+	// 				// status: 'not-active'
+	// 			},
+	// 			{
+	// 				id: 2,
+	// 				name: 'Beacon 2',
+	// 				position: {
+	// 					x: 100,
+	// 					y: 150
+	// 				},
+	// 				range: 10
+	// 				// status: 'not-active'
+	// 			},
+	// 			{
+	// 				id: 3,
+	// 				name: 'Beacon 3',
+	// 				position: {
+	// 					x: 300,
+	// 					y: 300
+	// 				},
+	// 				range: 5
+	// 				// status: 'active'
+	// 			}
+	// 		],
+	// 		created: '2021-09-01',
+	// 		status: 'not-active',
+	// 		isCompleted: true
+	// 	}
+	// ];
 
 	let selectedRows: number[] = []; // = [0, 1, 2]
 	let editRow: number;
@@ -557,17 +582,15 @@
 		}
 		// console.log('event:', event);
 		if (event.target == backgroundImage) {
-
 			const beaconRange = beaconToAddLocation.range;
 			const beaconName = beaconToAddLocation.name;
 
-			
 			let pos = stage.getPointerPosition() || { x: 0, y: 0 };
 			console.log('pos:', pos);
 
 			items.forEach((item) => {
 				item.beacons.forEach((beacon) => {
-					if (beacon.id == beaconToAddLocation?.id) {
+					if (beacon.id == beaconToAddLocation?.id && beacon.position != null) {
 						beacon.position = {
 							x: pos.x,
 							y: pos.y
@@ -631,7 +654,7 @@
 						y: y
 					};
 				});
-				
+
 				var circleRange = new Konva.Circle({
 					x: pos.x,
 					y: pos.y,
@@ -737,7 +760,7 @@
 		});
 
 		layer.draw();
-	}
+	};
 
 	const removeBeacon = (event: any) => {
 		// find circle range
@@ -754,7 +777,7 @@
 		circleRange.destroy();
 		event.currentTarget.destroy();
 		layer.draw();
-	}
+	};
 
 	const addNewCampaign = () => {
 		// console.log('newCampaignName:', newCampaignName);
@@ -763,19 +786,19 @@
 			// alert('Please enter a name for the new campaign');
 			return;
 		}
-		items = [
-			...items,
-			{
-				id: items.length + 1,
-				name: newCampaignName,
-				description: 'Campaign 3 description',
-				beacons: beaconsForNewCampaign,
-				// created: Date.now(),
-				created: '2021-09-01',
-				status: 'not-active',
-				isCompleted: false
-			}
-		];
+		// items = [
+		// 	...items,
+		// 	{
+		// 		id: (items.length + 1).toString(),
+		// 		name: newCampaignName,
+		// 		beacons: beaconsForNewCampaign,
+		// 		created: new Date(Date.now()),
+		// 		// created: '2021-09-01',
+		// 		status: 'not-active',
+		// 		isCompleted: false
+		// 	}
+		// ];
+		
 
 		console.log('items:', items);
 
@@ -784,7 +807,7 @@
 		notify('New campaign added', 'success');
 	};
 
-	const removeBeaconFromCampaign = (campaignId: number, beaconId: number) => {
+	const removeBeaconFromCampaign = (campaignId: string, beaconId: string) => {
 		console.log('removeBeaconFromCampaign campaignId:', campaignId, ' beaconId:', beaconId);
 		items = items.map((item) => {
 			if (item.id == campaignId) {
@@ -873,8 +896,6 @@
 		// 	// 	}
 		// 	// });
 		// });
-
-		
 
 		closeAllCampaigns();
 		isDraggable = true;
@@ -1273,7 +1294,7 @@
 	<!-- <div class="bg-slate-200 w-10 h-10"></div> -->
 	<div class="relative max-w-fit" id="parent">
 		<!-- <img src={storePlan} width="600" alt="Store plan" /> -->
-		<div id="canvas" class="" oncontextmenu="return false" />
+		<div id="canvas" class="" />
 		<!-- <Stage config={{ width: window.innerWidth, height: window.innerHeight }}>
 			<Layer >
 				{#each beacons as beacon}

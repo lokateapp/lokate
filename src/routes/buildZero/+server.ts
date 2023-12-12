@@ -69,11 +69,18 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 		campaignId: campaing1_id,
 		beaconId: beacon1_id
 	});
+	
+	await db.insert(campaignsToBeacons).values({
+		campaignId: campaing1_id,
+		beaconId: beacon2_id
+	});
 
 	await db.insert(campaignsToBeacons).values({
 		campaignId: campaing2_id,
 		beaconId: beacon2_id
 	});
+
+
 
 	// Build the response object with information about the created entities
 	const responseObj = {

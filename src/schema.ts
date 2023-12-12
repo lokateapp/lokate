@@ -1,4 +1,4 @@
-import type { InferSelectModel } from 'drizzle-orm';
+import { relations, type InferSelectModel, sql } from 'drizzle-orm';
 import {
 	bigint,
 	uniqueIndex,
@@ -8,7 +8,8 @@ import {
 	text,
 	primaryKey,
 	integer,
-	timestamp
+	timestamp,
+	pgEnum
 } from 'drizzle-orm/pg-core';
 
 export const user = pgTable(
@@ -73,11 +74,9 @@ export const campaignsToBeacons = pgTable(
 	{
 		campaignId: uuid('campaign_id')
 			.notNull()
-			.unique()
 			.references(() => campaigns.id, { onDelete: 'cascade' }),
 		beaconId: uuid('beacon_id')
 			.notNull()
-			.unique()
 			.references(() => beacons.id, { onDelete: 'cascade' })
 	},
 	(table) => {
@@ -87,13 +86,60 @@ export const campaignsToBeacons = pgTable(
 	}
 );
 
+
+export const campaignStatusEnum = pgEnum('campaignStatus', ['active', 'inactive']);
+
 export const campaigns = pgTable('campaigns', {
 	id: uuid('id').primaryKey(),
 	name: text('text').notNull(),
 	userId: varchar('user_id', { length: 15 })
 		.notNull()
-		.references(() => user.id)
+		.references(() => user.id),
+	status : campaignStatusEnum('status').default('inactive'),
+	createdAt: timestamp('created_at').default(sql`CURRENT_TIMESTAMP`),
 });
+
+export const beaconPositions = pgTable('beaconPositions', {
+	id: uuid('id').primaryKey(),
+	beaconId: uuid('beacon_id')
+		.notNull()
+		.references(() => beacons.id),
+	createdAt: timestamp('timestamp').default(sql`CURRENT_TIMESTAMP`),
+	x: integer('x').notNull(),
+	y: integer('y').notNull()
+});
+
+// export const campaignsRelationsWithUser = relations(campaigns, ({ one }) => {
+// 	return {
+// 		user: one(user, {
+// 			fields: [campaigns.userId],
+// 			references: [user.id]
+// 		})
+// 	};
+// });
+
+export const beaconsRelationsWithcampaignsToBeacons = relations(beacons, ({ one, many }) => ({
+	position : one(beaconPositions, {
+		fields: [beacons.id],
+		references: [beaconPositions.beaconId]
+	}),
+	campaignsToBeacons: many(campaignsToBeacons)
+}));
+
+export const campaignsRelationsWithcampaignsToBeacons = relations(campaigns, ({ many }) => ({
+	campaignsToBeacons: many(campaignsToBeacons)
+}));
+
+export const campaignsToBeaconsRelations = relations(campaignsToBeacons, ({ one }) => ({
+	beacon: one(beacons, {
+		fields: [campaignsToBeacons.beaconId],
+		references: [beacons.id]
+	}),
+	campaign: one(campaigns, {
+		fields: [campaignsToBeacons.campaignId],
+		references: [campaigns.id]
+	})
+}));
 
 export const customers = pgTable('customers', {
 	id: uuid('id').primaryKey(),
@@ -116,16 +162,33 @@ export type SelectCampaign = InferSelectModel<typeof campaigns>;
 export type SelectBeacon = InferSelectModel<typeof beacons>;
 // export type SelectEvent = InferSelectModel<typeof events>;
 
-export type SelectCampaignsWIthBeacons = {
-	[campaignsToBeacons._.name]: typeof campaignsToBeacons.$inferSelect;
-	[beacons._.name]: typeof beacons.$inferSelect | null;
-	[campaigns._.name]: typeof campaigns.$inferSelect | null;
+export type SelectCampaignsWithBeacons = {
+	// id: typeof campaigns.id.dataType;
+	// name: typeof campaigns.name.dataType;
+	// userId: typeof campaigns.userId.dataType;
+	id : string;
+	name : string;
+	userId : string;
+	createdAt : Date | null;
+	status : string | null; //typeof campaignStatusEnum.enumValues
+	campaignsToBeacons: {
+		// beaconId:	string;
+		// campaignId: string;
+		beacon: typeof beacons.$inferSelect;
+	}[];
 };
 
-
+// export type SelectCampaignsWIthBeacons = {
+// 	[campaigns._.name]: typeof campaigns.$inferSelect;
+// 	campaignsToBeacons: {
+// 		beaconId: typeof campaignsToBeacons.beaconId;
+// 		campaignId: typeof campaignsToBeacons.campaignId;
+// 		beacon: typeof beacons.$inferSelect;
+// 	}[];
+// };
 
 export type SelectEvents = {
 	[events._.name]: typeof events.$inferSelect;
 	// [customers._.name]: typeof customers.$inferSelect;
 	[campaigns._.name]: typeof campaigns.$inferSelect;
- };
+};

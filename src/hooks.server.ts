@@ -12,7 +12,8 @@ export const handle: Handle = async ({ event, resolve }) => {
 		if (!session) {
 			throw redirect(302, '/');
 		}
-	} else if (event.url.pathname.startsWith('/buildZero')) {
+	} else if (event.url.pathname.startsWith('/buildZero') || event.url.pathname.startsWith('/helper')) {
+		
 	} else {
 		if (session) {
 			throw redirect(302, '/dashboard');
