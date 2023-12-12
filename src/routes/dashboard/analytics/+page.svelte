@@ -5,6 +5,7 @@
 	import { onMount } from 'svelte';
 	import EChart from '../../../components/Chart.svelte';
 	import type { EChartsOption, LineSeriesOption } from 'echarts';
+	import { customers } from '../../../schema';
 
 	export let data: PageData;
 
@@ -17,6 +18,8 @@
 			height = browser ? window.innerHeight / 2 : 600;
 		});
 	});
+
+	let events = data.events;
 
 	var seriesStyle: LineSeriesOption;
 	seriesStyle = {
@@ -484,187 +487,46 @@
 									<th
 										scope="col"
 										class="p-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-white"
+										>Status</th
 									>
-										Enter Time
-									</th>
 									<th
 										scope="col"
 										class="p-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-white"
 									>
-										Exit Time
-									</th>
-									<th
-										scope="col"
-										class="p-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-white"
-									>
-										Status
+										Timestamp
 									</th>
 								</tr>
 							</thead>
 							<tbody class="bg-white dark:bg-gray-800">
-								<tr>
-									<td
-										class="p-4 text-sm font-normal text-gray-900 whitespace-nowrap dark:text-white"
-									>
-										2424
-									</td>
-									<td
-										class="p-4 text-sm font-normal text-gray-500 whitespace-nowrap dark:text-gray-400"
-									>
-										Joseph Rodriguez
-									</td>
-									<td
-										class="p-4 text-sm font-semibold text-gray-900 whitespace-nowrap dark:text-white"
-									>
-										Campaign 1
-									</td>
-									<td
-										class="p-4 text-sm font-normal text-gray-500 whitespace-nowrap dark:text-gray-400"
-									>
-										Apr 23 ,2023 10:00 AM
-									</td>
-									<td
-										class="inline-flex items-center p-4 space-x-2 text-sm font-normal text-gray-500 whitespace-nowrap dark:text-gray-400"
-									>
-										Apr 23 ,2023 10:05 AM
-									</td>
-									<td class="p-4 whitespace-nowrap">
-										<span
-											class="bg-green-100 text-green-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded-md dark:bg-gray-700 dark:text-green-400 border border-green-100 dark:border-green-500"
-											>Completed</span
+								{#each events as event}
+									<tr>
+										<td
+											class="p-4 text-sm font-normal text-gray-900 whitespace-nowrap dark:text-white"
 										>
-									</td>
-								</tr>
-								<tr class="bg-gray-50 dark:bg-gray-700">
-									<td
-										class="p-4 text-sm font-normal text-gray-900 whitespace-nowrap dark:text-white"
-									>
-										2453
-									</td>
-									<td
-										class="p-4 text-sm font-normal text-gray-500 whitespace-nowrap dark:text-gray-400"
-									>
-										John Doe
-									</td>
-									<td
-										class="p-4 text-sm font-semibold text-gray-900 whitespace-nowrap dark:text-white"
-									>
-										Campaign 2
-									</td>
-									<td
-										class="p-4 text-sm font-normal text-gray-500 whitespace-nowrap dark:text-gray-400"
-									>
-										Apr 23 ,2023 9:05 AM
-									</td>
-									<td
-										class="inline-flex items-center p-4 space-x-2 text-sm font-normal text-gray-500 whitespace-nowrap dark:text-gray-400"
-									>
-										Apr 23 ,2023 9:06 AM
-									</td>
-									<td class="p-4 whitespace-nowrap">
-										<span
-											class="bg-green-100 text-green-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded-md dark:bg-gray-700 dark:text-green-400 border border-green-100 dark:border-green-500"
-											>Completed</span
+											{event.id}
+										</td>
+										<td
+											class="p-4 text-sm font-normal text-gray-500 whitespace-nowrap dark:text-gray-400"
 										>
-									</td>
-								</tr>
-								<tr>
-									<td
-										class="p-4 text-sm font-normal text-gray-900 whitespace-nowrap dark:text-white"
-									>
-										2453
-									</td>
-									<td
-										class="p-4 text-sm font-normal text-gray-500 whitespace-nowrap dark:text-gray-400"
-									>
-										John Doe
-									</td>
-									<td
-										class="p-4 text-sm font-semibold text-gray-900 whitespace-nowrap dark:text-white"
-									>
-										Campaign 3
-									</td>
-									<td
-										class="p-4 text-sm font-normal text-gray-500 whitespace-nowrap dark:text-gray-400"
-									>
-										Apr 23 ,2023 9:06 AM
-									</td>
-									<td
-										class="inline-flex items-center p-4 space-x-2 text-sm font-normal text-gray-500 whitespace-nowrap dark:text-gray-400"
-									/>
-									<td class="p-4 whitespace-nowrap">
-										<span
-											class="bg-red-100 text-red-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded-md border border-red-100 dark:border-red-400 dark:bg-gray-700 dark:text-red-400"
-											>Error</span
+											{event.customerId}
+										</td>
+										<td
+											class="p-4 text-sm font-semibold text-gray-900 whitespace-nowrap dark:text-white"
 										>
-									</td>
-								</tr>
-								<tr class="bg-gray-50 dark:bg-gray-700">
-									<td
-										class="p-4 text-sm font-normal text-gray-900 whitespace-nowrap dark:text-white"
-									>
-										2463
-									</td>
-									<td
-										class="p-4 text-sm font-normal text-gray-500 whitespace-nowrap dark:text-gray-400"
-									>
-										Joseph Mcfall
-									</td>
-									<td
-										class="p-4 text-sm font-semibold text-gray-900 whitespace-nowrap dark:text-white"
-									>
-										Campaign 4
-									</td>
-									<td
-										class="p-4 text-sm font-normal text-gray-500 whitespace-nowrap dark:text-gray-400"
-									>
-										Apr 24 ,2023 9:06 AM
-									</td>
-									<td
-										class="inline-flex items-center p-4 space-x-2 text-sm font-normal text-gray-500 whitespace-nowrap dark:text-gray-400"
-									>
-										Apr 24 ,2023 9:16 AM
-									</td>
-									<td class="p-4 whitespace-nowrap">
-										<span
-											class="bg-green-100 text-green-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded-md dark:bg-gray-700 dark:text-green-400 border border-green-100 dark:border-green-500"
-											>Completed</span
+											{event.campaignId}
+										</td>
+										<td
+											class="p-4 text-sm font-normal text-gray-500 whitespace-nowrap dark:text-gray-400"
 										>
-									</td>
-								</tr>
-								<tr>
-									<td
-										class="p-4 text-sm font-normal text-gray-900 whitespace-nowrap dark:text-white"
-									>
-										2463
-									</td>
-									<td
-										class="p-4 text-sm font-normal text-gray-500 whitespace-nowrap dark:text-gray-400"
-									>
-										Joseph Mcfall
-									</td>
-									<td
-										class="p-4 text-sm font-semibold text-gray-900 whitespace-nowrap dark:text-white"
-									>
-										Campaign 1
-									</td>
-									<td
-										class="p-4 text-sm font-normal text-gray-500 whitespace-nowrap dark:text-gray-400"
-									>
-										Apr 24 ,2023 9:20 AM
-									</td>
-									<td
-										class="inline-flex items-center p-4 space-x-2 text-sm font-normal text-gray-500 whitespace-nowrap dark:text-gray-400"
-									>
-										<!-- Apr 24 ,2023 9:30 AM -->
-									</td>
-									<td class="p-4 whitespace-nowrap">
-										<span
-											class="bg-purple-100 text-purple-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded-md border border-purple-100 dark:bg-gray-700 dark:border-purple-500 dark:text-purple-400"
-											>In progress</span
+											{event.status}
+										</td>
+										<td
+											class="inline-flex items-center p-4 space-x-2 text-sm font-normal text-gray-500 whitespace-nowrap dark:text-gray-400"
 										>
-									</td>
-								</tr>
+											{event.timestamp}
+										</td>
+									</tr>
+								{/each}
 							</tbody>
 						</table>
 					</div>
