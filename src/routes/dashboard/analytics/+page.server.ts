@@ -10,7 +10,7 @@ import type { PageServerLoad } from '../$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const session = await locals.auth.validate();
-	const events = getEvents(session.user.userId);
+	const events = await getEvents(session.user.userId);
 
 
     console.log("events: ", events);
