@@ -114,10 +114,18 @@ export const events = pgTable('events', {
 
 export type SelectCampaign = InferSelectModel<typeof campaigns>;
 export type SelectBeacon = InferSelectModel<typeof beacons>;
-export type SelectEvent = InferSelectModel<typeof events>;
+// export type SelectEvent = InferSelectModel<typeof events>;
 
 export type SelectCampaignsWIthBeacons = {
 	[campaignsToBeacons._.name]: typeof campaignsToBeacons.$inferSelect;
 	[beacons._.name]: typeof beacons.$inferSelect | null;
 	[campaigns._.name]: typeof campaigns.$inferSelect | null;
 };
+
+
+
+export type SelectEvents = {
+	[events._.name]: typeof events.$inferSelect;
+	[customers._.name]: typeof customers.$inferSelect;
+	[campaigns._.name]: typeof campaigns.$inferSelect;
+ };

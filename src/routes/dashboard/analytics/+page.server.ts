@@ -1,6 +1,6 @@
 import type { RequestHandler } from '@sveltejs/kit';
 import { db } from '../../../lib/server/db';
-import { events, campaigns, customers, type SelectEvent } from '../../../schema';
+import { events, campaigns, customers, type SelectEvents } from '../../../schema';
 import { eq } from 'drizzle-orm';
 import type { PageServerLoad } from '../$types';
 
@@ -13,7 +13,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 	return { events };
 };
 
-async function getEvents(userId: string): Promise<any[]> {
+async function getEvents(userId: string): Promise<SelectEvents[]> {
 	return await db
 		.select()
 		.from(events)
