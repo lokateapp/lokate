@@ -6,6 +6,12 @@
 
 	import type KonvaType from 'konva';
 
+	import dayjs from 'dayjs';
+
+	import localizedFormat from 'dayjs/plugin/localizedFormat';
+	dayjs.extend(localizedFormat)
+
+
 	import { notify } from '../../../components/notify';
 	import {
 		Table,
@@ -1097,7 +1103,7 @@
 							<TableBodyCell>
 								{item.beacons.length}
 							</TableBodyCell>
-							<TableBodyCell>{item.created}</TableBodyCell>
+							<TableBodyCell>{dayjs(item.created).format('ll')}</TableBodyCell>
 							<TableBodyCell>
 								{#if item.status == 'active'}
 									<Badge rounded color="green">Active</Badge>
