@@ -69,13 +69,15 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	await db.insert(campaigns).values({
 		id: campaing1_id,
 		userId: userId,
-		name: 'Campaign 1'
+		name: 'Campaign 1',
+		status: 'active'
 	});
 	const campaing2_id = crypto.randomUUID();
 	await db.insert(campaigns).values({
 		id: campaing2_id,
 		userId: userId,
-		name: 'Campaign 2'
+		name: 'Campaign 2',
+		status: 'active'
 	});
 
 
@@ -83,10 +85,9 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	await db.insert(campaigns).values({
 		id: campaign3_id,
 		userId: userId,
-		name: 'Campaign 3'
+		name: 'Campaign 3',
+		status: 'active'
 	});
-
-
 
 	await db.insert(campaignsToBeacons).values({
 		campaignId: campaing1_id,

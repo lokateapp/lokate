@@ -2,7 +2,7 @@ import { auth } from '$lib/server/lucia';
 import { fail, redirect } from '@sveltejs/kit';
 
 import type { Actions } from './$types';
-import { PostgresError } from 'postgres';
+import postgres from 'postgres';
 import { UNIQUE_VIOLATION } from '../../postgresErrorCodes';
 
 export const actions: Actions = {
@@ -38,7 +38,7 @@ export const actions: Actions = {
 			});
 			locals.auth.setSession(session); // set session cookie
 		} catch (e) {
-			if (e instanceof PostgresError && e.code === UNIQUE_VIOLATION) {
+			if (e instanceof postgres.PostgresError && e.code === UNIQUE_VIOLATION) {
 				console.log({ code: e.code, message: e.message });
 				return fail(400, {
 					message: 'Username already taken'
