@@ -3,7 +3,7 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import 'dotenv/config';
 
-const url: string = process.env.POSTGRES_CONNECTION_URL!;
+const url: string = process.env.POSTGRES_URL!;
 const sql = postgres(url, { max: 1 });
 const db = drizzle(sql);
 

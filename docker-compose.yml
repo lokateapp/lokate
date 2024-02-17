@@ -17,7 +17,7 @@ services:
       - ./postcss.config.js:/usr/etc/sveltekit/postcss.config.js
     command: npm run dev
     environment:
-      - POSTGRES_CONNECTION_URL=postgres://postgres:postgres@postgres:5432/lokate_dev
+      - POSTGRES_URL=postgres://postgres:postgres@postgres:5432/lokate_dev
       - PORT=5173
       - HOST=0.0.0.0
     depends_on:
