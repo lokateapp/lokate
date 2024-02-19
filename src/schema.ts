@@ -117,7 +117,7 @@ export const campaigns = pgTable('campaigns', {
 	userId: varchar('user_id', { length: 15 })
 		.notNull()
 		.references(() => user.id),
-	status : campaignStatusEnum('status').default('inactive'),
+	status : campaignStatusEnum('campaignStatus').default('inactive'),
 	createdAt: timestamp('created_at').default(sql`CURRENT_TIMESTAMP`),
 });
 
