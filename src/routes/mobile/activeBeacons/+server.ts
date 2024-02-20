@@ -3,6 +3,12 @@ import { db } from "../../../lib/server/db";
 import {beacons, campaigns, campaignsToBeacons} from "../../../schema";
 import {and, eq, not} from "drizzle-orm";
 
+enum Range {
+    Unknown = 'unknown',
+    Immediate = 'immediate',
+    Near = 'near',
+    Far = 'far'
+}
 export const GET: RequestHandler = async ({ url }) => {
     try {
         const branchId : string = url.searchParams.get('branchId') ?? '-1';
@@ -17,13 +23,13 @@ export const GET: RequestHandler = async ({ url }) => {
                 // Map radius to range
                 const radius = beacon.radius;
                 if (radius === 0) {
-                    beacon.range = 'invalid';
+                    beacon.range = Range.Unknown;
                 } else if (radius >= 1 && radius <= 3) {
-                    beacon.range = 'immediate';
+                    beacon.range = Range.Immediate;
                 } else if (radius >= 4 && radius <= 7) {
-                    beacon.range = 'near';
+                    beacon.range = Range.Near;
                 } else if (radius >= 8 && radius <= 10) {
-                    beacon.range = 'far';
+                    beacon.range = Range.Far;
                 }
 
                 resultBeacons.push(beacon);

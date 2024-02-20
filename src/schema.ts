@@ -185,7 +185,8 @@ export const customers = pgTable('customers', {
 export const events = pgTable('events', {
 	id: uuid('id').primaryKey(),
 	status: text('status').notNull(),
-	timestamp: timestamp('timestamp').notNull(),
+	enterTimestamp: timestamp('enterTimestamp').notNull(),
+	possibleExitTimestamp: timestamp('possibleExitTimestamp').notNull(),
 	customerId: uuid('customer_id')
 		.notNull()
 		.references(() => customers.id),
