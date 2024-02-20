@@ -5,13 +5,13 @@ import {and, eq} from 'drizzle-orm';
 
 export const POST: RequestHandler = async ({ request }) => {
     try {
-        const { customerId, beaconUID, status, timestamp } = await request.json();
+        const { customerId, beaconUID, major, minor, status, timestamp } = await request.json();
 
 
         // Get the campaign ID that is currently assigned to the given beaconUID from campaignsToBeacons
         const campaigns = await db.select({campaignId: campaignsToBeacons.campaignId})
             .from(campaignsToBeacons)
-            .where(eq(campaignsToBeacons.beaconId, beaconUID));
+            .where(and(eq(campaignsToBeacons.beaconId, beaconUID), eq(campaignsToBeacons.major, major), eq(campaignsToBeacons.minor, minor)));
 
         if (campaigns.length === 0) {
             return new Response('Campaign not found for the provided beaconUID', { status: 404 });

@@ -1,2 +1,0 @@
-ALTER TABLE "beaconPositions" ALTER COLUMN "timestamp" SET DEFAULT '2023-12-12 19:52:15.012';--> statement-breakpoint
-ALTER TABLE "campaigns" ALTER COLUMN "created_at" SET DEFAULT '2023-12-12 19:52:15.011';

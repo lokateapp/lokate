@@ -1,12 +1,12 @@
 import type { RequestHandler } from './$types';
 import { db } from "../../../lib/server/db";
 import {beacons, campaigns, campaignsToBeacons} from "../../../schema";
-import {eq, not} from "drizzle-orm";
+import {and, eq, not} from "drizzle-orm";
 
 export const GET: RequestHandler = async ({ url }) => {
     try {
-        let branchId : string = url.searchParams.get('branchId') ?? '-1';
-        const activeBeacons = await db.select().from(beacons).where(not(eq(beacons.radius,0)));
+        const branchId : string = url.searchParams.get('branchId') ?? '-1';
+        const activeBeacons = await db.select().from(beacons).where(and(not(eq(beacons.radius,0)), eq(beacons.branchId, branchId)));
         const resultBeacons = [];
         for (const beacon of activeBeacons) {
             const campaignBeacon = await db.select().from(campaignsToBeacons).where(eq(campaignsToBeacons.beaconId, beacon.id)).limit(1);

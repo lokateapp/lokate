@@ -1,8 +1,9 @@
 import type { RequestHandler } from './$types';
 import { db } from '../../lib/server/db';
-import { beacons, campaigns, campaignsToBeacons, user, customers } from '../../schema';
+import {beacons, campaigns, campaignsToBeacons, user, customers, branch} from '../../schema';
 import { auth } from '$lib/server/lucia';
 import crypto from 'crypto';
+import {b} from "vitest/dist/types-198fd1d9";
 
 export const GET: RequestHandler = async ({ locals, url }) => {
 	let userId = null;
@@ -27,43 +28,49 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 
 	// console.log('userId: ', userId);
 
-	const beacon1_id = '5d72cc30-5c61-4c09-889f-9ae750fa84ec'; // pink
-	await db.insert(beacons).values({
-		id: beacon1_id,
-		userId: userId,
+	const branch_id = crypto.randomUUID();
+	await db.insertt(branch).values({
+		id: branch_id
+	});
+
+	const beacon1 = {
+		id: '5d72cc30-5c61-4c09-889f-9ae750fa84ec', // beacon id
+		userId: '...', // user id
 		radius: 2, // immediate
 		major: '1',
 		minor: '1',
-		name: 'Test Beacon 1'
-	});
+		name: 'Test Beacon 1',
+		branchId: branch_id
+	}; // pink
+	await db.insert(beacons).values(beacon1);
 
 	await db.insert(customers).values({
 		id: '00000000-0000-0000-0000-000000000000',
 		customerId: 'customer1'
 	});
 
-	const beacon2_id = 'b9407f30-f5f8-466e-aff9-25556b57fe6d'; // red
-	
-	await db.insert(beacons).values({
-		id: beacon2_id,
+	const beacon2 = {
+		id: 'b9407f30-f5f8-466e-aff9-25556b57fe6d', // red
 		userId: userId,
 		radius: 9, // far
-		major: '24719',
-		minor: '28241',
-		name: 'Test Beacon 2'
-	});
+		major: '1',
+		minor: '2',
+		name: 'Test Beacon 2',
+		branchId: branch_id
+	};
+	await db.insert(beacons).values(beacon2);
 
 	// D5D885F1-D7DA-4F5A-AD51-487281B7F8B3
-	const beacon3_id = 'd5d885f1-d7da-4f5a-ad51-487281b7f8b3'; // sari
-
-	await db.insert(beacons).values({
-		id: beacon3_id,
+	const beacon3 = {
+		id: 'd5d885f1-d7da-4f5a-ad51-487281b7f8b3', // sari
 		userId: userId,
 		radius: 5, // far
-		major: '24719',
-		minor: '24000',
-		name: 'Test Beacon 3'
-	});
+		major: '1',
+		minor: '3',
+		name: 'Test Beacon 3',
+		branchId: branch_id
+	}; // pink
+	await db.insert(beacons).values(beacon3);
 
 	const campaing1_id = crypto.randomUUID();
 	await db.insert(campaigns).values({
@@ -91,7 +98,9 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 
 	await db.insert(campaignsToBeacons).values({
 		campaignId: campaing1_id,
-		beaconId: beacon1_id
+		beaconId: beacon1.id,
+		major: beacon1.major,
+		minor: beacon1.minor
 	});
 	
 	// await db.insert(campaignsToBeacons).values({
@@ -101,12 +110,16 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 
 	await db.insert(campaignsToBeacons).values({
 		campaignId: campaing2_id,
-		beaconId: beacon2_id
+		beaconId: beacon2.id,
+		major: beacon2.major,
+		minor: beacon2.minor
 	});
 
 	await db.insert(campaignsToBeacons).values({
 		campaignId: campaign3_id,
-		beaconId: beacon3_id
+		beaconId: becon3.id,
+		major: beacon3.major,
+		minor: beacon3.minor
 	});
 
 

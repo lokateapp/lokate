@@ -1,2 +1,0 @@
-ALTER TABLE "campaignsToBeacons" DROP CONSTRAINT "campaignsToBeacons_campaign_id_unique";--> statement-breakpoint
-ALTER TABLE "campaignsToBeacons" DROP CONSTRAINT "campaignsToBeacons_beacon_id_unique";
