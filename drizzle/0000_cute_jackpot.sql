@@ -53,7 +53,8 @@ CREATE TABLE IF NOT EXISTS "customers" (
 CREATE TABLE IF NOT EXISTS "events" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"status" text NOT NULL,
-	"timestamp" timestamp NOT NULL,
+	"enterTimestamp" timestamp NOT NULL,
+	"possibleExitTimestamp" timestamp NOT NULL,
 	"customer_id" uuid NOT NULL,
 	"campaign_id" uuid NOT NULL
 );

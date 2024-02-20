@@ -1,4 +1,4 @@
-import { beacons, campaigns, campaignsToBeacons, user, customers, session, key, events } from '../../../schema';
+import {beacons, campaigns, campaignsToBeacons, user, customers, session, key, events, branch} from '../../../schema';
 import { db } from "../../../lib/server/db";
 import type { RequestHandler } from '@sveltejs/kit';
 
@@ -9,9 +9,10 @@ export const GET: RequestHandler = async ({ }) => {
 		await db.delete(campaigns);
 		await db.delete(campaignsToBeacons);
 		await db.delete(beacons);
-		// await db.delete(key);
-		// await db.delete(session);
-		// await db.delete(user);
+		await db.delete(key);
+		await db.delete(session);
+		await db.delete(user);
+		await db.delete(branch);
 
 		// Use Response constructor with a null body and status code 200
 		return new Response("✅ Database emptied", { status: 200 });

@@ -3,7 +3,7 @@ import { db } from '../../lib/server/db';
 import {beacons, campaigns, campaignsToBeacons, user, customers, branch} from '../../schema';
 import { auth } from '$lib/server/lucia';
 import crypto from 'crypto';
-import {b} from "vitest/dist/types-198fd1d9";
+// import {b} from "vitest/dist/types-198fd1d9";
 
 export const GET: RequestHandler = async ({ locals, url }) => {
 	let userId = null;
@@ -29,13 +29,13 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	// console.log('userId: ', userId);
 
 	const branch_id = crypto.randomUUID();
-	await db.insertt(branch).values({
+	await db.insert(branch).values({
 		id: branch_id
 	});
 
 	const beacon1 = {
 		id: '5d72cc30-5c61-4c09-889f-9ae750fa84ec', // beacon id
-		userId: '...', // user id
+		userId: userId, // user id
 		radius: 2, // immediate
 		major: '1',
 		minor: '1',
@@ -99,8 +99,8 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	await db.insert(campaignsToBeacons).values({
 		campaignId: campaing1_id,
 		beaconId: beacon1.id,
-		major: beacon1.major,
-		minor: beacon1.minor
+		beaconMajor: beacon1.major,
+		beaconMinor: beacon1.minor
 	});
 	
 	// await db.insert(campaignsToBeacons).values({
@@ -111,15 +111,15 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	await db.insert(campaignsToBeacons).values({
 		campaignId: campaing2_id,
 		beaconId: beacon2.id,
-		major: beacon2.major,
-		minor: beacon2.minor
+		beaconMajor: beacon2.major,
+		beaconMinor: beacon2.minor
 	});
 
 	await db.insert(campaignsToBeacons).values({
 		campaignId: campaign3_id,
-		beaconId: becon3.id,
-		major: beacon3.major,
-		minor: beacon3.minor
+		beaconId: beacon3.id,
+		beaconMajor: beacon3.major,
+		beaconMinor: beacon3.minor
 	});
 
 
@@ -127,16 +127,16 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	// Build the response object with information about the created entities
 	const responseObj = {
 		createdBeacons: [
-			{ id: beacon1_id, name: 'test beacon 1' },
-			{ id: beacon2_id, name: 'test beacon 2' }
+			{ id: beacon1.id, name: 'test beacon 1' },
+			{ id: beacon2.id, name: 'test beacon 2' }
 		],
 		createdCampaigns: [
 			{ id: campaing1_id, name: 'test campaign1' },
 			{ id: campaing2_id, name: 'test campaign2' }
 		],
 		createdCampaignsToBeacons: [
-			{ campaignId: campaing1_id, beaconId: beacon1_id },
-			{ campaignId: campaing2_id, beaconId: beacon2_id }
+			{ campaignId: campaing1_id, beaconId: beacon1.id },
+			{ campaignId: campaing2_id, beaconId: beacon2.id }
 		]
 	};
 
