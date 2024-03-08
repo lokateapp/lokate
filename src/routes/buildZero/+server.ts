@@ -72,17 +72,6 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	}; // pink
 	await db.insert(beacons).values(beacon3);
 
-	const testBc = {
-		id: "B9407F30-F5F8-466E-AFF9-25556B57FE6D",
-		userId: userId,
-		radius: 1,
-		major: "24719",
-		minor: "28241",
-		name: "Test Beacon 4",
-		branchId: branch_id
-	};
-	await db.insert(beacons).values(testBc);
-
 	const campaing1_id = crypto.randomUUID();
 	await db.insert(campaigns).values({
 		id: campaing1_id,

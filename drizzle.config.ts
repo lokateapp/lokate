@@ -1,7 +1,7 @@
 import type { Config } from 'drizzle-kit';
 import 'dotenv/config';
 
-const connectionUrl = process.env.POSTGRES_URL || "localhost";
+const connectionUrl = process.env.POSTGRES_URL;
 if (!connectionUrl) {
     throw new Error('POSTGRES_URL environment variable is not defined.');
 }
