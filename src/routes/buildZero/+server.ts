@@ -1,6 +1,6 @@
 import type { RequestHandler } from './$types';
 import { db } from '../../lib/server/db';
-import { beacons, campaigns, campaignsToBeacons, user, customers, branch } from '../../schema';
+import { beacons, campaigns, campaignsToBeacons, customers, branches } from '../../schema';
 import { auth } from '$lib/server/lucia';
 import crypto from 'crypto';
 // import {b} from "vitest/dist/types-198fd1d9";
@@ -26,62 +26,78 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 		userId = user.userId;
 	}
 
-	// console.log('userId: ', userId);
-
-	const branch_id = crypto.randomUUID();
-	await db.insert(branch).values({
-		id: branch_id
-	});
-
-	const beacon1 = {
-		id: '5d72cc30-5c61-4c09-889f-9ae750fa84ec', // beacon id
-		userId: userId, // user id
-		radius: 2, // immediate
-		major: '1',
-		minor: '1',
-		name: 'Test Beacon 1',
-		branchId: branch_id
-	}; // pink
-	await db.insert(beacons).values(beacon1);
-
 	await db.insert(customers).values({
 		id: '00000000-0000-0000-0000-000000000000',
 		customerId: 'customer1'
 	});
 
-	const beacon2 = {
-		id: 'b9407f30-f5f8-466e-aff9-25556b57fe6d', // red
+	const branch1_id = crypto.randomUUID();
+	await db.insert(branches).values({
+		id: branch1_id
+	});
+	const branch2_id = crypto.randomUUID();
+	await db.insert(branches).values({
+		id: branch2_id
+	});
+
+	const beacon1 = {
+		id: crypto.randomUUID(),
+		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
+		major: 2,
+		minor: 1,
 		userId: userId,
-		radius: 9, // far
-		major: '1',
-		minor: '2',
-		name: 'Test Beacon 2',
-		branchId: branch_id
+		branchId: branch2_id,
+		radius: 2,
+		name: 'White'
+	};
+	await db.insert(beacons).values(beacon1);
+
+	const beacon2 = {
+		id: crypto.randomUUID(),
+		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
+		major: 1,
+		minor: 1,
+		userId: userId,
+		branchId: branch1_id,
+		radius: 9,
+		name: 'Pink'
 	};
 	await db.insert(beacons).values(beacon2);
 
-	// D5D885F1-D7DA-4F5A-AD51-487281B7F8B3
 	const beacon3 = {
-		id: 'd5d885f1-d7da-4f5a-ad51-487281b7f8b3', // sari
+		id: crypto.randomUUID(),
+		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
+		major: 1,
+		minor: 2,
 		userId: userId,
-		radius: 5, // far
-		major: '1',
-		minor: '3',
-		name: 'Test Beacon 3',
-		branchId: branch_id
-	}; // pink
+		branchId: branch1_id,
+		radius: 5,
+		name: 'Red'
+	};
 	await db.insert(beacons).values(beacon3);
 
-	const campaing1_id = crypto.randomUUID();
+	const beacon4 = {
+		id: crypto.randomUUID(),
+		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
+		major: 2,
+		minor: 2,
+		userId: userId,
+		branchId: branch2_id,
+		radius: 5,
+		name: 'Yellow'
+	};
+	await db.insert(beacons).values(beacon4);
+
+	const campaign1_id = crypto.randomUUID();
 	await db.insert(campaigns).values({
-		id: campaing1_id,
+		id: campaign1_id,
 		userId: userId,
 		name: 'Campaign 1',
 		status: 'active'
 	});
-	const campaing2_id = crypto.randomUUID();
+	const campaign2_id = crypto.randomUUID();
 	await db.insert(campaigns).values({
-		id: campaing2_id,
+		id: campaign2_id,
 		userId: userId,
 		name: 'Campaign 2',
 		status: 'active'
@@ -96,10 +112,8 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	});
 
 	await db.insert(campaignsToBeacons).values({
-		campaignId: campaing1_id,
-		beaconId: beacon1.id,
-		beaconMajor: beacon1.major,
-		beaconMinor: beacon1.minor
+		campaignId: campaign1_id,
+		beaconId: beacon1.id
 	});
 
 	// await db.insert(campaignsToBeacons).values({
@@ -108,32 +122,32 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	// });
 
 	await db.insert(campaignsToBeacons).values({
-		campaignId: campaing2_id,
-		beaconId: beacon2.id,
-		beaconMajor: beacon2.major,
-		beaconMinor: beacon2.minor
+		campaignId: campaign2_id,
+		beaconId: beacon2.id
 	});
 
 	await db.insert(campaignsToBeacons).values({
 		campaignId: campaign3_id,
-		beaconId: beacon3.id,
-		beaconMajor: beacon3.major,
-		beaconMinor: beacon3.minor
+		beaconId: beacon3.id
 	});
 
 	// Build the response object with information about the created entities
 	const responseObj = {
 		createdBeacons: [
-			{ id: beacon1.id, name: 'test beacon 1' },
-			{ id: beacon2.id, name: 'test beacon 2' }
+			{ id: beacon1.id, name: beacon1.name },
+			{ id: beacon2.id, name: beacon2.name },
+			{ id: beacon3.id, name: beacon3.name },
+			{ id: beacon4.id, name: beacon4.name }
 		],
 		createdCampaigns: [
-			{ id: campaing1_id, name: 'test campaign1' },
-			{ id: campaing2_id, name: 'test campaign2' }
+			{ id: campaign1_id, name: 'test campaign1' },
+			{ id: campaign2_id, name: 'test campaign2' },
+			{ id: campaign3_id, name: 'test campaign3' }
 		],
 		createdCampaignsToBeacons: [
-			{ campaignId: campaing1_id, beaconId: beacon1.id },
-			{ campaignId: campaing2_id, beaconId: beacon2.id }
+			{ campaignId: campaign1_id, beaconId: beacon1.id },
+			{ campaignId: campaign2_id, beaconId: beacon2.id },
+			{ campaignId: campaign3_id, beaconId: beacon3.id }
 		]
 	};
 

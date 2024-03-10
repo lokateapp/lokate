@@ -59,7 +59,7 @@ export const key = pgTable('user_key', {
 	})
 });
 
-export const branch = pgTable('branches', {
+export const branches = pgTable('branches', {
 	id: uuid('id').primaryKey(),
 	address: varchar('address', { length: 100 }),
 	latitude: doublePrecision('latitude'),
@@ -74,7 +74,7 @@ export const beacons = pgTable('beacons', {
 	userId: varchar('user_id', { length: 15 })
 		.notNull()
 		.references(() => user.id),
-	branchId: uuid('branch_id').references(() => branch.id, { onDelete: 'cascade' }),
+	branchId: uuid('branch_id').references(() => branches.id, { onDelete: 'cascade' }),
 	radius: integer('radius').notNull(),
 	name: varchar('name', { length: 40 })
 });

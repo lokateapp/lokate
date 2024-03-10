@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS "beacons" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"proximity_uuid" uuid NOT NULL,
     "major" integer NOT NULL,
-    "minor" integer NOT NULL
+    "minor" integer NOT NULL,
 	"user_id" varchar(15) NOT NULL,
 	"branch_id" uuid,
 	"radius" integer NOT NULL,
