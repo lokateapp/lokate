@@ -33,11 +33,17 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 
 	const branch1_id = crypto.randomUUID();
 	await db.insert(branches).values({
-		id: branch1_id
+		id: branch1_id,
+		address: 'Gordion',
+		latitude: 39.900099,
+		longitude: 32.691764
 	});
 	const branch2_id = crypto.randomUUID();
 	await db.insert(branches).values({
-		id: branch2_id
+		id: branch2_id,
+		address: 'Bilkent',
+		latitude: 39.867891,
+		longitude: 32.748718
 	});
 
 	const beacon1 = {
