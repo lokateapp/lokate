@@ -26,7 +26,10 @@ CREATE TABLE IF NOT EXISTS "beacons" (
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "branch" (
-	"id" uuid PRIMARY KEY NOT NULL
+	"id" uuid PRIMARY KEY NOT NULL,
+	"address" varchar(100),
+	"latitude" double precision	NOT NULL,
+    "longitude" double precision NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "campaigns" (

@@ -9,3 +9,5 @@ const db = drizzle(sql);
 console.log('started migrating');
 await migrate(db, { migrationsFolder: 'drizzle' });
 console.log('finished migrating');
+
+process.exit(0)
