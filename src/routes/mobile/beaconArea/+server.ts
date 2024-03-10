@@ -67,7 +67,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		}
 
 		const response =
-			'customer with id:' + customer.id + ' is added to campaign of beacon with id:' + beaconUID;
+			'customer with id:' + customer.id + ' is added to campaign of beacon with id:' + beaconUUID;
 		return new Response(response, { status: 200 });
 	} catch (error) {
 		console.error('Error:', error);
