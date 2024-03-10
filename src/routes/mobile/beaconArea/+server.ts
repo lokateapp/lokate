@@ -59,7 +59,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		}
 
 		for (const failedEvent of failedEvents) {
-			console.log('Failed event for campaign: ' + failedEvent + 'for customerId: ' + customerId);
+			console.log('Failed event for campaign: ' + failedEvent + ', for customerId: ' + customerId);
 		}
 		if (failedEvents.length === campaigns.length) {
 			// all campaigns are not existed yet or not exist any
@@ -120,7 +120,7 @@ const handleStayEvent = async (timestamp, customer, campaign) => {
 		.limit(1);
 
 	if (event.length === 0 || event[0].possibleExitTimestamp >= new Date(timestamp)) {
-		return campaign.id; // Return the campaign ID for failed events
+		return campaign.campaignId; // Return the campaign ID for failed events
 	}
 
 	await db
