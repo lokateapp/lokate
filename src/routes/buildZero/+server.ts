@@ -1,6 +1,6 @@
 import type { RequestHandler } from './$types';
 import { db } from '../../lib/server/db';
-import {beacons, campaigns, campaignsToBeacons, user, customers, branch} from '../../schema';
+import { beacons, campaigns, campaignsToBeacons, user, customers, branch } from '../../schema';
 import { auth } from '$lib/server/lucia';
 import crypto from 'crypto';
 // import {b} from "vitest/dist/types-198fd1d9";
@@ -87,7 +87,6 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 		status: 'active'
 	});
 
-
 	const campaign3_id = crypto.randomUUID();
 	await db.insert(campaigns).values({
 		id: campaign3_id,
@@ -102,7 +101,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 		beaconMajor: beacon1.major,
 		beaconMinor: beacon1.minor
 	});
-	
+
 	// await db.insert(campaignsToBeacons).values({
 	// 	campaignId: campaing1_id,
 	// 	beaconId: beacon2_id
@@ -121,8 +120,6 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 		beaconMajor: beacon3.major,
 		beaconMinor: beacon3.minor
 	});
-
-
 
 	// Build the response object with information about the created entities
 	const responseObj = {

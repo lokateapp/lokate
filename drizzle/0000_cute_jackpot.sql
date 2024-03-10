@@ -1,5 +1,6 @@
 DO $$ BEGIN
- CREATE TYPE "campaignStatus" AS ENUM('active', 'inactive');
+ CREATE TYPE "campaignStatus" AS 
+ 	ENUM('active', 'inactive');
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
@@ -7,25 +8,24 @@ END $$;
 CREATE TABLE IF NOT EXISTS "beaconPositions" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"beacon_id" uuid NOT NULL,
-	"major" varchar(100) NOT NULL,
-	"minor" varchar(100) NOT NULL,
-	"timestamp" timestamp DEFAULT CURRENT_TIMESTAMP,
+	"created_at" timestamp DEFAULT CURRENT_TIMESTAMP,
 	"x" integer NOT NULL,
 	"y" integer NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "beacons" (
-	"id" uuid,
+	"id" uuid PRIMARY KEY NOT NULL,
+	"proximity_uuid" uuid NOT NULL,
+    "major" integer NOT NULL,
+    "minor" integer NOT NULL
 	"user_id" varchar(15) NOT NULL,
 	"branch_id" uuid,
 	"radius" integer NOT NULL,
 	"name" varchar(40),
-	"major" varchar(100),
-	"minor" varchar(100),
-	CONSTRAINT "beacons_id_major_minor_pk" PRIMARY KEY("id","major","minor")
+	CONSTRAINT "unique_proximity_id" UNIQUE("proximity_uuid","major","minor")
 );
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "branch" (
+CREATE TABLE IF NOT EXISTS "branches" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"address" varchar(100),
 	"latitude" double precision	NOT NULL,
@@ -43,9 +43,7 @@ CREATE TABLE IF NOT EXISTS "campaigns" (
 CREATE TABLE IF NOT EXISTS "campaignsToBeacons" (
 	"campaign_id" uuid NOT NULL,
 	"beacon_id" uuid NOT NULL,
-	"major" varchar(100) NOT NULL,
-	"minor" varchar(100) NOT NULL,
-	CONSTRAINT "campaignsToBeacons_campaign_id_beacon_id_major_minor_pk" PRIMARY KEY("campaign_id","beacon_id","major","minor")
+	CONSTRAINT "campaignsToBeacons_campaign_id_beacon_id_pk" PRIMARY KEY("campaign_id","beacon_id")
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "customers" (
@@ -80,9 +78,10 @@ CREATE TABLE IF NOT EXISTS "auth_user" (
 	"username" varchar(64) NOT NULL
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX IF NOT EXISTS "name_idx" ON "auth_user" ("username");--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS "name_idx" ON "auth_user" ("username");
+--> statement-breakpoint
 DO $$ BEGIN
- ALTER TABLE "beaconPositions" ADD CONSTRAINT "beacon_fk" FOREIGN KEY ("beacon_id","major","minor") REFERENCES "beacons"("id","major","minor") ON DELETE no action ON UPDATE no action;
+ ALTER TABLE "beaconPositions" ADD CONSTRAINT "beacon_fk" FOREIGN KEY ("beacon_id") REFERENCES "beacons"("id") ON DELETE no action ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
@@ -94,7 +93,7 @@ EXCEPTION
 END $$;
 --> statement-breakpoint
 DO $$ BEGIN
- ALTER TABLE "beacons" ADD CONSTRAINT "beacons_branch_id_branch_id_fk" FOREIGN KEY ("branch_id") REFERENCES "branch"("id") ON DELETE cascade ON UPDATE no action;
+ ALTER TABLE "beacons" ADD CONSTRAINT "beacons_branch_id_branch_id_fk" FOREIGN KEY ("branch_id") REFERENCES "branches"("id") ON DELETE cascade ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
@@ -112,7 +111,7 @@ EXCEPTION
 END $$;
 --> statement-breakpoint
 DO $$ BEGIN
- ALTER TABLE "campaignsToBeacons" ADD CONSTRAINT "beacon_fk" FOREIGN KEY ("beacon_id","major","minor") REFERENCES "beacons"("id","major","minor") ON DELETE no action ON UPDATE no action;
+ ALTER TABLE "campaignsToBeacons" ADD CONSTRAINT "beacon_fk" FOREIGN KEY ("beacon_id") REFERENCES "beacons"("id") ON DELETE no action ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
