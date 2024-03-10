@@ -53,7 +53,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 		minor: 1,
 		userId: userId,
 		branchId: branch2_id,
-		radius: 2,
+		radius: 2.0,
 		name: 'White'
 	};
 	await db.insert(beacons).values(beacon1);
@@ -65,7 +65,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 		minor: 1,
 		userId: userId,
 		branchId: branch1_id,
-		radius: 9,
+		radius: 9.0,
 		name: 'Pink'
 	};
 	await db.insert(beacons).values(beacon2);
@@ -77,7 +77,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 		minor: 2,
 		userId: userId,
 		branchId: branch1_id,
-		radius: 5,
+		radius: 5.0,
 		name: 'Red'
 	};
 	await db.insert(beacons).values(beacon3);
@@ -89,7 +89,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 		minor: 2,
 		userId: userId,
 		branchId: branch2_id,
-		radius: 5,
+		radius: 5.0,
 		name: 'Yellow'
 	};
 	await db.insert(beacons).values(beacon4);
@@ -122,11 +122,6 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 		beaconId: beacon1.id
 	});
 
-	// await db.insert(campaignsToBeacons).values({
-	// 	campaignId: campaing1_id,
-	// 	beaconId: beacon2_id
-	// });
-
 	await db.insert(campaignsToBeacons).values({
 		campaignId: campaign2_id,
 		beaconId: beacon2.id
@@ -135,6 +130,11 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	await db.insert(campaignsToBeacons).values({
 		campaignId: campaign3_id,
 		beaconId: beacon3.id
+	});
+
+	await db.insert(campaignsToBeacons).values({
+		campaignId: campaign3_id,
+		beaconId: beacon4.id
 	});
 
 	// Build the response object with information about the created entities

@@ -75,7 +75,7 @@ export const beacons = pgTable('beacons', {
 		.notNull()
 		.references(() => user.id),
 	branchId: uuid('branch_id').references(() => branches.id, { onDelete: 'cascade' }),
-	radius: integer('radius').notNull(),
+	radius: doublePrecision('radius').notNull(),
 	name: varchar('name', { length: 40 })
 });
 

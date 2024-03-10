@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS "beacons" (
     "minor" integer NOT NULL,
 	"user_id" varchar(15) NOT NULL,
 	"branch_id" uuid,
-	"radius" integer NOT NULL,
+	"radius" double precision NOT NULL,
 	"name" varchar(40),
 	CONSTRAINT "unique_proximity_id" UNIQUE("proximity_uuid","major","minor")
 );

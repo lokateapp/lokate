@@ -6,7 +6,7 @@ import { and, eq, not } from 'drizzle-orm';
 // Function to calculate distance between two coordinates
 const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
 	const R = 6371; // Radius of the earth in km
-	const dLat = ((lat2 - lat1) * Math.PI) / 180; // deg2rad below
+	const dLat = ((lat2 - lat1) * Math.PI) / 180;
 	const dLon = ((lon2 - lon1) * Math.PI) / 180;
 	const a =
 		0.5 -
@@ -17,16 +17,19 @@ const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: numbe
 	return R * 2 * Math.asin(Math.sqrt(a));
 };
 
-enum Range {
-	Unknown = 'unknown',
-	Immediate = 'immediate',
-	Near = 'near',
-	Far = 'far'
-}
 export const GET: RequestHandler = async ({ url }) => {
 	try {
 		const latitude = parseFloat(url.searchParams.get('latitude') ?? '0');
 		const longitude = parseFloat(url.searchParams.get('longitude') ?? '0');
+
+		if (
+			latitude === 0.0 ||
+			longitude === 0.0 ||
+			Number.isNaN(latitude) ||
+			Number.isNaN(longitude)
+		) {
+			return new Response('Geolocation could not be determined', { status: 404 });
+		}
 
 		const allBranches = await db.select().from(branches);
 
