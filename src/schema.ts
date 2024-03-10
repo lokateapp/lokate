@@ -61,9 +61,9 @@ export const key = pgTable('user_key', {
 
 export const branches = pgTable('branches', {
 	id: uuid('id').primaryKey(),
-	address: varchar('address', { length: 100 }),
-	latitude: doublePrecision('latitude'),
-	longitude: doublePrecision('longitude')
+	address: varchar('address', { length: 100 }).notNull(),
+	latitude: doublePrecision('latitude').notNull(),
+	longitude: doublePrecision('longitude').notNull()
 });
 
 export const beacons = pgTable('beacons', {
@@ -130,7 +130,7 @@ export const beaconPositions = pgTable('beaconPositions', {
 // });
 
 export const beaconsRelationsWithcampaignsToBeacons = relations(beacons, ({ one, many }) => ({
-	beaconPosition: one(beaconPositions, {
+	position: one(beaconPositions, {
 		fields: [beacons.id],
 		references: [beaconPositions.beaconId]
 	}),
