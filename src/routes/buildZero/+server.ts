@@ -35,6 +35,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	const branch1_id = crypto.randomUUID();
 	await db.insert(branches).values({
 		id: branch1_id,
+		userId: userId,
 		address: 'Gordion',
 		latitude: 39.900099,
 		longitude: 32.691764
@@ -42,6 +43,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	const branch2_id = crypto.randomUUID();
 	await db.insert(branches).values({
 		id: branch2_id,
+		userId: userId,
 		address: 'Bilkent',
 		latitude: 39.867891,
 		longitude: 32.748718
@@ -49,11 +51,10 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 
 	const beacon1 = {
 		id: crypto.randomUUID(),
+		branchId: branch2_id,
 		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
 		major: 2,
 		minor: 1,
-		userId: userId,
-		branchId: branch2_id,
 		radius: 2.0,
 		name: 'White'
 	};
@@ -61,11 +62,10 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 
 	const beacon2 = {
 		id: crypto.randomUUID(),
+		branchId: branch1_id,
 		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
 		major: 1,
 		minor: 1,
-		userId: userId,
-		branchId: branch1_id,
 		radius: 9.0,
 		name: 'Pink'
 	};
@@ -73,11 +73,10 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 
 	const beacon3 = {
 		id: crypto.randomUUID(),
+		branchId: branch1_id,
 		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
 		major: 1,
 		minor: 2,
-		userId: userId,
-		branchId: branch1_id,
 		radius: 5.0,
 		name: 'Red'
 	};
@@ -85,11 +84,10 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 
 	const beacon4 = {
 		id: crypto.randomUUID(),
+		branchId: branch2_id,
 		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
 		major: 2,
 		minor: 2,
-		userId: userId,
-		branchId: branch2_id,
 		radius: 5.0,
 		name: 'Yellow'
 	};
@@ -98,14 +96,14 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	const campaign1_id = crypto.randomUUID();
 	await db.insert(campaigns).values({
 		id: campaign1_id,
-		userId: userId,
+		branchId: branch1_id,
 		name: 'Campaign 1',
 		status: 'active'
 	});
 	const campaign2_id = crypto.randomUUID();
 	await db.insert(campaigns).values({
 		id: campaign2_id,
-		userId: userId,
+		branchId: branch1_id,
 		name: 'Campaign 2',
 		status: 'active'
 	});
@@ -113,23 +111,25 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	const campaign3_id = crypto.randomUUID();
 	await db.insert(campaigns).values({
 		id: campaign3_id,
-		userId: userId,
+		branchId: branch2_id,
 		name: 'Campaign 3',
 		status: 'active'
 	});
 
+	/* We need to be careful while associating campaigns with branches: 
+	their branch should match (there is a trigger controlling such integrity) */
 	await db.insert(campaignsToBeacons).values({
-		campaignId: campaign1_id,
+		campaignId: campaign3_id,
 		beaconId: beacon1.id
 	});
 
 	await db.insert(campaignsToBeacons).values({
-		campaignId: campaign2_id,
+		campaignId: campaign1_id,
 		beaconId: beacon2.id
 	});
 
 	await db.insert(campaignsToBeacons).values({
-		campaignId: campaign3_id,
+		campaignId: campaign2_id,
 		beaconId: beacon3.id
 	});
 

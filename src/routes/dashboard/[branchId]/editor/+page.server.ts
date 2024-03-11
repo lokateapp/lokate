@@ -1,5 +1,5 @@
 import type { RequestHandler } from '@sveltejs/kit';
-import { db } from '../../../lib/server/db';
+import { db } from '../../../../lib/server/db';
 import {
 	// beaconPositions,
 	beacons,
@@ -7,15 +7,15 @@ import {
 	campaignsToBeacons,
 	type SelectBeacon,
 	type SelectCampaignsWithBeacons
-} from '../../../schema';
+} from '../../../../schema';
 import { eq } from 'drizzle-orm';
 import type { PageServerLoad } from '../$types';
 
-export const load: PageServerLoad = async ({ locals }) => {
-	const session = await locals.auth.validate();
-	const availableBeacons: SelectBeacon[] = await getBeacons(session.user.userId);
+export const load: PageServerLoad = async ({ url }) => {
+	const branchId = url.pathname.split('/')[2];
 
-	let allCampaigns: SelectCampaignsWithBeacons[] = await getCampaigns(session.user.userId);
+	const availableBeacons: SelectBeacon[] = await getBeacons(branchId);
+	let allCampaigns: SelectCampaignsWithBeacons[] = await getCampaigns(branchId);
 
 	console.log('allCampaigns: ', allCampaigns);
 	console.log('availableBeacons: ', availableBeacons);
@@ -23,13 +23,13 @@ export const load: PageServerLoad = async ({ locals }) => {
 	return { allCampaigns: allCampaigns, availableBeacons };
 };
 
-async function getBeacons(userId: string): Promise<SelectBeacon[]> {
-	return await db.select().from(beacons).where(eq(beacons.userId, userId));
+async function getBeacons(branchId: string): Promise<SelectBeacon[]> {
+	return await db.select().from(beacons).where(eq(beacons.branchId, branchId));
 }
 
-async function getCampaigns(userId: string): Promise<SelectCampaignsWithBeacons[]> {
+async function getCampaigns(branchId: string): Promise<SelectCampaignsWithBeacons[]> {
 	return await db.query.campaigns.findMany({
-		where: (campaign, { eq }) => eq(campaign.userId, userId),
+		where: (campaign, { eq }) => eq(campaign.branchId, branchId),
 		with: {
 			campaignsToBeacons: {
 				columns: {},

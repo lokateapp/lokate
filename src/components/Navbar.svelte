@@ -7,6 +7,11 @@
 	let sidebarVisible = false;
 	let width = INITIAL_WIDTH;
 	let routeName = '';
+	let branchId = '';
+
+	function getBranchId() {
+		return $page.url.pathname.split('/')[2];
+	}
 
 	page.subscribe((value) => {
 		// console.log('page changed', value.route);
@@ -22,7 +27,7 @@
 			name: 'dashboard',
 			icon: 'fa-solid fa-home fa-xl',
 			// link: '/dashboard'
-			link: '/dashboard/editor'
+			link: 'editor'
 		},
 		{
 			name: 'beacons',
@@ -30,7 +35,7 @@
 			icon: 'fa-solid fa-tower-broadcast',
 			// icon : BeaconSvg,
 			// svg: BeaconSvg,
-			link: '/dashboard/devices'
+			link: 'devices'
 		},
 		// {
 		// 	name: 'users',
@@ -40,7 +45,7 @@
 		{
 			name: 'analytics',
 			icon: 'fa-solid fa-chart-bar fa-xl',
-			link: '/dashboard/analytics'
+			link: 'analytics'
 		}
 	];
 
@@ -83,7 +88,7 @@
 							active={routeName == route.name}
 							class="w-full text-left {sidebarVisible ? 'justify-start p-4' : '!p-6'}"
 							on:click={() => {
-								window.location.href = route.link;
+								window.location.href = `/dashboard/${getBranchId()}/${route.link}`;
 							}}
 						>
 							<!-- {#if route.svg}
@@ -142,7 +147,7 @@
 						active={routeName == lastRoute.name}
 						class="w-full text-left {sidebarVisible ? 'justify-start p-4' : '!p-6'}"
 						on:click={() => {
-							window.location.href = lastRoute.link;
+							window.location.href = `/dashboard/${getBranchId()}/${lastRoute.link}`;
 						}}
 					>
 						<i class={lastRoute?.icon} />

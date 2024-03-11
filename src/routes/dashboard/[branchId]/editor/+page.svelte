@@ -9,10 +9,9 @@
 	import dayjs from 'dayjs';
 
 	import localizedFormat from 'dayjs/plugin/localizedFormat';
-	dayjs.extend(localizedFormat)
+	dayjs.extend(localizedFormat);
 
-
-	import { notify } from '../../../components/notify';
+	import { notify } from '../../../../components/notify';
 	import {
 		Table,
 		TableBody,
@@ -63,10 +62,11 @@
 				return {
 					id: beacon.id,
 					name: beacon.name || null,
-					position: {
-						x: 0,
-						y: 0
-					} || null,
+					position:
+						{
+							x: 0,
+							y: 0
+						} || null,
 					range: beacon.radius
 				};
 			}),
@@ -804,7 +804,6 @@
 		// 		isCompleted: false
 		// 	}
 		// ];
-		
 
 		console.log('items:', items);
 
