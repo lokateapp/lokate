@@ -1,6 +1,6 @@
 import type { RequestHandler } from './$types';
 import { db } from '../../lib/server/db';
-import { beacons, campaigns, campaignsToBeacons, customers, branches } from '../../schema';
+import { beacons, campaigns, campaignsToBeacons, customers, branches, events } from '../../schema';
 import { auth } from '$lib/server/lucia';
 import crypto from 'crypto';
 // import {b} from "vitest/dist/types-198fd1d9";
@@ -26,8 +26,9 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 		userId = user.userId;
 	}
 
+	const customer1_id = crypto.randomUUID();
 	await db.insert(customers).values({
-		id: '00000000-0000-0000-0000-000000000000',
+		id: customer1_id,
 		customerId: 'customer1'
 	});
 
@@ -137,6 +138,8 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 		beaconId: beacon4.id
 	});
 
+	await generateEvents(events, customer1_id, [beacon1.id, beacon2.id, beacon3.id, beacon4.id]);
+
 	// Build the response object with information about the created entities
 	const responseObj = {
 		createdBeacons: [
@@ -164,3 +167,48 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 		headers: { 'Content-Type': 'application/json' }
 	});
 };
+
+async function generateEvents(eventsTable, customerId, beaconIDs) {
+	const events = [];
+
+	function getRandomTimestamp(start: Date, end: Date): Date {
+		const startTime = start.getTime();
+		const endTime = end.getTime();
+		const randomTime = startTime + Math.random() * (endTime - startTime);
+		return new Date(randomTime);
+	}
+
+	for (let i = 0; i < 100; i++) {
+		const beaconId = beaconIDs[Math.floor(Math.random() * beaconIDs.length)]; // Randomly select a beacon ID
+		const enterTimestamp = getRandomTimestamp(new Date('2024-03-11T08:00:00Z'), new Date()); // Random timestamp within the specified range
+		const possibleExitTimestamp = new Date(
+			enterTimestamp.getTime() + Math.floor(Math.random() * 50000) + 10000
+		);
+
+		// 20% percent of events may remain at STAY status due to possible failure
+		if (i % 5 == 0) {
+			events.push({
+				id: crypto.randomUUID(),
+				status: 'STAY',
+				enterTimestamp,
+				possibleExitTimestamp,
+				customerId: customerId,
+				beaconId
+			});
+		} else {
+			events.push({
+				id: crypto.randomUUID(),
+				status: 'EXIT',
+				enterTimestamp,
+				possibleExitTimestamp,
+				customerId: customerId,
+				beaconId
+			});
+		}
+	}
+
+	// Assuming you want to insert these events into the 'events' table
+	for (const event of events) {
+		await db.insert(eventsTable).values(event);
+	}
+}

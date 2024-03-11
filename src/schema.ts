@@ -165,9 +165,9 @@ export const events = pgTable('events', {
 	customerId: uuid('customer_id')
 		.notNull()
 		.references(() => customers.id),
-	campaignId: uuid('campaign_id')
+	beaconId: uuid('beacon_id')
 		.notNull()
-		.references(() => campaigns.id)
+		.references(() => beacons.id)
 });
 
 export type SelectCampaign = InferSelectModel<typeof campaigns>;
@@ -210,5 +210,5 @@ export type SelectCampaignsWithBeacons = {
 export type SelectEvents = {
 	[events._.name]: typeof events.$inferSelect;
 	// [customers._.name]: typeof customers.$inferSelect;
-	[campaigns._.name]: typeof campaigns.$inferSelect;
+	[beacons._.name]: typeof beacons.$inferSelect;
 };

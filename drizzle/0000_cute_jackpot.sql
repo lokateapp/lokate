@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS "events" (
 	"enterTimestamp" timestamp NOT NULL,
 	"possibleExitTimestamp" timestamp NOT NULL,
 	"customer_id" uuid NOT NULL,
-	"campaign_id" uuid NOT NULL
+	"beacon_id" uuid NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "user_key" (
@@ -123,7 +123,7 @@ EXCEPTION
 END $$;
 --> statement-breakpoint
 DO $$ BEGIN
- ALTER TABLE "events" ADD CONSTRAINT "events_campaign_id_campaigns_id_fk" FOREIGN KEY ("campaign_id") REFERENCES "campaigns"("id") ON DELETE no action ON UPDATE no action;
+ ALTER TABLE "events" ADD CONSTRAINT "events_beacon_id_beacons_id_fk" FOREIGN KEY ("beacon_id") REFERENCES "beacons"("id") ON DELETE no action ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
