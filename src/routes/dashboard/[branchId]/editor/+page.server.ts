@@ -1,18 +1,10 @@
-import type { RequestHandler } from '@sveltejs/kit';
 import { db } from '../../../../lib/server/db';
-import {
-	// beaconPositions,
-	beacons,
-	campaigns,
-	campaignsToBeacons,
-	type SelectBeacon,
-	type SelectCampaignsWithBeacons
-} from '../../../../schema';
+import { beacons, type SelectBeacon, type SelectCampaignsWithBeacons } from '../../../../schema';
 import { eq } from 'drizzle-orm';
 import type { PageServerLoad } from '../$types';
 
-export const load: PageServerLoad = async ({ url }) => {
-	const branchId = url.pathname.split('/')[2];
+export const load: PageServerLoad = async ({ params }) => {
+	const branchId = params.branchId;
 
 	const availableBeacons: SelectBeacon[] = await getBeacons(branchId);
 	let allCampaigns: SelectCampaignsWithBeacons[] = await getCampaigns(branchId);

@@ -9,7 +9,7 @@
 </script>
 
 <section class="bg-white min-h-screen flex flex-col">
-	{#if data.user && $page.route.id !== '/branches'}
+	{#if data.user && !$page.route.id?.startsWith('/branches')}
 		<Navbar />
 		<!-- sm:ml-64 -->
 		<div class="ml-20">

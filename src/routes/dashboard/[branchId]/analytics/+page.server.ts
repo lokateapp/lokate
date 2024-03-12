@@ -11,12 +11,12 @@ import {
 import { eq } from 'drizzle-orm';
 import type { PageServerLoad } from '../$types';
 
-// TODO: I get window reference error in the absence of below two lines
+// TODO: make below for the entire application
 export const ssr = false;
 export const csr = true;
 
-export const load: PageServerLoad = async ({ url }) => {
-	const branchId = url.pathname.split('/')[2];
+export const load: PageServerLoad = async ({ params }) => {
+	const branchId = params.branchId;
 	const events = await getEvents(branchId);
 
 	const concatenatedEvents = events.map((event) => {
