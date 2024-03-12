@@ -76,8 +76,8 @@ const handleEnterEvent = async (timestamp, customer, campaign) => {
     const newEvent = {
         id: crypto.randomUUID(),
         status: EventStatus.STAY,
-        enterTimestamp: new Date(timestamp * 1000),
-        possibleExitTimestamp: new Date((timestamp + 10) * 1000), // Add 10 seconds
+        enterTimestamp: new Date(timestamp),
+        possibleExitTimestamp: new Date((timestamp + 10000)), // Add 10 seconds
         customerId: customer.id,
         campaignId: campaign.campaignId,
     };
@@ -90,12 +90,12 @@ const handleStayEvent = async (timestamp, customer, campaign) => {
         .where(and(eq(events.customerId, customer.id), eq(events.campaignId, campaign.campaignId), eq(events.status, EventStatus.STAY)))
         .limit(1);
 
-    if (event.length === 0 || event[0].possibleExitTimestamp >= new Date(timestamp * 1000) ) {
+    if (event.length === 0 || event[0].possibleExitTimestamp >= new Date(timestamp) ) {
         return campaign.id; // Return the campaign ID for failed events
     }
 
     await db.update(events)
-        .set({possibleExitTimestamp: new Date(timestamp * 1000)})
+        .set({possibleExitTimestamp: new Date(timestamp)})
         .where(and(
             eq(events.id, event[0].id)
         ));
@@ -113,7 +113,7 @@ const handleExitEvent = async (customer, campaign) => {
     }
 
     await db.update(events)
-        .set({status: EventsStatus.EXIT})
+        .set({status: EventStatus.EXIT})
         .where(and(
             eq(events.id, event[0].id)
         )); // TODO fix the warning for new Date..
