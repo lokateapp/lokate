@@ -5,7 +5,7 @@
 	import type KonvaType from 'konva';
 
 	import type { PageData } from './$types';
-	import { notify } from '../../../components/notify';
+	import { notify } from '../../../../components/notify';
 	import {
 		Table,
 		TableBody,
@@ -29,13 +29,18 @@
 
 	type BeaconType = {
 		id: string;
-		name: string;
-		radius: number;
+		name: string | null;
+		branchId: string;
+		proximityUUID: string;
 		major: number;
 		minor: number;
+		radius: number;
 		position: {
+			id: string;
 			x: number;
 			y: number;
+			beaconId: string;
+			createdAt: Date | null;
 		} | null;
 	};
 
@@ -61,7 +66,6 @@
 	// 	// });
 	// 	// console.log('beaconsForNewCampaign:', beaconsForNewCampaign);
 	// }
-
 
 	const toggleDevices = (i: any) => {
 		isDraggable = false;
@@ -248,16 +252,14 @@
 	}
 
 	$: items.forEach((device) => {
-		
-			if (beaconsMap.includes(device)) {
-				beaconsMap = beaconsMap.map((beaconMap) => {
-					if (beaconMap.id == device.id) {
-						beaconMap = device;
-					}
-					return beaconMap;
-				});
-			}
-		
+		if (beaconsMap.includes(device)) {
+			beaconsMap = beaconsMap.map((beaconMap) => {
+				if (beaconMap.id == device.id) {
+					beaconMap = device;
+				}
+				return beaconMap;
+			});
+		}
 	});
 
 	$: {
@@ -679,7 +681,7 @@
 </script>
 
 <div class="grid grid-cols-3 p-5 gap-5">
-	<div class="col-span-2  flex flex-col gap-5">
+	<div class="col-span-2 flex flex-col gap-5">
 		<div>
 			<div class="flex flex-col p-5 gap-10 justify-center">
 				<div class="flex flex-row justify-between">

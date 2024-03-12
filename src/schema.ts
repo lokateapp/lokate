@@ -61,6 +61,9 @@ export const key = pgTable('user_key', {
 
 export const branches = pgTable('branches', {
 	id: uuid('id').primaryKey(),
+	userId: varchar('user_id', { length: 15 })
+		.notNull()
+		.references(() => user.id),
 	address: varchar('address', { length: 100 }).notNull(),
 	latitude: doublePrecision('latitude').notNull(),
 	longitude: doublePrecision('longitude').notNull()
@@ -68,13 +71,12 @@ export const branches = pgTable('branches', {
 
 export const beacons = pgTable('beacons', {
 	id: uuid('id').primaryKey(),
+	branchId: varchar('branch_id', { length: 15 })
+		.notNull()
+		.references(() => user.id),
 	proximityUUID: uuid('proximity_uuid').notNull(),
 	major: integer('major').notNull(),
 	minor: integer('minor').notNull(),
-	userId: varchar('user_id', { length: 15 })
-		.notNull()
-		.references(() => user.id),
-	branchId: uuid('branch_id').references(() => branches.id, { onDelete: 'cascade' }),
 	radius: doublePrecision('radius').notNull(),
 	name: varchar('name', { length: 40 })
 });
@@ -102,10 +104,10 @@ export const campaignStatusEnum = pgEnum('campaignStatus', ['active', 'inactive'
 
 export const campaigns = pgTable('campaigns', {
 	id: uuid('id').primaryKey(),
-	name: text('text').notNull(),
-	userId: varchar('user_id', { length: 15 })
+	branchId: uuid('branch_id')
 		.notNull()
-		.references(() => user.id),
+		.references(() => branches.id, { onDelete: 'cascade' }),
+	name: text('text').notNull(),
 	status: campaignStatusEnum('campaignStatus').default('inactive'),
 	createdAt: timestamp('created_at').default(sql`CURRENT_TIMESTAMP`)
 });
@@ -165,11 +167,12 @@ export const events = pgTable('events', {
 	customerId: uuid('customer_id')
 		.notNull()
 		.references(() => customers.id),
-	campaignId: uuid('campaign_id')
+	beaconId: uuid('beacon_id')
 		.notNull()
-		.references(() => campaigns.id)
+		.references(() => beacons.id)
 });
 
+export type SelectBranch = InferSelectModel<typeof branches>;
 export type SelectCampaign = InferSelectModel<typeof campaigns>;
 export type SelectBeacon = InferSelectModel<typeof beacons>;
 
@@ -188,7 +191,7 @@ export type SelectCampaignsWithBeacons = {
 	// userId: typeof campaigns.userId.dataType;
 	id: string;
 	name: string;
-	userId: string;
+	branchId: string;
 	createdAt: Date | null;
 	status: string | null; //typeof campaignStatusEnum.enumValues
 	campaignsToBeacons: {
@@ -210,5 +213,6 @@ export type SelectCampaignsWithBeacons = {
 export type SelectEvents = {
 	[events._.name]: typeof events.$inferSelect;
 	// [customers._.name]: typeof customers.$inferSelect;
+	[beacons._.name]: typeof beacons.$inferSelect;
 	[campaigns._.name]: typeof campaigns.$inferSelect;
 };

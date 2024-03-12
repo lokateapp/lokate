@@ -13,20 +13,9 @@ CREATE TABLE IF NOT EXISTS "beaconPositions" (
 	"y" integer NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "beacons" (
-	"id" uuid PRIMARY KEY NOT NULL,
-	"proximity_uuid" uuid NOT NULL,
-    "major" integer NOT NULL,
-    "minor" integer NOT NULL,
-	"user_id" varchar(15) NOT NULL,
-	"branch_id" uuid,
-	"radius" double precision NOT NULL,
-	"name" varchar(40),
-	CONSTRAINT "unique_proximity_id" UNIQUE("proximity_uuid","major","minor")
-);
---> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "branches" (
 	"id" uuid PRIMARY KEY NOT NULL,
+	"user_id" varchar(15) NOT NULL,
 	"address" varchar(100),
 	"latitude" double precision	NOT NULL,
     "longitude" double precision NOT NULL
@@ -34,10 +23,21 @@ CREATE TABLE IF NOT EXISTS "branches" (
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "campaigns" (
 	"id" uuid PRIMARY KEY NOT NULL,
+	"branch_id" uuid NOT NULL,
 	"text" text NOT NULL,
-	"user_id" varchar(15) NOT NULL,
 	"campaignStatus" "campaignStatus" DEFAULT 'inactive',
 	"created_at" timestamp DEFAULT CURRENT_TIMESTAMP
+);
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "beacons" (
+	"id" uuid PRIMARY KEY NOT NULL,
+	"branch_id" uuid NOT NULL,
+	"proximity_uuid" uuid NOT NULL,
+    "major" integer NOT NULL,
+    "minor" integer NOT NULL,
+	"radius" double precision NOT NULL,
+	"name" varchar(40),
+	CONSTRAINT "unique_proximity_id" UNIQUE("proximity_uuid","major","minor")
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "campaignsToBeacons" (
@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS "events" (
 	"enterTimestamp" timestamp NOT NULL,
 	"possibleExitTimestamp" timestamp NOT NULL,
 	"customer_id" uuid NOT NULL,
-	"campaign_id" uuid NOT NULL
+	"beacon_id" uuid NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "user_key" (
@@ -87,31 +87,31 @@ EXCEPTION
 END $$;
 --> statement-breakpoint
 DO $$ BEGIN
- ALTER TABLE "beacons" ADD CONSTRAINT "beacons_user_id_auth_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "auth_user"("id") ON DELETE no action ON UPDATE no action;
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
  ALTER TABLE "beacons" ADD CONSTRAINT "beacons_branch_id_branch_id_fk" FOREIGN KEY ("branch_id") REFERENCES "branches"("id") ON DELETE cascade ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
 --> statement-breakpoint
 DO $$ BEGIN
- ALTER TABLE "campaigns" ADD CONSTRAINT "campaigns_user_id_auth_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "auth_user"("id") ON DELETE no action ON UPDATE no action;
+ ALTER TABLE "campaigns" ADD CONSTRAINT "campaigns_branch_id_branch_id_fk" FOREIGN KEY ("branch_id") REFERENCES "branches"("id") ON DELETE cascade ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
 --> statement-breakpoint
 DO $$ BEGIN
- ALTER TABLE "campaignsToBeacons" ADD CONSTRAINT "campaignsToBeacons_campaign_id_campaigns_id_fk" FOREIGN KEY ("campaign_id") REFERENCES "campaigns"("id") ON DELETE cascade ON UPDATE no action;
+ ALTER TABLE "branches" ADD CONSTRAINT "branches_user_id_auth_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "auth_user"("id") ON DELETE no action ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
 --> statement-breakpoint
 DO $$ BEGIN
- ALTER TABLE "campaignsToBeacons" ADD CONSTRAINT "beacon_fk" FOREIGN KEY ("beacon_id") REFERENCES "beacons"("id") ON DELETE no action ON UPDATE no action;
+ ALTER TABLE "campaignsToBeacons" ADD CONSTRAINT "campaign_id_fk" FOREIGN KEY ("campaign_id") REFERENCES "campaigns"("id") ON DELETE cascade ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "campaignsToBeacons" ADD CONSTRAINT "beacon_id_fk" FOREIGN KEY ("beacon_id") REFERENCES "beacons"("id") ON DELETE no action ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
@@ -123,7 +123,7 @@ EXCEPTION
 END $$;
 --> statement-breakpoint
 DO $$ BEGIN
- ALTER TABLE "events" ADD CONSTRAINT "events_campaign_id_campaigns_id_fk" FOREIGN KEY ("campaign_id") REFERENCES "campaigns"("id") ON DELETE no action ON UPDATE no action;
+ ALTER TABLE "events" ADD CONSTRAINT "events_beacon_id_beacons_id_fk" FOREIGN KEY ("beacon_id") REFERENCES "beacons"("id") ON DELETE no action ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
@@ -139,3 +139,25 @@ DO $$ BEGIN
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
+--> statement-breakpoint
+CREATE OR REPLACE FUNCTION check_branch_id_match()
+RETURNS TRIGGER AS
+$$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM beacons b
+        INNER JOIN "campaignsToBeacons" cb ON b.id = cb.beacon_id
+        INNER JOIN campaigns c ON cb.campaign_id = c.id
+        WHERE b.branch_id <> c.branch_id
+    ) THEN
+        RAISE EXCEPTION 'Custom Trigger: Branch IDs of beacon and campaign do not match';
+    END IF;
+    RETURN NEW;
+END;
+$$
+LANGUAGE plpgsql;
+--> statement-breakpoint
+CREATE TRIGGER enforce_branch_id_match
+BEFORE INSERT OR UPDATE ON "campaignsToBeacons"
+FOR EACH ROW
+EXECUTE FUNCTION check_branch_id_match();

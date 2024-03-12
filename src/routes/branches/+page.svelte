@@ -8,25 +8,23 @@
 	<button
 		class="btn items-center"
 		on:click={() => {
-			window.location.href = window.location.href + '/create-campaign';
+			window.location.href = window.location.href + '/create-branch';
 		}}
 	>
 		<i class="fa-solid fa-plus fa-lg" />
 		<span class="text-xl font-bold tracking-tight text-gray-900 dark:text-white whitespace-nowrap"
-			>Create new campaign</span
+			>Create new branch</span
 		>
-		<!-- Create new campaign -->
-		<!-- </a> -->
 	</button>
 </div>
 
 <div class="campaigns-grid">
-	{#each data.campaigns as campaign}
+	{#each data.branches as branch}
 		<div
 			class="flex py-6 justify-center items-center mt-2 text-semibold text-xl border border-gray-200 rounded-lg shadow hover:bg-gray-100"
 		>
-			<a href={`/dashboard/campaign/${campaign.id}`}>
-				<span class="text-ellipsis">{campaign.name}</span>
+			<a href={`/dashboard/${branch.id}`}>
+				<span class="text-ellipsis">{branch.address}</span>
 			</a>
 		</div>
 	{/each}

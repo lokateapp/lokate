@@ -3,9 +3,9 @@
 
 	import { browser } from '$app/environment';
 	import { onMount } from 'svelte';
-	import EChart from '../../../components/Chart.svelte';
+	import EChart from '../../../../components/Chart.svelte';
 	import type { EChartsOption, LineSeriesOption } from 'echarts';
-	import { customers } from '../../../schema';
+	import { customers } from '../../../../schema';
 
 	export let data: PageData;
 
@@ -319,7 +319,7 @@
 										<td
 											class="p-4 text-sm font-semibold text-gray-900 whitespace-nowrap dark:text-white"
 										>
-											{event.campaignId}
+											{event.beaconId}
 										</td>
 										<td
 											class="p-4 text-sm font-normal text-gray-500 whitespace-nowrap dark:text-gray-400"
@@ -338,7 +338,7 @@
 										</td><td
 											class="inline-flex items-center p-4 space-x-2 text-sm font-normal text-gray-500 whitespace-nowrap dark:text-gray-400"
 										>
-											{event.timestamp}
+											{event.enterTimestamp}
 										</td>
 									</tr>
 								{/each}

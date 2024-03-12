@@ -12,7 +12,7 @@ export const POST: RequestHandler = async ({ request }) => {
 	try {
 		const { customerId, beaconUUID, major, minor, status, timestamp } = await request.json();
 
-		// Get the beacon ID based on beaconUID, major, and minor
+		// Get the beacon ID based on beaconUUID, major, and minor
 		const beacon = await db
 			.select({ id: beacons.id })
 			.from(beacons)
@@ -29,45 +29,33 @@ export const POST: RequestHandler = async ({ request }) => {
 		}
 
 		const beaconId = beacon[0].id;
-
-		// Get the campaign ID that is currently assigned to the given beaconUUID from campaignsToBeacons
-		const campaigns = await db
-			.select({ campaignId: campaignsToBeacons.campaignId })
-			.from(campaignsToBeacons)
-			.where(eq(campaignsToBeacons.beaconId, beaconId));
-
-		if (campaigns.length === 0) {
-			return new Response('Campaign not found for the provided beaconUUID', { status: 404 });
-		}
-
 		const customer = await getCustomer(customerId);
 
-		const failedEvents = [];
-		for (const campaign of campaigns) {
-			let failedEvent = null;
-			if (status === EventStatus.ENTER) {
-				failedEvent = await handleEnterEvent(timestamp, customer, campaign);
-			} else if (status === EventStatus.STAY) {
-				failedEvent = await handleStayEvent(timestamp, customer, campaign);
-			} else if (status === EventStatus.EXIT) {
-				failedEvent = await handleExitEvent(customer, campaign);
-			}
-
-			if (failedEvent !== null) {
-				failedEvents.push(failedEvent);
-			}
+		let success = true;
+		if (status === EventStatus.ENTER) {
+			success = await handleEnterEvent(timestamp, customer.id, beaconId);
+		} else if (status === EventStatus.STAY) {
+			success = await handleStayEvent(timestamp, customer.id, beaconId);
+		} else if (status === EventStatus.EXIT) {
+			success = await handleExitEvent(customer.id, beaconId);
 		}
 
-		for (const failedEvent of failedEvents) {
-			console.log('Failed event for campaign: ' + failedEvent + ', for customerId: ' + customerId);
-		}
-		if (failedEvents.length === campaigns.length) {
+		if (!success && status === EventStatus.STAY) {
+			console.log('Failed stay event for beacon: ' + beaconId + ', for customerId: ' + customerId);
+		} else if (!success && (status === EventStatus.ENTER || status === EventStatus.EXIT)) {
 			// all campaigns are not existed yet or not exist any
-			return new Response('Failed to add customer to any campaign', { status: 500 });
+			return new Response('Failed event', { status: 500 });
 		}
 
 		const response =
-			'customer with id:' + customer.id + ' is added to campaign of beacon with id:' + beaconUUID;
+			'customer with id:' +
+			customer.id +
+			' is added to campaign of beacon with proximity id: ' +
+			beaconUUID +
+			':' +
+			major +
+			':' +
+			minor;
 		return new Response(response, { status: 200 });
 	} catch (error) {
 		console.error('Error:', error);
@@ -94,62 +82,62 @@ const handleCreateNewUser = async (customerId) => {
 	await db.insert(customers).values(newCustomer);
 	return newCustomer;
 };
-const handleEnterEvent = async (timestamp, customer, campaign) => {
+const handleEnterEvent = async (timestamp, customerId, beaconId) => {
 	const newEvent = {
 		id: crypto.randomUUID(),
 		status: EventStatus.STAY,
 		enterTimestamp: new Date(timestamp),
 		possibleExitTimestamp: new Date(timestamp + 10000), // Add 10 seconds
-		customerId: customer.id,
-		campaignId: campaign.campaignId
+		customerId: customerId,
+		beaconId: beaconId
 	};
 	await db.insert(events).values(newEvent);
-	return null; // Return null for successful events
+	return true; // Return true for successful events
 };
-const handleStayEvent = async (timestamp, customer, campaign) => {
+const handleStayEvent = async (timestamp, customerId, beaconId) => {
 	const event = await db
 		.select()
 		.from(events)
 		.where(
 			and(
-				eq(events.customerId, customer.id),
-				eq(events.campaignId, campaign.campaignId),
+				eq(events.customerId, customerId),
+				eq(events.beaconId, beaconId),
 				eq(events.status, EventStatus.STAY)
 			)
 		)
 		.limit(1);
 
 	if (event.length === 0 || event[0].possibleExitTimestamp >= new Date(timestamp)) {
-		return campaign.campaignId; // Return the campaign ID for failed events
+		return false;
 	}
 
 	await db
 		.update(events)
 		.set({ possibleExitTimestamp: new Date(timestamp) })
 		.where(and(eq(events.id, event[0].id)));
-	return null; // Return null for successful events
+	return true; // Return true for successful events
 };
 
-const handleExitEvent = async (customer, campaign) => {
+const handleExitEvent = async (customerId, beaconId) => {
 	const event = await db
 		.select()
 		.from(events)
 		.where(
 			and(
-				eq(events.customerId, customer.id),
-				eq(events.campaignId, campaign.campaignId),
+				eq(events.customerId, customerId),
+				eq(events.beaconId, beaconId),
 				eq(events.status, EventStatus.STAY)
 			)
 		)
 		.limit(1);
 
 	if (event.length === 0) {
-		return campaign.id; // Return the campaign ID for failed events
+		return false;
 	}
 
 	await db
 		.update(events)
 		.set({ status: EventStatus.EXIT })
 		.where(and(eq(events.id, event[0].id))); // TODO fix the warning for new Date..
-	return null; // Return null for successful events
+	return true; // Return true for successful events
 };

@@ -6,17 +6,20 @@ export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.auth = auth.handleRequest(event);
 
 	const session = await event.locals.auth.validate();
-	if (event.url.pathname.startsWith('/dashboard')) {
+	if (event.url.pathname.startsWith('/branches')) {
 		console.log('session: ', session);
 
 		if (!session) {
 			throw redirect(302, '/');
 		}
-	} else if (event.url.pathname.startsWith('/buildZero') || event.url.pathname.startsWith('/helper')) {
-		
+	} else if (
+		event.url.pathname.startsWith('/buildZero') ||
+		event.url.pathname.startsWith('/helper') ||
+		event.url.pathname.startsWith('/dashboard')
+	) {
 	} else {
 		if (session) {
-			throw redirect(302, '/dashboard');
+			throw redirect(302, '/branches');
 		}
 	}
 
