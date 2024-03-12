@@ -2,14 +2,14 @@ import { db } from '$lib/server/db';
 import { campaigns } from '../../../../schema';
 
 export const actions = {
-	createCampaign: async ({ locals, request, url }) => {
+	createCampaign: async ({ locals, request, params }) => {
 		const session = await locals.auth.validate();
 		if (session) {
 			const data = await request.formData();
 			const campaignName = data.get('name') as string;
 
 			const campaign = {
-				branchId: url.pathname.split('/')[2], // TODO: terrible
+				branchId: params.branchId,
 				name: campaignName,
 				id: crypto.randomUUID()
 			};

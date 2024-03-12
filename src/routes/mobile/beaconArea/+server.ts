@@ -31,21 +31,21 @@ export const POST: RequestHandler = async ({ request }) => {
 		const beaconId = beacon[0].id;
 		const customer = await getCustomer(customerId);
 
-		let failed = null;
+		let success = true;
 		if (status === EventStatus.ENTER) {
-			failed = await handleEnterEvent(timestamp, customer.id, beaconId);
+			success = await handleEnterEvent(timestamp, customer.id, beaconId);
 		} else if (status === EventStatus.STAY) {
-			failed = await handleStayEvent(timestamp, customer.id, beaconId);
+			success = await handleStayEvent(timestamp, customer.id, beaconId);
 		} else if (status === EventStatus.EXIT) {
-			failed = await handleExitEvent(customer.id, beaconId);
+			success = await handleExitEvent(customer.id, beaconId);
 		}
 
-		if (failed === EventStatus.STAY) {
+		if (!success && status === EventStatus.STAY) {
 			console.log('Failed stay event for beacon: ' + beaconId + ', for customerId: ' + customerId);
-		} else if (failed === EventStatus.ENTER || failed === EventStatus.EXIT) {
+		} else if (!success && (status === EventStatus.ENTER || status === EventStatus.EXIT)) {
 			// all campaigns are not existed yet or not exist any
 			return new Response('Failed event', { status: 500 });
-		} // TODO: did not understand above
+		}
 
 		const response =
 			'customer with id:' +
@@ -92,7 +92,7 @@ const handleEnterEvent = async (timestamp, customerId, beaconId) => {
 		beaconId: beaconId
 	};
 	await db.insert(events).values(newEvent);
-	return null; // Return null for successful events
+	return true; // Return true for successful events
 };
 const handleStayEvent = async (timestamp, customerId, beaconId) => {
 	const event = await db
@@ -108,14 +108,14 @@ const handleStayEvent = async (timestamp, customerId, beaconId) => {
 		.limit(1);
 
 	if (event.length === 0 || event[0].possibleExitTimestamp >= new Date(timestamp)) {
-		return EventStatus.STAY;
+		return false;
 	}
 
 	await db
 		.update(events)
 		.set({ possibleExitTimestamp: new Date(timestamp) })
 		.where(and(eq(events.id, event[0].id)));
-	return null; // Return null for successful events
+	return true; // Return true for successful events
 };
 
 const handleExitEvent = async (customerId, beaconId) => {
@@ -132,12 +132,12 @@ const handleExitEvent = async (customerId, beaconId) => {
 		.limit(1);
 
 	if (event.length === 0) {
-		return EventStatus.EXIT;
+		return false;
 	}
 
 	await db
 		.update(events)
 		.set({ status: EventStatus.EXIT })
 		.where(and(eq(events.id, event[0].id))); // TODO fix the warning for new Date..
-	return null; // Return null for successful events
+	return true; // Return true for successful events
 };
