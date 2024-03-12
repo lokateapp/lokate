@@ -52,7 +52,7 @@
 	var lastRoute = {
 		name: 'settings',
 		icon: 'fa-solid fa-gear fa-xl',
-		link: '/dashboard/settings'
+		link: 'settings'
 	};
 </script>
 
@@ -261,7 +261,7 @@
 		</button>
 
 		<div class="flex-1">
-			<a class="btn btn-ghost text-xl" href="/dashboard">Lokate</a>
+			<a class="btn btn-ghost text-xl" href="/branches">Lokate</a>
 		</div>
 		<!-- <div class="navbar-end"> -->
 		<div class="flex-none gap-2">
@@ -291,8 +291,11 @@
 					<li><a>Settings</a></li> -->
 					<form method="POST">
 						<!-- action="/logout" -->
-						<button class="btn btn-link" formaction="/dashboard/logout" type="submit" role="button"
-							>Sign out</button
+						<button
+							class="btn btn-link"
+							formaction="/dashboard/${getBranchId()}/logout"
+							type="submit"
+							role="button">Sign out</button
 						>
 						<!-- <input type="submit" value="Sign out" /> -->
 					</form>
