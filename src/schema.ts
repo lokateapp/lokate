@@ -10,7 +10,7 @@ import {
 	integer,
 	timestamp,
 	pgEnum,
-	foreignKey
+	doublePrecision
 } from 'drizzle-orm/pg-core';
 
 export const user = pgTable(
@@ -59,25 +59,24 @@ export const key = pgTable('user_key', {
 	})
 });
 
-export const branch = pgTable('branch', {
-	id: uuid('id').primaryKey()
+export const branches = pgTable('branches', {
+	id: uuid('id').primaryKey(),
+	address: varchar('address', { length: 100 }).notNull(),
+	latitude: doublePrecision('latitude').notNull(),
+	longitude: doublePrecision('longitude').notNull()
 });
 
 export const beacons = pgTable('beacons', {
-	id: uuid('id'),
+	id: uuid('id').primaryKey(),
+	proximityUUID: uuid('proximity_uuid').notNull(),
+	major: integer('major').notNull(),
+	minor: integer('minor').notNull(),
 	userId: varchar('user_id', { length: 15 })
 		.notNull()
 		.references(() => user.id),
-	branchId: uuid('branch_id')
-		.references(() => branch.id,{ onDelete: 'cascade' }),
-	radius: integer('radius').notNull(),
-	name: varchar('name', { length: 40 }),
-	major: varchar('major', { length: 100 }),
-	minor: varchar('minor', { length: 100 })
-}, (table) => {
-	return {
-		pk: primaryKey({ columns: [table.id, table.major, table.minor] }),
-	};
+	branchId: uuid('branch_id').references(() => branches.id, { onDelete: 'cascade' }),
+	radius: doublePrecision('radius').notNull(),
+	name: varchar('name', { length: 40 })
 });
 
 export const campaignsToBeacons = pgTable(
@@ -87,27 +86,17 @@ export const campaignsToBeacons = pgTable(
 			.notNull()
 			.references(() => campaigns.id, { onDelete: 'cascade' }),
 		beaconId: uuid('beacon_id')
-			.notNull(),
-		beaconMajor: varchar('major', { length: 100 })
-			.notNull(),
-		beaconMinor: varchar('minor', { length: 100 })
-			.notNull(),
+			.notNull()
+			.references(() => beacons.id, { onDelete: 'cascade' })
 		// TODO  we should remove onDelete since it does not work with multiple priamry keys
 		// refer to https://www.answeroverflow.com/m/1182472423266856970 and https://github.com/drizzle-team/drizzle-orm/pull/1636
 	},
 	(table) => {
 		return {
-			pk: primaryKey({ columns: [table.campaignId, table.beaconId, table.beaconMajor, table.beaconMinor] }),
-			beaconReference: foreignKey({
-				columns: [table.beaconId, table.beaconMajor, table.beaconMinor],
-				foreignColumns: [beacons.id, beacons.major, beacons.minor],
-				name: "beacon_fk",
-				onDelete: 'cascade'
-			})
+			pk: primaryKey({ columns: [table.campaignId, table.beaconId] })
 		};
 	}
 );
-
 
 export const campaignStatusEnum = pgEnum('campaignStatus', ['active', 'inactive']);
 
@@ -117,33 +106,19 @@ export const campaigns = pgTable('campaigns', {
 	userId: varchar('user_id', { length: 15 })
 		.notNull()
 		.references(() => user.id),
-	status : campaignStatusEnum('campaignStatus').default('inactive'),
-	createdAt: timestamp('created_at').default(sql`CURRENT_TIMESTAMP`),
+	status: campaignStatusEnum('campaignStatus').default('inactive'),
+	createdAt: timestamp('created_at').default(sql`CURRENT_TIMESTAMP`)
 });
 
 export const beaconPositions = pgTable('beaconPositions', {
 	id: uuid('id').primaryKey(),
 	beaconId: uuid('beacon_id')
-		.notNull(),
-	beaconMajor: varchar('major', { length: 100 })
-		.notNull(),
-	beaconMinor: varchar('minor', { length: 100 })
-		.notNull(),
-	createdAt: timestamp('timestamp').default(sql`CURRENT_TIMESTAMP`),
+		.notNull()
+		.references(() => beacons.id, { onDelete: 'cascade' }),
+	createdAt: timestamp('created_at').default(sql`CURRENT_TIMESTAMP`),
 	x: integer('x').notNull(),
 	y: integer('y').notNull()
-
-},
-(table) => {
-	return {
-		beaconReference: foreignKey({
-			columns: [table.beaconId, table.beaconMajor, table.beaconMinor],
-			foreignColumns: [beacons.id, beacons.major, beacons.minor],
-			name: "beacon_fk",
-			onDelete: 'cascade'
-		})
-	};
-	});
+});
 
 // export const campaignsRelationsWithUser = relations(campaigns, ({ one }) => {
 // 	return {
@@ -155,9 +130,9 @@ export const beaconPositions = pgTable('beaconPositions', {
 // });
 
 export const beaconsRelationsWithcampaignsToBeacons = relations(beacons, ({ one, many }) => ({
-	position : one(beaconPositions, {
-		fields: [beacons.id, beacons.major, beacons.minor],
-		references: [beaconPositions.beaconId, beaconPositions.beaconMajor, beaconPositions.beaconMinor]
+	position: one(beaconPositions, {
+		fields: [beacons.id],
+		references: [beaconPositions.beaconId]
 	}),
 	campaignsToBeacons: many(campaignsToBeacons)
 }));
@@ -168,8 +143,8 @@ export const campaignsRelationsWithcampaignsToBeacons = relations(campaigns, ({ 
 
 export const campaignsToBeaconsRelations = relations(campaignsToBeacons, ({ one }) => ({
 	beacon: one(beacons, {
-		fields: [campaignsToBeacons.beaconId, campaignsToBeacons.beaconMajor, campaignsToBeacons.beaconMinor],
-		references: [beacons.id, beacons.major, beacons.minor]
+		fields: [campaignsToBeacons.beaconId],
+		references: [beacons.id]
 	}),
 	campaign: one(campaigns, {
 		fields: [campaignsToBeacons.campaignId],
@@ -211,11 +186,11 @@ export type SelectCampaignsWithBeacons = {
 	// id: typeof campaigns.id.dataType;
 	// name: typeof campaigns.name.dataType;
 	// userId: typeof campaigns.userId.dataType;
-	id : string;
-	name : string;
-	userId : string;
-	createdAt : Date | null;
-	status : string | null; //typeof campaignStatusEnum.enumValues
+	id: string;
+	name: string;
+	userId: string;
+	createdAt: Date | null;
+	status: string | null; //typeof campaignStatusEnum.enumValues
 	campaignsToBeacons: {
 		// beaconId:	string;
 		// campaignId: string;

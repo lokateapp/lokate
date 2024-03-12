@@ -35,7 +35,7 @@ async function getCampaigns(userId: string): Promise<SelectCampaignsWithBeacons[
 				columns: {},
 				with: {
 					// beacon: true
-					beacon : {
+					beacon: {
 						with: {
 							position: true
 						}

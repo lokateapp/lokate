@@ -14,7 +14,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 	const campaigns: SelectCampaign[] = await getCampaign(id, session.user.userId);
 	const campaign = campaigns[0];
 
-	console.log({  id: id, campaign: campaign });
+	console.log({ id: id, campaign: campaign });
 
 	return { campaign };
 };
