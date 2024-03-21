@@ -1,17 +1,15 @@
-import type { RequestHandler } from '@sveltejs/kit';
 import { db } from '../../../../lib/server/db';
 import {
 	events,
 	beacons,
 	campaigns,
-	branches,
 	type SelectEvents,
 	campaignsToBeacons
 } from '../../../../schema';
 import { eq } from 'drizzle-orm';
 import type { PageServerLoad } from '../$types';
 
-// TODO: make below for the entire application
+// TODO: consider below for the entire application
 export const ssr = false;
 export const csr = true;
 

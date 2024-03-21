@@ -1,35 +1,39 @@
 import { db } from '../../../../lib/server/db';
-import { beacons, type SelectBeacon, type SelectCampaignsWithBeacons } from '../../../../schema';
-import { eq } from 'drizzle-orm';
+import type { SelectBeacon, SelectCampaignWithBeacons } from '../../../../schema';
 import type { PageServerLoad } from '../$types';
 
 export const load: PageServerLoad = async ({ params }) => {
 	const branchId = params.branchId;
 
+	const floorplan = await getFloorPlan(branchId);
 	const availableBeacons: SelectBeacon[] = await getBeacons(branchId);
-	let allCampaigns: SelectCampaignsWithBeacons[] = await getCampaigns(branchId);
+	const allCampaigns: SelectCampaignWithBeacons[] = await getCampaigns(branchId);
 
 	console.log('allCampaigns: ', allCampaigns);
 	console.log('availableBeacons: ', availableBeacons);
 
-	return { allCampaigns: allCampaigns, availableBeacons };
+	return { floorplan, allCampaigns, availableBeacons };
 };
 
-async function getBeacons(branchId: string): Promise<SelectBeacon[]> {
-	return await db.select().from(beacons).where(eq(beacons.branchId, branchId));
+async function getBeacons(branchId: string) {
+	return await db.query.beacons.findMany({
+		where: (beacon, { eq }) => eq(beacon.branchId, branchId),
+		with: {
+			floorplan: true
+		}
+	});
 }
 
-async function getCampaigns(branchId: string): Promise<SelectCampaignsWithBeacons[]> {
+async function getCampaigns(branchId: string): Promise<SelectCampaignWithBeacons[]> {
 	return await db.query.campaigns.findMany({
 		where: (campaign, { eq }) => eq(campaign.branchId, branchId),
 		with: {
-			campaignsToBeacons: {
+			beacons: {
 				columns: {},
 				with: {
-					// beacon: true
 					beacon: {
 						with: {
-							position: true
+							floorplan: true
 						}
 					}
 				}
@@ -42,4 +46,10 @@ async function getCampaigns(branchId: string): Promise<SelectCampaignsWithBeacon
 	// 	.innerJoin(campaignsToBeacons, eq(campaigns.id, campaignsToBeacons.campaignId))
 	// 	.innerJoin(beacons, eq(campaignsToBeacons.beaconId, beacons.id))
 	// 	.where(eq(campaigns.userId, userId));
+}
+
+async function getFloorPlan(branchId: string) {
+	return await db.query.floorplans.findFirst({
+		where: (floorplan, { eq }) => eq(floorplan.branchId, branchId)
+	});
 }

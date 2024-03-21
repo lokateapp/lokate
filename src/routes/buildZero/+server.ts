@@ -1,6 +1,14 @@
 import type { RequestHandler } from './$types';
 import { db } from '../../lib/server/db';
-import { beacons, campaigns, campaignsToBeacons, customers, branches, events } from '../../schema';
+import {
+	beacons,
+	campaigns,
+	campaignsToBeacons,
+	customers,
+	branches,
+	events,
+	floorplans
+} from '../../schema';
 import { auth } from '$lib/server/lucia';
 import crypto from 'crypto';
 // import {b} from "vitest/dist/types-198fd1d9";
@@ -47,6 +55,24 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 		address: 'Bilkent',
 		latitude: 39.867891,
 		longitude: 32.748718
+	});
+
+	const floorplan1_id = crypto.randomUUID();
+	await db.insert(floorplans).values({
+		id: floorplan1_id,
+		branchId: branch1_id,
+		imgPath: '/src/lib/assets/store_plans/2.jpg',
+		width: 1000,
+		height: 1200
+	});
+
+	const floorplan2_id = crypto.randomUUID();
+	await db.insert(floorplans).values({
+		id: floorplan2_id,
+		branchId: branch2_id,
+		imgPath: '/src/lib/assets/store_plans/3.jpg',
+		width: 1500,
+		height: 1100
 	});
 
 	const beacon1 = {
@@ -207,7 +233,6 @@ async function generateEvents(eventsTable, customerId, beaconIDs) {
 		}
 	}
 
-	// Assuming you want to insert these events into the 'events' table
 	for (const event of events) {
 		await db.insert(eventsTable).values(event);
 	}
