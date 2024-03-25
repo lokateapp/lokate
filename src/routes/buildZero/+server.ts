@@ -10,8 +10,7 @@ import {
 	customers,
 	branches,
 	events,
-	floorplans,
-	heatmaps
+	floorplans
 } from '../../schema';
 
 // import {b} from "vitest/dist/types-198fd1d9";
@@ -37,50 +36,51 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 		userId = user.userId;
 	}
 
-	const customer1Id = crypto.randomUUID();
-	await db.insert(customers).values({
-		id: customer1Id,
+	const customer1 = {
+		id: crypto.randomUUID(),
 		customerId: 'customer1'
-	});
+	};
+	await db.insert(customers).values(customer1);
 
-	const branch1Id = crypto.randomUUID();
-	await db.insert(branches).values({
-		id: branch1Id,
+	const branch1 = {
+		id: crypto.randomUUID(),
 		userId: userId,
 		address: 'Gordion',
 		latitude: 39.900099,
 		longitude: 32.691764
-	});
-	const branch2Id = crypto.randomUUID();
-	await db.insert(branches).values({
-		id: branch2Id,
+	};
+	await db.insert(branches).values(branch1);
+
+	const branch2 = {
+		id: crypto.randomUUID(),
 		userId: userId,
 		address: 'Bilkent',
 		latitude: 39.867891,
 		longitude: 32.748718
-	});
+	};
+	await db.insert(branches).values(branch2);
 
-	const floorplan1Id = crypto.randomUUID();
-	await db.insert(floorplans).values({
-		id: floorplan1Id,
-		branchId: branch1Id,
+	const floorplan1 = {
+		id: crypto.randomUUID(),
+		branchId: branch1.id,
 		imgPath: '/src/lib/assets/store_plans/sp2.jpg',
 		width: 1000,
 		height: 1200
-	});
+	};
+	await db.insert(floorplans).values(floorplan1);
 
-	const floorplan2Id = crypto.randomUUID();
-	await db.insert(floorplans).values({
-		id: floorplan2Id,
-		branchId: branch2Id,
+	const floorplan2 = {
+		id: crypto.randomUUID(),
+		branchId: branch2.id,
 		imgPath: '/src/lib/assets/store_plans/sp3.jpg',
 		width: 1500,
 		height: 1100
-	});
+	};
+	await db.insert(floorplans).values(floorplan2);
 
 	const beacon1 = {
 		id: crypto.randomUUID(),
-		branchId: branch2Id,
+		branchId: branch2.id,
 		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
 		major: 2,
 		minor: 1,
@@ -91,7 +91,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 
 	const beacon2 = {
 		id: crypto.randomUUID(),
-		branchId: branch1Id,
+		branchId: branch1.id,
 		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
 		major: 1,
 		minor: 1,
@@ -102,7 +102,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 
 	const beacon3 = {
 		id: crypto.randomUUID(),
-		branchId: branch1Id,
+		branchId: branch1.id,
 		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
 		major: 1,
 		minor: 2,
@@ -113,7 +113,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 
 	const beacon4 = {
 		id: crypto.randomUUID(),
-		branchId: branch2Id,
+		branchId: branch2.id,
 		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
 		major: 2,
 		minor: 2,
@@ -122,17 +122,27 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	};
 	await db.insert(beacons).values(beacon4);
 
+	/* We need to be careful while associating beacons with floorplans: 
+	their branch should match (TODO: there is a trigger controlling such integrity) */
+	const beaconsToFloorplansMap = {
+		[beacon1.id]: floorplan2,
+		[beacon2.id]: floorplan1,
+		[beacon3.id]: floorplan1,
+		[beacon4.id]: floorplan2
+	};
+
 	const campaign1Id = crypto.randomUUID();
 	await db.insert(campaigns).values({
 		id: campaign1Id,
-		branchId: branch1Id,
+		branchId: branch1.id,
 		name: 'Campaign 1',
 		status: 'active'
 	});
+
 	const campaign2Id = crypto.randomUUID();
 	await db.insert(campaigns).values({
 		id: campaign2Id,
-		branchId: branch1Id,
+		branchId: branch1.id,
 		name: 'Campaign 2',
 		status: 'active'
 	});
@@ -140,7 +150,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	const campaign3Id = crypto.randomUUID();
 	await db.insert(campaigns).values({
 		id: campaign3Id,
-		branchId: branch2Id,
+		branchId: branch2.id,
 		name: 'Campaign 3',
 		status: 'active'
 	});
@@ -152,8 +162,6 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 		[campaign2Id]: [beacon3.id],
 		[campaign3Id]: [beacon1.id, beacon4.id]
 	};
-
-	console.log(campaignsToBeaconsMap);
 
 	await Promise.all(
 		Object.entries(campaignsToBeaconsMap)
@@ -168,21 +176,16 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 			.map((data) => db.insert(campaignsToBeacons).values(data))
 	);
 
-	const randomEvents = generateEvents(customer1Id, campaignsToBeaconsMap);
+	const randomEvents = await generateEvents(
+		customer1.id,
+		branch1.id,
+		campaignsToBeaconsMap,
+		beaconsToFloorplansMap
+	);
 
 	for (const event of randomEvents) {
 		await db.insert(events).values(event);
 	}
-
-	const { width, height } = await getImageDimensions('src/lib/assets/store_plans/sp2.jpg');
-	const heatmapMatrix = generateHeatmapMatrix(width, height);
-
-	await db.insert(heatmaps).values({
-		id: crypto.randomUUID(),
-		floorplanId: floorplan1Id,
-		date: new Date().toISOString().slice(0, 10),
-		matrix: heatmapMatrix
-	});
 
 	// Build the response object with information about the created entities
 	const responseObj = {
@@ -212,7 +215,12 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	});
 };
 
-function generateEvents(customerId: string, campaignsToBeaconsMap: any) {
+async function generateEvents(
+	customerId: string,
+	branchId: string,
+	campaignsToBeaconsMap: any,
+	beaconsToFloorplansMap: any
+) {
 	const events = [];
 	const campaignIds = Object.keys(campaignsToBeaconsMap);
 
@@ -223,34 +231,51 @@ function generateEvents(customerId: string, campaignsToBeaconsMap: any) {
 		return new Date(randomTime);
 	}
 
-	for (let i = 0; i < 100; i++) {
-		const randomCampaignId = campaignIds[Math.floor(Math.random() * campaignIds.length)];
-		const beaconIds = campaignsToBeaconsMap[randomCampaignId];
-		const randomBeaconId = beaconIds[Math.floor(Math.random() * beaconIds.length)];
-		const enterTimestamp = getRandomTimestamp(new Date('2024-03-11T08:00:00Z'), new Date()); // Random timestamp within the specified range
-		const possibleExitTimestamp = new Date(
-			enterTimestamp.getTime() + Math.floor(Math.random() * 50000) + 10000
-		);
+	// for the past week
+	for (let i = 0; i < 7; i++) {
+		// beacons will be placed to different locations on each day
+		const beaconPositions: { [key: string]: { x: number; y: number } } = {};
 
-		// 20% percent of events may remain at STAY status due to possible failure
-		if (i % 5 == 0) {
+		const getImagePromises = [];
+		for (const [beaconId, floorplan] of Object.entries(beaconsToFloorplansMap)) {
+			const promise = getImageDimensions(floorplan.imgPath.slice(1)) // Remove the first '/' from the path
+				.then(({ floorplanImgWidth, floorplanImgHeight }) => {
+					const xPos = Math.floor(Math.random() * floorplanImgWidth);
+					const yPos = Math.floor(Math.random() * floorplanImgHeight);
+					beaconPositions[beaconId] = { x: xPos, y: yPos };
+				});
+			getImagePromises.push(promise);
+		}
+		await Promise.all(getImagePromises);
+
+		// generate 100 events for each day
+		const startDate = new Date();
+		startDate.setDate(startDate.getDate() - i);
+		startDate.setHours(8, 0, 0, 0); // Set start time to 8:00 AM
+		const endDate = new Date();
+		endDate.setDate(endDate.getDate() - i + 1);
+		endDate.setHours(22, 0, 0, 0); // Set end time to 10:00 PM
+		for (let j = 0; j < 100; j++) {
+			const randomCampaignId = campaignIds[Math.floor(Math.random() * campaignIds.length)];
+			const beaconIds = campaignsToBeaconsMap[randomCampaignId];
+			const randomBeaconId = beaconIds[Math.floor(Math.random() * beaconIds.length)];
+			const { x, y } = beaconPositions[randomBeaconId];
+			const enterTimestamp = getRandomTimestamp(startDate, endDate); // Random timestamp within the specified range
+			const possibleExitTimestamp = new Date(
+				enterTimestamp.getTime() + Math.floor(Math.random() * 50000) + 10000
+			);
+
+			// 20% of events may remain at STAY status due to possible failure
+			const eventStatus = i % 5 === 0 ? 'STAY' : 'EXIT';
 			events.push({
 				id: crypto.randomUUID(),
-				status: 'STAY',
+				status: eventStatus,
 				enterTimestamp,
 				possibleExitTimestamp,
+				locationX: x,
+				locationY: y,
 				customerId: customerId,
-				beaconId: randomBeaconId,
-				campaignId: randomCampaignId
-			});
-		} else {
-			events.push({
-				id: crypto.randomUUID(),
-				status: 'EXIT',
-				enterTimestamp,
-				possibleExitTimestamp,
-				customerId: customerId,
-				beaconId: randomBeaconId,
+				branchId: branchId,
 				campaignId: randomCampaignId
 			});
 		}
@@ -262,19 +287,19 @@ function generateEvents(customerId: string, campaignsToBeaconsMap: any) {
 async function getImageDimensions(imgPath: string) {
 	const metadata = await sharp(imgPath).metadata();
 	return {
-		width: metadata.width!,
-		height: metadata.height!
+		floorplanImgWidth: metadata.width!,
+		floorplanImgHeight: metadata.height!
 	};
 }
 
-function generateHeatmapMatrix(width: number, height: number) {
-	const matrix = [];
-	for (let i = 0; i < height; i++) {
-		const row = [];
-		for (let j = 0; j < width; j++) {
-			row.push(Math.floor(Math.random() * 100)); // Adjust range as needed
-		}
-		matrix.push(row);
-	}
-	return matrix;
-}
+// function generateHeatmapMatrix(width: number, height: number) {
+// 	const matrix = [];
+// 	for (let i = 0; i < height; i++) {
+// 		const row = [];
+// 		for (let j = 0; j < width; j++) {
+// 			row.push(Math.floor(Math.random() * 100)); // Adjust range as needed
+// 		}
+// 		matrix.push(row);
+// 	}
+// 	return matrix;
+// }

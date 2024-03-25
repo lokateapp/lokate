@@ -11,7 +11,7 @@ import {
 	timestamp,
 	pgEnum,
 	doublePrecision,
-	date,
+	date
 } from 'drizzle-orm/pg-core';
 
 export const user = pgTable(
@@ -211,24 +211,17 @@ export const events = pgTable('events', {
 	status: text('status').notNull(),
 	enterTimestamp: timestamp('enter_timestamp').notNull(),
 	possibleExitTimestamp: timestamp('possible_exit_timestamp').notNull(),
+	locationX: integer('location_x').notNull(),
+	locationY: integer('location_y').notNull(),
 	customerId: uuid('customer_id')
 		.notNull()
 		.references(() => customers.id),
-	beaconId: uuid('beacon_id')
+	branchId: uuid('branch_id')
 		.notNull()
-		.references(() => beacons.id),
+		.references(() => branches.id),
 	campaignId: uuid('campaign_id')
 		.notNull()
 		.references(() => campaigns.id)
-});
-
-export const heatmaps = pgTable('heatmaps', {
-	id: uuid('id').primaryKey(),
-	floorplanId: text('floorplan_id')
-		.notNull()
-		.references(() => floorplans.id),
-	date: date('date').notNull(),
-	matrix: integer('matrix').array().array().notNull()
 });
 
 export type SelectBranch = InferSelectModel<typeof branches>;

@@ -65,17 +65,12 @@ CREATE TABLE IF NOT EXISTS "events" (
 	"status" text NOT NULL,
 	"enter_timestamp" timestamp NOT NULL,
 	"possible_exit_timestamp" timestamp NOT NULL,
+	"location_x" integer NOT NULL,
+	"location_y" integer NOT NULL,
 	"customer_id" uuid NOT NULL,
-	"beacon_id" uuid NOT NULL,
+	"branch_id" uuid NOT NULL,
 	"campaign_id" uuid NOT NULL
 );
---> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "heatmaps" (
-	"id" uuid PRIMARY KEY NOT NULL,
-	"floorplan_id" uuid NOT NULL,
-	"date" date NOT NULL,
-	"matrix" integer[][] NOT NULL
-)
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "user_key" (
 	"id" varchar(255) PRIMARY KEY NOT NULL,
@@ -152,19 +147,13 @@ EXCEPTION
 END $$;
 --> statement-breakpoint
 DO $$ BEGIN
- ALTER TABLE "events" ADD CONSTRAINT "events_beacon_id_beacons_id_fk" FOREIGN KEY ("beacon_id") REFERENCES "beacons"("id") ON DELETE no action ON UPDATE no action;
+ ALTER TABLE "events" ADD CONSTRAINT "events_branch_id_beacons_id_fk" FOREIGN KEY ("branch_id") REFERENCES "branches"("id") ON DELETE no action ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
 --> statement-breakpoint
 DO $$ BEGIN
  ALTER TABLE "events" ADD CONSTRAINT "events_campaign_id_campaigns_id" FOREIGN KEY ("campaign_id") REFERENCES "campaigns"("id") ON DELETE no action ON UPDATE no action;
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
- ALTER TABLE "heatmaps" ADD CONSTRAINT "heatmaps_floorplan_id_floorplans_id_fk" FOREIGN KEY ("floorplan_id") REFERENCES "floorplans"("id") ON DELETE no action ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
