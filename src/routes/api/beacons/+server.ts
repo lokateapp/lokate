@@ -1,9 +1,9 @@
-import { error, json } from '@sveltejs/kit';
+import { json } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
-import { and, eq } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 
 import type { RequestHandler } from './$types';
-import { beacons, beaconsToFloorplans, floorplans } from '../../../schema';
+import { beacons, beaconsToFloorplans } from '../../../schema';
 
 export const POST: RequestHandler = async ({ request }) => {
 	const { items } = await request.json();
