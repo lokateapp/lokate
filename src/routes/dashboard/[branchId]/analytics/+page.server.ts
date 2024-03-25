@@ -3,7 +3,7 @@ import {
 	events,
 	beacons,
 	campaigns,
-	type SelectEvents,
+	type SelectEvent,
 	campaignsToBeacons
 } from '../../../../schema';
 import { eq } from 'drizzle-orm';
@@ -40,7 +40,7 @@ export const load: PageServerLoad = async ({ params }) => {
 	return { events: concatenatedEvents };
 };
 
-async function getEvents(branchId: string): Promise<SelectEvents[]> {
+async function getEvents(branchId: string): Promise<SelectEvent[]> {
 	return await db
 		.select()
 		.from(events)

@@ -1,5 +1,8 @@
 import type { RequestHandler } from './$types';
-import { db } from '../../lib/server/db';
+import { db } from '$lib/server/db';
+import { auth } from '$lib/server/lucia';
+import crypto from 'crypto';
+import sharp from 'sharp';
 import {
 	beacons,
 	campaigns,
@@ -7,10 +10,10 @@ import {
 	customers,
 	branches,
 	events,
-	floorplans
+	floorplans,
+	heatmaps
 } from '../../schema';
-import { auth } from '$lib/server/lucia';
-import crypto from 'crypto';
+
 // import {b} from "vitest/dist/types-198fd1d9";
 
 export const GET: RequestHandler = async ({ locals, url }) => {
@@ -34,50 +37,50 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 		userId = user.userId;
 	}
 
-	const customer1_id = crypto.randomUUID();
+	const customer1Id = crypto.randomUUID();
 	await db.insert(customers).values({
-		id: customer1_id,
+		id: customer1Id,
 		customerId: 'customer1'
 	});
 
-	const branch1_id = crypto.randomUUID();
+	const branch1Id = crypto.randomUUID();
 	await db.insert(branches).values({
-		id: branch1_id,
+		id: branch1Id,
 		userId: userId,
 		address: 'Gordion',
 		latitude: 39.900099,
 		longitude: 32.691764
 	});
-	const branch2_id = crypto.randomUUID();
+	const branch2Id = crypto.randomUUID();
 	await db.insert(branches).values({
-		id: branch2_id,
+		id: branch2Id,
 		userId: userId,
 		address: 'Bilkent',
 		latitude: 39.867891,
 		longitude: 32.748718
 	});
 
-	const floorplan1_id = crypto.randomUUID();
+	const floorplan1Id = crypto.randomUUID();
 	await db.insert(floorplans).values({
-		id: floorplan1_id,
-		branchId: branch1_id,
-		imgPath: '/src/lib/assets/store_plans/2.jpg',
+		id: floorplan1Id,
+		branchId: branch1Id,
+		imgPath: '/src/lib/assets/store_plans/sp2.jpg',
 		width: 1000,
 		height: 1200
 	});
 
-	const floorplan2_id = crypto.randomUUID();
+	const floorplan2Id = crypto.randomUUID();
 	await db.insert(floorplans).values({
-		id: floorplan2_id,
-		branchId: branch2_id,
-		imgPath: '/src/lib/assets/store_plans/3.jpg',
+		id: floorplan2Id,
+		branchId: branch2Id,
+		imgPath: '/src/lib/assets/store_plans/sp3.jpg',
 		width: 1500,
 		height: 1100
 	});
 
 	const beacon1 = {
 		id: crypto.randomUUID(),
-		branchId: branch2_id,
+		branchId: branch2Id,
 		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
 		major: 2,
 		minor: 1,
@@ -88,7 +91,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 
 	const beacon2 = {
 		id: crypto.randomUUID(),
-		branchId: branch1_id,
+		branchId: branch1Id,
 		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
 		major: 1,
 		minor: 1,
@@ -99,7 +102,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 
 	const beacon3 = {
 		id: crypto.randomUUID(),
-		branchId: branch1_id,
+		branchId: branch1Id,
 		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
 		major: 1,
 		minor: 2,
@@ -110,7 +113,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 
 	const beacon4 = {
 		id: crypto.randomUUID(),
-		branchId: branch2_id,
+		branchId: branch2Id,
 		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
 		major: 2,
 		minor: 2,
@@ -119,52 +122,67 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	};
 	await db.insert(beacons).values(beacon4);
 
-	const campaign1_id = crypto.randomUUID();
+	const campaign1Id = crypto.randomUUID();
 	await db.insert(campaigns).values({
-		id: campaign1_id,
-		branchId: branch1_id,
+		id: campaign1Id,
+		branchId: branch1Id,
 		name: 'Campaign 1',
 		status: 'active'
 	});
-	const campaign2_id = crypto.randomUUID();
+	const campaign2Id = crypto.randomUUID();
 	await db.insert(campaigns).values({
-		id: campaign2_id,
-		branchId: branch1_id,
+		id: campaign2Id,
+		branchId: branch1Id,
 		name: 'Campaign 2',
 		status: 'active'
 	});
 
-	const campaign3_id = crypto.randomUUID();
+	const campaign3Id = crypto.randomUUID();
 	await db.insert(campaigns).values({
-		id: campaign3_id,
-		branchId: branch2_id,
+		id: campaign3Id,
+		branchId: branch2Id,
 		name: 'Campaign 3',
 		status: 'active'
 	});
 
-	/* We need to be careful while associating campaigns with branches: 
+	/* We need to be careful while associating campaigns with beacons: 
 	their branch should match (there is a trigger controlling such integrity) */
-	await db.insert(campaignsToBeacons).values({
-		campaignId: campaign3_id,
-		beaconId: beacon1.id
-	});
+	const campaignsToBeaconsMap = {
+		[campaign1Id]: [beacon2.id],
+		[campaign2Id]: [beacon3.id],
+		[campaign3Id]: [beacon1.id, beacon4.id]
+	};
 
-	await db.insert(campaignsToBeacons).values({
-		campaignId: campaign1_id,
-		beaconId: beacon2.id
-	});
+	console.log(campaignsToBeaconsMap);
 
-	await db.insert(campaignsToBeacons).values({
-		campaignId: campaign2_id,
-		beaconId: beacon3.id
-	});
+	await Promise.all(
+		Object.entries(campaignsToBeaconsMap)
+			.flatMap(([campaignId, beaconIds]) => {
+				return beaconIds.map((beaconId) => {
+					return {
+						campaignId,
+						beaconId
+					};
+				});
+			})
+			.map((data) => db.insert(campaignsToBeacons).values(data))
+	);
 
-	await db.insert(campaignsToBeacons).values({
-		campaignId: campaign3_id,
-		beaconId: beacon4.id
-	});
+	const randomEvents = generateEvents(customer1Id, campaignsToBeaconsMap);
 
-	await generateEvents(events, customer1_id, [beacon1.id, beacon2.id, beacon3.id, beacon4.id]);
+	for (const event of randomEvents) {
+		await db.insert(events).values(event);
+	}
+
+	const { width, height } = await getImageDimensions('src/lib/assets/store_plans/sp2.jpg');
+	const heatmapMatrix = generateHeatmapMatrix(width, height);
+
+	await db.insert(heatmaps).values({
+		id: crypto.randomUUID(),
+		floorplanId: floorplan1Id,
+		date: new Date().toISOString().slice(0, 10),
+		matrix: heatmapMatrix
+	});
 
 	// Build the response object with information about the created entities
 	const responseObj = {
@@ -175,14 +193,14 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 			{ id: beacon4.id, name: beacon4.name }
 		],
 		createdCampaigns: [
-			{ id: campaign1_id, name: 'test campaign1' },
-			{ id: campaign2_id, name: 'test campaign2' },
-			{ id: campaign3_id, name: 'test campaign3' }
+			{ id: campaign1Id, name: 'test campaign1' },
+			{ id: campaign2Id, name: 'test campaign2' },
+			{ id: campaign3Id, name: 'test campaign3' }
 		],
 		createdCampaignsToBeacons: [
-			{ campaignId: campaign1_id, beaconId: beacon1.id },
-			{ campaignId: campaign2_id, beaconId: beacon2.id },
-			{ campaignId: campaign3_id, beaconId: beacon3.id }
+			{ campaignId: campaign1Id, beaconId: beacon1.id },
+			{ campaignId: campaign2Id, beaconId: beacon2.id },
+			{ campaignId: campaign3Id, beaconId: beacon3.id }
 		]
 	};
 
@@ -194,8 +212,9 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	});
 };
 
-async function generateEvents(eventsTable, customerId, beaconIDs) {
+function generateEvents(customerId: string, campaignsToBeaconsMap: any) {
 	const events = [];
+	const campaignIds = Object.keys(campaignsToBeaconsMap);
 
 	function getRandomTimestamp(start: Date, end: Date): Date {
 		const startTime = start.getTime();
@@ -205,7 +224,9 @@ async function generateEvents(eventsTable, customerId, beaconIDs) {
 	}
 
 	for (let i = 0; i < 100; i++) {
-		const beaconId = beaconIDs[Math.floor(Math.random() * beaconIDs.length)]; // Randomly select a beacon ID
+		const randomCampaignId = campaignIds[Math.floor(Math.random() * campaignIds.length)];
+		const beaconIds = campaignsToBeaconsMap[randomCampaignId];
+		const randomBeaconId = beaconIds[Math.floor(Math.random() * beaconIds.length)];
 		const enterTimestamp = getRandomTimestamp(new Date('2024-03-11T08:00:00Z'), new Date()); // Random timestamp within the specified range
 		const possibleExitTimestamp = new Date(
 			enterTimestamp.getTime() + Math.floor(Math.random() * 50000) + 10000
@@ -219,7 +240,8 @@ async function generateEvents(eventsTable, customerId, beaconIDs) {
 				enterTimestamp,
 				possibleExitTimestamp,
 				customerId: customerId,
-				beaconId
+				beaconId: randomBeaconId,
+				campaignId: randomCampaignId
 			});
 		} else {
 			events.push({
@@ -228,12 +250,31 @@ async function generateEvents(eventsTable, customerId, beaconIDs) {
 				enterTimestamp,
 				possibleExitTimestamp,
 				customerId: customerId,
-				beaconId
+				beaconId: randomBeaconId,
+				campaignId: randomCampaignId
 			});
 		}
 	}
 
-	for (const event of events) {
-		await db.insert(eventsTable).values(event);
+	return events;
+}
+
+async function getImageDimensions(imgPath: string) {
+	const metadata = await sharp(imgPath).metadata();
+	return {
+		width: metadata.width!,
+		height: metadata.height!
+	};
+}
+
+function generateHeatmapMatrix(width: number, height: number) {
+	const matrix = [];
+	for (let i = 0; i < height; i++) {
+		const row = [];
+		for (let j = 0; j < width; j++) {
+			row.push(Math.floor(Math.random() * 100)); // Adjust range as needed
+		}
+		matrix.push(row);
 	}
+	return matrix;
 }

@@ -10,7 +10,8 @@ import {
 	integer,
 	timestamp,
 	pgEnum,
-	doublePrecision
+	doublePrecision,
+	date,
 } from 'drizzle-orm/pg-core';
 
 export const user = pgTable(
@@ -126,7 +127,7 @@ export const campaigns = pgTable('campaigns', {
 		.notNull()
 		.references(() => branches.id, { onDelete: 'cascade' }),
 	name: text('text').notNull(),
-	status: campaignStatusEnum('campaignStatus').default('inactive'),
+	status: campaignStatusEnum('campaign_status').default('inactive'),
 	createdAt: timestamp('created_at').default(sql`CURRENT_TIMESTAMP`)
 });
 
@@ -208,14 +209,26 @@ export const customers = pgTable('customers', {
 export const events = pgTable('events', {
 	id: uuid('id').primaryKey(),
 	status: text('status').notNull(),
-	enterTimestamp: timestamp('enterTimestamp').notNull(),
-	possibleExitTimestamp: timestamp('possibleExitTimestamp').notNull(),
+	enterTimestamp: timestamp('enter_timestamp').notNull(),
+	possibleExitTimestamp: timestamp('possible_exit_timestamp').notNull(),
 	customerId: uuid('customer_id')
 		.notNull()
 		.references(() => customers.id),
 	beaconId: uuid('beacon_id')
 		.notNull()
-		.references(() => beacons.id)
+		.references(() => beacons.id),
+	campaignId: uuid('campaign_id')
+		.notNull()
+		.references(() => campaigns.id)
+});
+
+export const heatmaps = pgTable('heatmaps', {
+	id: uuid('id').primaryKey(),
+	floorplanId: text('floorplan_id')
+		.notNull()
+		.references(() => floorplans.id),
+	date: date('date').notNull(),
+	matrix: integer('matrix').array().array().notNull()
 });
 
 export type SelectBranch = InferSelectModel<typeof branches>;
@@ -234,30 +247,16 @@ export type SelectFloorplanWithBeacons = {
 	}[];
 };
 
-// export type SelectBeaconWithPosition = {
-// 	[beacons._.name]: typeof beacons.$inferSelect;
-// 	position: {
-// 		[beaconPositions._.name]: typeof beaconPositions.$inferSelect;
-// 	};
-// };
-
-// export type SelectEvent = InferSelectModel<typeof events>;
-
 export type SelectCampaignWithBeacons = {
-	// id: typeof campaigns.id.dataType;
-	// name: typeof campaigns.name.dataType;
-	// userId: typeof campaigns.userId.dataType;
 	id: string;
 	name: string;
 	branchId: string;
 	createdAt: Date | null;
-	status: string | null; //typeof campaignStatusEnum.enumValues
+	status: string | null;
 	beacons: {
-		// beaconId:	string;
-		// campaignId: string;
 		beacon: {
 			id: string;
-			name: string;
+			name: string | null;
 			radius: number;
 			floorplan: {
 				x: number;
@@ -267,16 +266,7 @@ export type SelectCampaignWithBeacons = {
 	}[];
 };
 
-// export type SelectCampaignWithBeacons = {
-// 	[campaigns._.name]: typeof campaigns.$inferSelect;
-// 	campaignsToBeacons: {
-// 		beaconId: typeof campaignsToBeacons.beaconId;
-// 		campaignId: typeof campaignsToBeacons.campaignId;
-// 		beacon: typeof beacons.$inferSelect;
-// 	}[];
-// };
-
-export type SelectEvents = {
+export type SelectEvent = {
 	[events._.name]: typeof events.$inferSelect;
 	// [customers._.name]: typeof customers.$inferSelect;
 	[beacons._.name]: typeof beacons.$inferSelect;
