@@ -253,7 +253,7 @@ async function generateEvents(
 		startDate.setDate(startDate.getDate() - i);
 		startDate.setHours(8, 0, 0, 0); // Set start time to 8:00 AM
 		const endDate = new Date();
-		endDate.setDate(endDate.getDate() - i + 1);
+		endDate.setDate(endDate.getDate() - i);
 		endDate.setHours(22, 0, 0, 0); // Set end time to 10:00 PM
 		for (let j = 0; j < 100; j++) {
 			const randomCampaignId = campaignIds[Math.floor(Math.random() * campaignIds.length)];
@@ -266,7 +266,7 @@ async function generateEvents(
 			);
 
 			// 20% of events may remain at STAY status due to possible failure
-			const eventStatus = i % 5 === 0 ? 'STAY' : 'EXIT';
+			const eventStatus = j % 5 === 0 ? 'STAY' : 'EXIT';
 			events.push({
 				id: crypto.randomUUID(),
 				status: eventStatus,
@@ -274,8 +274,8 @@ async function generateEvents(
 				possibleExitTimestamp,
 				locationX: x,
 				locationY: y,
-				customerId: customerId,
-				branchId: branchId,
+				customerId,
+				branchId,
 				campaignId: randomCampaignId
 			});
 		}

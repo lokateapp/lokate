@@ -1,3 +1,5 @@
+ALTER DATABASE lokate_dev SET TIMEZONE TO 'Europe/Istanbul';
+--> statement-breakpoint
 DO $$ BEGIN
  CREATE TYPE "campaignStatus" AS 
  	ENUM('active', 'inactive');
@@ -63,8 +65,8 @@ CREATE TABLE IF NOT EXISTS "customers" (
 CREATE TABLE IF NOT EXISTS "events" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"status" text NOT NULL,
-	"enter_timestamp" timestamp NOT NULL,
-	"possible_exit_timestamp" timestamp NOT NULL,
+	"enter_timestamp" timestamp with time zone NOT NULL,
+	"possible_exit_timestamp" timestamp with time zone NOT NULL,
 	"location_x" integer NOT NULL,
 	"location_y" integer NOT NULL,
 	"customer_id" uuid NOT NULL,

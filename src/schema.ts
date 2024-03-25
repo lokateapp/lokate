@@ -10,8 +10,7 @@ import {
 	integer,
 	timestamp,
 	pgEnum,
-	doublePrecision,
-	date
+	doublePrecision
 } from 'drizzle-orm/pg-core';
 
 export const user = pgTable(
@@ -209,8 +208,8 @@ export const customers = pgTable('customers', {
 export const events = pgTable('events', {
 	id: uuid('id').primaryKey(),
 	status: text('status').notNull(),
-	enterTimestamp: timestamp('enter_timestamp').notNull(),
-	possibleExitTimestamp: timestamp('possible_exit_timestamp').notNull(),
+	enterTimestamp: timestamp('enter_timestamp', { withTimezone: true }).notNull(),
+	possibleExitTimestamp: timestamp('possible_exit_timestamp', { withTimezone: true }).notNull(),
 	locationX: integer('location_x').notNull(),
 	locationY: integer('location_y').notNull(),
 	customerId: uuid('customer_id')
