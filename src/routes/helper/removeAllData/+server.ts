@@ -8,7 +8,8 @@ import {
 	key,
 	events,
 	branches,
-	beaconPositions
+	floorplans,
+	beaconsToFloorplans
 } from '../../../schema';
 import { db } from '../../../lib/server/db';
 import type { RequestHandler } from '@sveltejs/kit';
@@ -20,8 +21,9 @@ export const GET: RequestHandler = async ({}) => {
 		await db.delete(campaigns);
 		await db.delete(campaignsToBeacons);
 		await db.delete(beacons);
-		await db.delete(beaconPositions);
 		await db.delete(branches);
+		await db.delete(floorplans);
+		await db.delete(beaconsToFloorplans);
 		await db.delete(key);
 		await db.delete(session);
 		await db.delete(user);
