@@ -35,6 +35,11 @@
 			// svg: BeaconSvg,
 			link: 'devices'
 		},
+		{
+			name: 'heatmaps',
+			icon: 'fa-solid fa-fire',
+			link: 'heatmaps'
+		},
 		// {
 		// 	name: 'users',
 		// 	icon: 'fa-solid fa-users fa-lg',
