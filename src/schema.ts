@@ -218,6 +218,9 @@ export const events = pgTable('events', {
 	branchId: uuid('branch_id')
 		.notNull()
 		.references(() => branches.id),
+	beaconId: uuid('beacon_id')
+		.notNull()
+		.references(() => beacons.id),
 	campaignId: uuid('campaign_id')
 		.notNull()
 		.references(() => campaigns.id)

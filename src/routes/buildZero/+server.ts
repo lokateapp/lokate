@@ -283,6 +283,7 @@ async function generateEvents(
 				locationY: y,
 				customerId,
 				branchId,
+				beaconId: randomBeaconId,
 				campaignId: randomCampaignId
 			});
 		}
