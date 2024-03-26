@@ -63,7 +63,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	const floorplan1 = {
 		id: crypto.randomUUID(),
 		branchId: branch1.id,
-		imgPath: '/src/lib/assets/store_plans/sp2.jpg',
+		imgPath: '/src/lib/assets/store_plans/sp3.jpg',
 		width: 1000,
 		height: 1200
 	};
@@ -72,7 +72,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	const floorplan2 = {
 		id: crypto.randomUUID(),
 		branchId: branch2.id,
-		imgPath: '/src/lib/assets/store_plans/sp3.jpg',
+		imgPath: '/src/lib/assets/store_plans/sp2.jpg',
 		width: 1500,
 		height: 1100
 	};
@@ -155,6 +155,11 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 		status: 'active'
 	});
 
+	const branchesToCampaignsMap = {
+		[branch1.id]: [campaign1Id, campaign2Id],
+		[branch2.id]: [campaign3Id]
+	};
+
 	/* We need to be careful while associating campaigns with beacons: 
 	their branch should match (there is a trigger controlling such integrity) */
 	const campaignsToBeaconsMap = {
@@ -179,6 +184,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	const randomEvents = await generateEvents(
 		customer1.id,
 		branch1.id,
+		branchesToCampaignsMap,
 		campaignsToBeaconsMap,
 		beaconsToFloorplansMap
 	);
@@ -218,11 +224,12 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 async function generateEvents(
 	customerId: string,
 	branchId: string,
+	branchesToCampaignsMap: any,
 	campaignsToBeaconsMap: any,
 	beaconsToFloorplansMap: any
 ) {
 	const events = [];
-	const campaignIds = Object.keys(campaignsToBeaconsMap);
+	const campaignIds = branchesToCampaignsMap[branchId];
 
 	function getRandomTimestamp(start: Date, end: Date): Date {
 		const startTime = start.getTime();

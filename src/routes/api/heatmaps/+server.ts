@@ -21,24 +21,37 @@ export const GET: RequestHandler = async ({ url }) => {
 	const { floorplanImgWidth, floorplanImgHeight } = await getImageDimensions(floorplanImgPath!);
 
 	const heatmap: number[][] = [];
-	for (let i = 0; i < floorplanImgWidth; i++) {
-		heatmap[i] = new Array(floorplanImgHeight).fill(0);
+	for (let i = 0; i < floorplanImgHeight; i++) {
+		heatmap[i] = new Array(floorplanImgWidth).fill(0);
 	}
 
-	filteredEvents.forEach((event) => {
-		for (let dx = -radius; dx <= radius; dx++) {
-			for (let dy = -radius; dy <= radius; dy++) {
-				const x = event.location_x + dx;
-				const y = event.location_y + dy;
+	console.log(heatmap.length, heatmap[0].length);
 
-				if (x >= 0 && x < floorplanImgWidth && y >= 0 && y < floorplanImgHeight) {
-					heatmap[x][y]++;
+	filteredEvents.forEach((event) => {
+		for (
+			let y = Math.max(0, event.location_y - radius);
+			y <= Math.min(floorplanImgHeight - 1, event.location_y + radius);
+			y++
+		) {
+			for (
+				let x = Math.max(0, event.location_x - radius);
+				x <= Math.min(floorplanImgWidth - 1, event.location_x + radius);
+				x++
+			) {
+				const distance = Math.sqrt((x - event.location_x) ** 2 + (y - event.location_y) ** 2);
+				if (distance <= radius) {
+					// console.log(y, x);
+					heatmap[y][x]++;
 				}
 			}
 		}
 	});
 
-	return json(heatmap);
+	// Scale the heatmap matrix
+	const maxValue = getMaxValue(heatmap);
+	const scaledHeatmap = heatmap.map((row) => row.map((value) => value / maxValue));
+
+	return json(scaledHeatmap);
 };
 
 async function getFloorPlan(branchId: string) {
@@ -53,4 +66,16 @@ async function getImageDimensions(imgPath: string) {
 		floorplanImgWidth: metadata.width!,
 		floorplanImgHeight: metadata.height!
 	};
+}
+
+function getMaxValue(matrix: number[][]): number {
+	let max = 0;
+	matrix.forEach((row) => {
+		row.forEach((value) => {
+			if (value > max) {
+				max = value;
+			}
+		});
+	});
+	return max;
 }
