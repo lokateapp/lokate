@@ -25,8 +25,6 @@ export const GET: RequestHandler = async ({ url }) => {
 		heatmap[i] = new Array(floorplanImgWidth).fill(0);
 	}
 
-	console.log(heatmap.length, heatmap[0].length);
-
 	filteredEvents.forEach((event) => {
 		for (
 			let y = Math.max(0, event.location_y - radius);
@@ -40,8 +38,7 @@ export const GET: RequestHandler = async ({ url }) => {
 			) {
 				const distance = Math.sqrt((x - event.location_x) ** 2 + (y - event.location_y) ** 2);
 				if (distance <= radius) {
-					// console.log(y, x);
-					heatmap[y][x]++;
+					heatmap[y][x] += event.possible_exit_timestamp - event.enter_timestamp;
 				}
 			}
 		}
