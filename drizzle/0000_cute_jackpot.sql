@@ -184,7 +184,7 @@ EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
 --> statement-breakpoint
-CREATE OR REPLACE FUNCTION check_branch_id_match()
+CREATE OR REPLACE FUNCTION check_branch_id_match_on_campaigns_to_beacons()
 RETURNS TRIGGER AS
 $$
 BEGIN
@@ -201,7 +201,29 @@ END;
 $$
 LANGUAGE plpgsql;
 --> statement-breakpoint
-CREATE TRIGGER enforce_branch_id_match
-BEFORE INSERT OR UPDATE ON "campaigns_to_beacons"
+CREATE TRIGGER enforce_branch_id_match_on_campaigns_to_beacons
+AFTER INSERT OR UPDATE ON "campaigns_to_beacons"
 FOR EACH ROW
-EXECUTE FUNCTION check_branch_id_match();
+EXECUTE FUNCTION check_branch_id_match_on_campaigns_to_beacons();
+--> statement-breakpoint
+CREATE OR REPLACE FUNCTION check_branch_id_match_on_beacons_to_floorplans()
+RETURNS TRIGGER AS
+$$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM floorplans f
+        INNER JOIN "beacons_to_floorplans" bf ON f.id = bf.floorplan_id
+        INNER JOIN beacons b ON bf.beacon_id = b.id
+        WHERE f.branch_id <> b.branch_id
+    ) THEN
+        RAISE EXCEPTION 'Branch IDs of floorplan and beacon do not match';
+    END IF;
+    RETURN NEW;
+END;
+$$
+LANGUAGE plpgsql;
+--> statement-breakpoint
+CREATE TRIGGER enforce_branch_id_match_on_beacons_to_floorplans
+AFTER INSERT OR UPDATE ON "beacons_to_floorplans"
+FOR EACH ROW
+EXECUTE FUNCTION check_branch_id_match_on_beacons_to_floorplans();

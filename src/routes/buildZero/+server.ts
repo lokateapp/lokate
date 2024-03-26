@@ -10,7 +10,8 @@ import {
 	customers,
 	branches,
 	events,
-	floorplans
+	floorplans,
+	beaconsToFloorplans
 } from '../../schema';
 
 // import {b} from "vitest/dist/types-198fd1d9";
@@ -122,14 +123,94 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	};
 	await db.insert(beacons).values(beacon4);
 
+	const beacon5 = {
+		id: crypto.randomUUID(),
+		branchId: branch1.id,
+		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
+		major: 1,
+		minor: 3,
+		radius: 7.0,
+		name: 'pseudo1'
+	};
+	await db.insert(beacons).values(beacon5);
+
+	const beacon6 = {
+		id: crypto.randomUUID(),
+		branchId: branch1.id,
+		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
+		major: 1,
+		minor: 4,
+		radius: 3.0,
+		name: 'pseudo2'
+	};
+	await db.insert(beacons).values(beacon6);
+
+	const beacon7 = {
+		id: crypto.randomUUID(),
+		branchId: branch1.id,
+		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
+		major: 1,
+		minor: 5,
+		radius: 12.0,
+		name: 'pseudo3'
+	};
+	await db.insert(beacons).values(beacon7);
+
+	const beacon8 = {
+		id: crypto.randomUUID(),
+		branchId: branch1.id,
+		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
+		major: 1,
+		minor: 6,
+		radius: 11.0,
+		name: 'pseudo4'
+	};
+	await db.insert(beacons).values(beacon8);
+
+	const beacon9 = {
+		id: crypto.randomUUID(),
+		branchId: branch1.id,
+		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
+		major: 1,
+		minor: 7,
+		radius: 6.0,
+		name: 'pseudo5'
+	};
+	await db.insert(beacons).values(beacon9);
+
+	const beacon10 = {
+		id: crypto.randomUUID(),
+		branchId: branch1.id,
+		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
+		major: 1,
+		minor: 8,
+		radius: 15.0,
+		name: 'pseudo6'
+	};
+	await db.insert(beacons).values(beacon10);
+
 	/* We need to be careful while associating beacons with floorplans: 
-	their branch should match (TODO: there is a trigger controlling such integrity) */
+	their branch should match (there is a trigger controlling such integrity) */
 	const beaconsToFloorplansMap = {
 		[beacon1.id]: floorplan2,
 		[beacon2.id]: floorplan1,
 		[beacon3.id]: floorplan1,
-		[beacon4.id]: floorplan2
+		[beacon4.id]: floorplan2,
+		[beacon5.id]: floorplan1,
+		[beacon6.id]: floorplan1,
+		[beacon7.id]: floorplan1,
+		[beacon8.id]: floorplan1,
+		[beacon9.id]: floorplan1,
+		[beacon10.id]: floorplan1
 	};
+
+	const insertBeaconsToFloorplansPromises = [];
+	for (const [beaconId, floorplan] of Object.entries(beaconsToFloorplansMap)) {
+		// initial positions of beacons is (0,0)
+		const data = { beaconId, floorplanId: floorplan.id, x: 0, y: 0 };
+		insertBeaconsToFloorplansPromises.push(db.insert(beaconsToFloorplans).values(data));
+	}
+	await Promise.all(insertBeaconsToFloorplansPromises);
 
 	const campaign1Id = crypto.randomUUID();
 	await db.insert(campaigns).values({
@@ -163,8 +244,8 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	/* We need to be careful while associating campaigns with beacons: 
 	their branch should match (there is a trigger controlling such integrity) */
 	const campaignsToBeaconsMap = {
-		[campaign1Id]: [beacon2.id],
-		[campaign2Id]: [beacon3.id],
+		[campaign1Id]: [beacon2.id, beacon5.id, beacon6.id, beacon9.id],
+		[campaign2Id]: [beacon3.id, beacon7.id, beacon8.id, beacon10.id],
 		[campaign3Id]: [beacon1.id, beacon4.id]
 	};
 
@@ -240,7 +321,10 @@ async function generateEvents(
 
 	// for the past week
 	for (let i = 0; i < 7; i++) {
-		// beacons will be placed to different locations with different radiuses on each day
+		// beacons will be placed to different locations with different radiuses on each day,
+		// which means events will occur on different locations, but notice that this has nothing
+		// to do with beacon placement on the floorplan, i.e. no update to beacons_to_floorplans table
+		// it is just for populating heatmaps with some pseudo events happening on different locations
 		const beaconPositions: { [key: string]: { x: number; y: number; r: number } } = {};
 
 		const getImagePromises = [];
