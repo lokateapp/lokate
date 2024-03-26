@@ -10,8 +10,21 @@
 	let currentDate = new Date().toISOString().split('T')[0];
 	let heatmapMatrix: number[][] = [];
 
+	let intervalId: any = null;
+
 	async function handleDateSelect(event: any) {
-		currentDate = event.target.value;
+		const selectedDate = event.target.value;
+		currentDate = selectedDate;
+
+		clearInterval(intervalId);
+
+		// If today's date is selected, start the interval
+		if (selectedDate === new Date().toISOString().split('T')[0]) {
+			intervalId = setInterval(async () => {
+				await fetchHeatmapData(currentDate);
+			}, 5000);
+		}
+
 		await fetchHeatmapData(currentDate);
 	}
 
@@ -22,9 +35,13 @@
 
 	onMount(async () => {
 		await fetchHeatmapData(currentDate);
+		intervalId = setInterval(async () => {
+			await fetchHeatmapData(currentDate);
+		}, 5000);
 	});
 
 	onDestroy(() => {
+		clearInterval(intervalId);
 		heatmapMatrix = [];
 	});
 </script>
