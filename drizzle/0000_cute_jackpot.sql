@@ -67,8 +67,13 @@ CREATE TABLE IF NOT EXISTS "events" (
 	"status" text NOT NULL,
 	"enter_timestamp" timestamp with time zone NOT NULL,
 	"possible_exit_timestamp" timestamp with time zone NOT NULL,
-	"location_x" integer NOT NULL,
+	-- although it may seem that we can obtain below three fields by some joins, those fields will
+	-- correspond to up-to-date information about beacon position and radius, but a beacon position
+	-- or radius might be changed after the occurrence of an event. Therefore we need to save the
+	-- position and radius at the time event occurred.
+	"location_x" integer NOT NULL,	
 	"location_y" integer NOT NULL,
+	"radius" double precision NOT NULL,
 	"customer_id" uuid NOT NULL,
 	"branch_id" uuid NOT NULL,
 	"beacon_id" uuid NOT NULL,

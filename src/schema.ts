@@ -212,6 +212,7 @@ export const events = pgTable('events', {
 	possibleExitTimestamp: timestamp('possible_exit_timestamp', { withTimezone: true }).notNull(),
 	locationX: integer('location_x').notNull(),
 	locationY: integer('location_y').notNull(),
+	radius: doublePrecision('radius').notNull(),
 	customerId: uuid('customer_id')
 		.notNull()
 		.references(() => customers.id),

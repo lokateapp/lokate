@@ -240,8 +240,8 @@ async function generateEvents(
 
 	// for the past week
 	for (let i = 0; i < 7; i++) {
-		// beacons will be placed to different locations on each day
-		const beaconPositions: { [key: string]: { x: number; y: number } } = {};
+		// beacons will be placed to different locations with different radiuses on each day
+		const beaconPositions: { [key: string]: { x: number; y: number; r: number } } = {};
 
 		const getImagePromises = [];
 		for (const [beaconId, floorplan] of Object.entries(beaconsToFloorplansMap)) {
@@ -249,7 +249,8 @@ async function generateEvents(
 				.then(({ floorplanImgWidth, floorplanImgHeight }) => {
 					const xPos = Math.floor(Math.random() * floorplanImgWidth);
 					const yPos = Math.floor(Math.random() * floorplanImgHeight);
-					beaconPositions[beaconId] = { x: xPos, y: yPos };
+					const radius = Math.random() * 15;
+					beaconPositions[beaconId] = { x: xPos, y: yPos, r: radius };
 				});
 			getImagePromises.push(promise);
 		}
@@ -266,7 +267,7 @@ async function generateEvents(
 			const randomCampaignId = campaignIds[Math.floor(Math.random() * campaignIds.length)];
 			const beaconIds = campaignsToBeaconsMap[randomCampaignId];
 			const randomBeaconId = beaconIds[Math.floor(Math.random() * beaconIds.length)];
-			const { x, y } = beaconPositions[randomBeaconId];
+			const { x, y, r } = beaconPositions[randomBeaconId];
 			const enterTimestamp = getRandomTimestamp(startDate, endDate); // Random timestamp within the specified range
 			const possibleExitTimestamp = new Date(
 				enterTimestamp.getTime() + Math.floor(Math.random() * 50000) + 10000
@@ -281,6 +282,7 @@ async function generateEvents(
 				possibleExitTimestamp,
 				locationX: x,
 				locationY: y,
+				radius: r,
 				customerId,
 				branchId,
 				beaconId: randomBeaconId,

@@ -14,8 +14,6 @@ export const GET: RequestHandler = async ({ url }) => {
 		sql`select * from ${events} where ${events.branchId} = ${branchId} and DATE(${events.enterTimestamp}) = ${day}`
 	);
 
-	const radius = 10; // TODO: get radius from events
-
 	const floorplan = await getFloorPlan(branchId!);
 	const floorplanImgPath = floorplan?.imgPath.slice(1);
 	const { floorplanImgWidth, floorplanImgHeight } = await getImageDimensions(floorplanImgPath!);
@@ -26,6 +24,7 @@ export const GET: RequestHandler = async ({ url }) => {
 	}
 
 	filteredEvents.forEach((event) => {
+		const radius = Math.ceil(event.radius);
 		for (
 			let y = Math.max(0, event.location_y - radius);
 			y <= Math.min(floorplanImgHeight - 1, event.location_y + radius);
