@@ -102,8 +102,8 @@
 	const MAX_RANGE_BEACON = 15;
 	const BEACON_RANGE_STEP = 1;
 
-	const CANVAS_WIDTH = 500;
-	const CANVAS_HEIGHT = 800;
+	const CANVAS_WIDTH = data.floorplanImgWidth;
+	const CANVAS_HEIGHT = data.floorplanImgHeight;
 
 	onMount(async () => {
 		Konva = (await import('konva')).default;
@@ -295,8 +295,8 @@
 		}
 		const beaconRange = beacon.radius;
 		Konva.Image.fromURL('/src/lib/assets/beacon.svg', function (beaconSvg) {
-			const IMAGE_W = beaconSvg.getWidth() / 5;
-			const IMAGE_H = beaconSvg.getHeight() / 5;
+			const IMAGE_W = beaconSvg.getWidth() / 20;
+			const IMAGE_H = beaconSvg.getHeight() / 20;
 			// console.log('beacon:', beacon);
 			// beacon.fill('red');
 			// change background color to red
@@ -342,7 +342,7 @@
 			var circleRange = new Konva.Circle({
 				x: pos.x,
 				y: pos.y,
-				radius: BEACON_RANGE * beaconRange,
+				radius: beaconRange,
 				stroke: 'red',
 				strokeWidth: 1,
 				fill: 'red',

@@ -347,7 +347,8 @@ async function generateEvents(
 		const endDate = new Date();
 		endDate.setDate(endDate.getDate() - i);
 		endDate.setHours(22, 0, 0, 0); // Set end time to 10:00 PM
-		for (let j = 0; j < 100; j++) {
+		// generate less events for today (for demonstration purposes, in this way heatmap is updated quickly)
+		for (let j = i === 0 ? 90 : 0; j < 100; j++) {
 			const randomCampaignId = campaignIds[Math.floor(Math.random() * campaignIds.length)];
 			const beaconIds = campaignsToBeaconsMap[randomCampaignId];
 			const randomBeaconId = beaconIds[Math.floor(Math.random() * beaconIds.length)];
