@@ -1,7 +1,7 @@
 import type { RequestHandler } from './$types';
 import { beacons, campaignsToBeacons, customers, events } from '../../../schema';
 import { db } from '../../../lib/server/db';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, desc } from 'drizzle-orm';
 
 enum EventStatus {
 	ENTER = 'ENTER',
@@ -157,6 +157,7 @@ const handleStayEvent = async (timestamp, customerId, campaignId, beaconId) => {
 				eq(events.status, EventStatus.STAY)
 			)
 		)
+		.orderBy(desc(events.enterTimestamp))
 		.limit(1);
 
 	if (event.length === 0 || event[0].possibleExitTimestamp >= new Date(timestamp)) {
