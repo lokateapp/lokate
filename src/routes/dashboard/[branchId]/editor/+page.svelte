@@ -1,7 +1,4 @@
 <script lang="ts">
-	import storePlan from '$lib/assets/store_plan.webp';
-	// import yellowBeacon from '$lib/assets/yellowbeacon.png';
-	import BeaconSvg from '$lib/assets/beacon.svg';
 	import { onMount } from 'svelte';
 
 	import type KonvaType from 'konva';
@@ -54,18 +51,21 @@
 
 	export let data: PageData;
 
+	const floorplan = data.floorplan;
+
 	const campaigns = data.allCampaigns.map((campaign) => {
 		return {
 			id: campaign.id,
 			name: campaign.name,
-			beacons: campaign.campaignsToBeacons.map(({ beacon }) => {
+			beacons: campaign.beacons.map(({ beacon }) => {
+				console.log(beacon);
 				return {
 					id: beacon.id,
 					name: beacon.name || null,
 					position:
 						{
-							x: 0,
-							y: 0
+							x: beacon.floorplan?.x || 0,
+							y: beacon.floorplan?.y || 0
 						} || null,
 					range: beacon.radius
 				};
@@ -77,7 +77,7 @@
 		};
 	});
 
-	console.log('data:', data.allCampaigns);
+	// console.log('data:', data.allCampaigns);
 
 	let items = campaigns;
 
@@ -346,23 +346,24 @@
 		tooltip.hide();
 
 		// add stage a background image
-		var imageObj = new Image();
-		imageObj.src = storePlan;
-		imageObj.onload = function () {
-			backgroundImage = new Konva.Image({
-				x: 0,
-				y: 0,
-				image: imageObj,
-				width: stage.width(),
-				height: stage.height()
-			});
+		if (floorplan?.imgPath) {
+			var imageObj = new Image();
+			imageObj.src = floorplan.imgPath;
+			imageObj.onload = function () {
+				backgroundImage = new Konva.Image({
+					x: 0,
+					y: 0,
+					image: imageObj,
+					width: stage.width(),
+					height: stage.height()
+				});
 
-			// add the shape to the layer
-			konvaBackgroundLayer.add(backgroundImage);
-			konvaBackgroundLayer.moveToBottom();
-			konvaBackgroundLayer.draw();
-		};
-
+				// add the shape to the layer
+				konvaBackgroundLayer.add(backgroundImage);
+				konvaBackgroundLayer.moveToBottom();
+				konvaBackgroundLayer.draw();
+			};
+		}
 		stage.on('pointerdown', addLocationToBeacon);
 
 		// var scaleBy = 1.01;

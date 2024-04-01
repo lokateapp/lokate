@@ -55,6 +55,7 @@
 		"konva": "^9.2.3",
 		"lucia": "^2.7.1",
 		"postgres": "^3.4.0",
+		"sharp": "^0.33.3",
 		"svelte-konva": "^0.3.1",
 		"toastify-js": "^1.12.0"
 	}

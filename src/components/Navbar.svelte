@@ -1,13 +1,11 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import BeaconSvg from '$lib/assets/beacon.svg';
 	import { Button } from 'flowbite-svelte';
 
 	const INITIAL_WIDTH = 4;
 	let sidebarVisible = false;
 	let width = INITIAL_WIDTH;
 	let routeName = '';
-	let branchId = '';
 
 	function getBranchId() {
 		return $page.url.pathname.split('/')[2];
@@ -24,7 +22,7 @@
 
 	var routes = [
 		{
-			name: 'dashboard',
+			name: 'editor',
 			icon: 'fa-solid fa-home fa-xl',
 			// link: '/dashboard'
 			link: 'editor'
@@ -36,6 +34,11 @@
 			// icon : BeaconSvg,
 			// svg: BeaconSvg,
 			link: 'devices'
+		},
+		{
+			name: 'heatmaps',
+			icon: 'fa-solid fa-fire',
+			link: 'heatmaps'
 		},
 		// {
 		// 	name: 'users',

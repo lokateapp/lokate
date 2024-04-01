@@ -1,14 +1,9 @@
 <script lang="ts">
-	import storePlan from '$lib/assets/store_plan.webp';
-	import BeaconSvg from '$lib/assets/beacon.svg';
 	import { onMount } from 'svelte';
 	import type KonvaType from 'konva';
-
 	import type { PageData } from './$types';
-	import { notify } from '../../../../components/notify';
 	import {
 		Table,
-		TableBody,
 		TableBodyCell,
 		TableBodyRow,
 		TableHead,
@@ -17,9 +12,7 @@
 		Button,
 		Label,
 		Input,
-		Badge,
 		Range,
-		Toggle,
 		PaginationItem
 	} from 'flowbite-svelte';
 	import dayjs from 'dayjs';
@@ -35,21 +28,22 @@
 		major: number;
 		minor: number;
 		radius: number;
-		position: {
-			id: string;
+		floorplan: {
+			beaconId: string;
+			floorplanId: string;
 			x: number;
 			y: number;
-			beaconId: string;
-			createdAt: Date | null;
 		} | null;
 	};
 
 	export let data: PageData;
 
-	let devices = data.beacons;
+	const branchId = data.branchId;
+	const devices = data.beacons;
+	const floorplan = data.floorplan;
 
-	console.log('devices:', devices);
-	let items = devices;
+	// console.log('devices:', devices);
+	const items = devices;
 
 	let selectedRows: number[] = []; // = [0, 1, 2]
 	let editRow: number;
@@ -108,8 +102,8 @@
 	const MAX_RANGE_BEACON = 15;
 	const BEACON_RANGE_STEP = 1;
 
-	const CANVAS_WIDTH = 500;
-	const CANVAS_HEIGHT = 800;
+	const CANVAS_WIDTH = data.floorplanImgWidth;
+	const CANVAS_HEIGHT = data.floorplanImgHeight;
 
 	onMount(async () => {
 		Konva = (await import('konva')).default;
@@ -189,22 +183,31 @@
 		tooltip.hide();
 
 		// add stage a background image
-		var imageObj = new Image();
-		imageObj.src = storePlan;
-		imageObj.onload = function () {
-			backgroundImage = new Konva.Image({
-				x: 0,
-				y: 0,
-				image: imageObj,
-				width: stage.width(),
-				height: stage.height()
-			});
+		if (floorplan?.imgPath) {
+			var imageObj = new Image();
+			imageObj.src = floorplan.imgPath;
+			imageObj.onload = function () {
+				backgroundImage = new Konva.Image({
+					x: 0,
+					y: 0,
+					image: imageObj,
+					width: stage.width(),
+					height: stage.height()
+				});
 
-			// add the shape to the layer
-			konvaBackgroundLayer.add(backgroundImage);
-			konvaBackgroundLayer.moveToBottom();
-			konvaBackgroundLayer.draw();
-		};
+				// add the shape to the layer
+				konvaBackgroundLayer.add(backgroundImage);
+				konvaBackgroundLayer.moveToBottom();
+				konvaBackgroundLayer.draw();
+			};
+
+			// place beacons that are located before to the storeplan
+			devices.forEach((beacon) => {
+				if (beacon.floorplan != null && beacon.floorplan.floorplanId == floorplan.id) {
+					// TODO
+				}
+			});
+		}
 
 		stage.on('pointerdown', addLocationToBeacon);
 
@@ -276,7 +279,7 @@
 
 	const addBeaconToMap = (beacon: BeaconType, draggable: boolean = false) => {
 		// let pos = stage.getPointerPosition() || { x: 0, y: 0 };
-		const pos = beacon.position;
+		const pos = beacon.floorplan;
 		const beaconName = beacon.name;
 		if (!pos) {
 			return;
@@ -292,8 +295,8 @@
 		}
 		const beaconRange = beacon.radius;
 		Konva.Image.fromURL('/src/lib/assets/beacon.svg', function (beaconSvg) {
-			const IMAGE_W = beaconSvg.getWidth() / 5;
-			const IMAGE_H = beaconSvg.getHeight() / 5;
+			const IMAGE_W = beaconSvg.getWidth() / 20;
+			const IMAGE_H = beaconSvg.getHeight() / 20;
 			// console.log('beacon:', beacon);
 			// beacon.fill('red');
 			// change background color to red
@@ -339,7 +342,7 @@
 			var circleRange = new Konva.Circle({
 				x: pos.x,
 				y: pos.y,
-				radius: BEACON_RANGE * beaconRange,
+				radius: beaconRange,
 				stroke: 'red',
 				strokeWidth: 1,
 				fill: 'red',
@@ -389,7 +392,9 @@
 			if (draggable) {
 				beaconSvg.on('dragmove', (event: any) => {
 					// bind beacon position
-					beacon.position = {
+					beacon.floorplan = {
+						beaconId: pos.beaconId,
+						floorplanId: pos.floorplanId,
 						x: event.target.x(),
 						y: event.target.y()
 					};
@@ -429,9 +434,13 @@
 			console.log('pos:', pos);
 
 			items.forEach((item) => {
-				if (item.id == deviceToAddLocation?.id && item.position != null) {
-					item.position.x = pos.x;
-					item.position.y = pos.y;
+				if (item.id == deviceToAddLocation?.id && floorplan) {
+					item.floorplan = {
+						beaconId: item.id,
+						floorplanId: floorplan.id,
+						x: pos.x,
+						y: pos.y
+					};
 				}
 			});
 
@@ -564,7 +573,7 @@
 	};
 
 	const addRangeToBeacon = (beacon: BeaconType) => {
-		if (!beacon.position) {
+		if (!beacon.floorplan) {
 			return;
 		}
 		// // var circleRange = new Konva.Circle({
@@ -581,10 +590,10 @@
 
 		// find the beacon in the layer and its circle range
 		var circleRange = layer.find('Circle').find((circle: any) => {
-			if (!beacon.position) {
+			if (!beacon.floorplan) {
 				return;
 			}
-			return circle.x() == beacon.position.x && circle.y() == beacon.position.y;
+			return circle.x() == beacon.floorplan.x && circle.y() == beacon.floorplan.y;
 		});
 
 		if (!circleRange) {
@@ -626,7 +635,7 @@
 	const saveChanges = async () => {
 		console.log('items:', items);
 
-		await fetch('/dashboard/editor', {
+		await fetch('/api/beacons', {
 			method: 'POST',
 			body: JSON.stringify({
 				items: items
@@ -828,7 +837,7 @@
 											<p>Value: {device.radius} meters</p>
 										</TableBodyCell>
 										<TableBodyCell>
-											{#if device.position != undefined}
+											{#if device.floorplan != undefined}
 												<div class="tooltip tooltip-top" data-tip="Change location">
 													<Button
 														color="blue"
