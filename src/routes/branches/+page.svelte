@@ -1,33 +1,48 @@
 <script lang="ts">
+	import { Button, Heading } from 'flowbite-svelte';
 	import type { PageData } from './$types';
 
 	export let data: PageData;
 </script>
 
-<div class="flex justify-center items-center mt-10">
-	<button
-		class="btn items-center"
-		on:click={() => {
-			window.location.href = window.location.href + '/create-branch';
-		}}
-	>
-		<i class="fa-solid fa-plus fa-lg" />
-		<span class="text-xl font-bold tracking-tight text-gray-900 dark:text-white whitespace-nowrap"
-			>Create new branch</span
-		>
-	</button>
-</div>
+<div class="flex flex-col p-5">
+	<Heading tag="h3" class="">Branches</Heading>
 
-<div class="campaigns-grid">
-	{#each data.branches as branch}
-		<div
-			class="flex py-6 justify-center items-center mt-2 text-semibold text-xl border border-gray-200 rounded-lg shadow hover:bg-gray-100"
+	<div class="flex justify-center items-center mt-10">
+		<Button
+			color="blue"
+			pill
+			size="lg"
+			on:click={() => {
+				window.location.href = window.location.href + '/create-branch';
+			}}
 		>
-			<a href={`/dashboard/${branch.id}`}>
+			<i class="fa-solid fa-plus fa-lg me-2" />
+			Create new branch
+		</Button>
+	</div>
+
+	<div class="campaigns-grid">
+		{#each data.branches as branch}
+			<!-- <Button
+			color="blue"
+			pill
+			size="lg"
+			on:click={() => {
+				window.location.href = window.location.href + `/edit-branch/${branch.id}`;
+			}}
+		>
+			{branch.address}
+		</Button> -->
+
+			<a
+				class="flex py-6 justify-center items-center mt-2 text-semibold text-xl border border-gray-200 rounded-lg shadow hover:bg-gray-100"
+				href={`/dashboard/${branch.id}`}
+			>
 				<span class="text-ellipsis">{branch.address}</span>
 			</a>
-		</div>
-	{/each}
+		{/each}
+	</div>
 </div>
 
 <style>

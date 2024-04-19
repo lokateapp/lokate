@@ -1,6 +1,6 @@
 import { db } from '$lib/server/db';
 import { redirect } from '@sveltejs/kit';
-import { branches, floorplans } from '../../../schema';
+import { branches, floorplans } from '$lib/schema';
 import fs from 'fs/promises';
 import path from 'path';
 

@@ -1,7 +1,7 @@
 import { db } from '$lib/server/db';
 import type { PageServerLoad } from './$types';
 import { eq } from 'drizzle-orm';
-import { branches, type SelectBranch } from '../../schema';
+import { branches, type SelectBranch } from '$lib/schema';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const session = await locals.auth.validate();

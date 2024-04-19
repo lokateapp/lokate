@@ -10,8 +10,8 @@ import {
 	branches,
 	floorplans,
 	beaconsToFloorplans
-} from '../../../schema';
-import { db } from '../../../lib/server/db';
+} from '$lib/schema';
+import { db } from '$lib/server/db';
 import type { RequestHandler } from '@sveltejs/kit';
 
 export const GET: RequestHandler = async ({}) => {

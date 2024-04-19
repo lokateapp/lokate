@@ -1,15 +1,57 @@
 import { db } from '$lib/server/db';
+import { type SelectBeacon, type SelectCampaignWithBeacons } from '$lib/schema';
 import type { PageServerLoad } from './$types';
-import { eq } from 'drizzle-orm';
-import { campaigns, type SelectCampaign } from '../../../schema';
 
 export const load: PageServerLoad = async ({ params }) => {
 	const branchId = params.branchId;
-	const campaigns: SelectCampaign[] = await getCampaigns(branchId);
 
-	return { branchId, campaigns };
+	const floorplan = await getFloorPlan(branchId);
+	const availableBeacons: SelectBeacon[] = await getBeacons(branchId);
+	const allCampaigns: SelectCampaignWithBeacons[] = await getCampaigns(branchId);
+
+	// console.log('allCampaigns: ', allCampaigns);
+	// console.log('availableBeacons: ', availableBeacons);
+
+	return { floorplan, allCampaigns, availableBeacons };
 };
 
-async function getCampaigns(branchId: string): Promise<SelectCampaign[]> {
-	return await db.select().from(campaigns).where(eq(campaigns.branchId, branchId));
+async function getBeacons(branchId: string) {
+	return await db.query.beacons.findMany({
+		where: (beacon, { eq }) => eq(beacon.branchId, branchId),
+		with: {
+			floorplan: true
+		}
+	});
+}
+
+async function getCampaigns(branchId: string) {
+	return await db.query.campaigns.findMany({
+		where: (campaign, { eq }) => eq(campaign.branchId, branchId),
+		with: {
+			beacons: {
+				columns: {},
+				with: {
+					beacon: {
+						with: {
+							floorplan: true
+						}
+					}
+				},
+				orderBy: (beacons, { asc }) => [asc(beacons.campaignId)]
+			}
+		},
+		orderBy: (campaign, { asc }) => [asc(campaign.name)]
+	});
+	// return await db
+	// 	.select()
+	// 	.from(campaigns)
+	// 	.innerJoin(campaignsToBeacons, eq(campaigns.id, campaignsToBeacons.campaignId))
+	// 	.innerJoin(beacons, eq(campaignsToBeacons.beaconId, beacons.id))
+	// 	.where(eq(campaigns.userId, userId));
+}
+
+async function getFloorPlan(branchId: string) {
+	return await db.query.floorplans.findFirst({
+		where: (floorplan, { eq }) => eq(floorplan.branchId, branchId)
+	});
 }

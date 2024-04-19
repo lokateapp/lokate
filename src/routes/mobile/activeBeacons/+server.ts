@@ -1,6 +1,6 @@
 import type { RequestHandler } from './$types';
-import { db } from '../../../lib/server/db';
-import { beacons, campaigns, campaignsToBeacons, branches } from '../../../schema';
+import { db } from '$lib/server/db';
+import { beacons, campaigns, campaignsToBeacons, branches } from '$lib/schema';
 import { and, eq, not } from 'drizzle-orm';
 
 // Function to calculate distance between two coordinates
@@ -65,9 +65,12 @@ export const GET: RequestHandler = async ({ url }) => {
 					.from(campaigns)
 					.where(eq(campaigns.id, campaignBeacon[0].campaignId))
 					.limit(1);
-				beacon.campaignName = campaign[0].name;
+				// beacon.campaignName = campaign[0].name;
 
-				resultBeacons.push(beacon);
+				resultBeacons.push({
+					...beacon,
+					campaignName: campaign[0].name
+				});
 			}
 		}
 

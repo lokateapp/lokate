@@ -3,7 +3,7 @@ import { db } from '$lib/server/db';
 import { eq } from 'drizzle-orm';
 
 import type { RequestHandler } from './$types';
-import { beacons, beaconsToFloorplans } from '../../../schema';
+import { beacons, beaconsToFloorplans } from '$lib/schema';
 
 export const POST: RequestHandler = async ({ request }) => {
 	const { items } = await request.json();

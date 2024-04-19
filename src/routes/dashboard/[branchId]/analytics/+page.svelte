@@ -3,9 +3,8 @@
 
 	import { browser } from '$app/environment';
 	import { onMount } from 'svelte';
-	import EChart from '../../../../components/Chart.svelte';
+	import EChart from '$components/Chart.svelte';
 	import type { EChartsOption, LineSeriesOption } from 'echarts';
-	import { customers } from '../../../../schema';
 
 	export let data: PageData;
 

@@ -126,7 +126,7 @@ export const campaigns = pgTable('campaigns', {
 		.notNull()
 		.references(() => branches.id, { onDelete: 'cascade' }),
 	name: text('text').notNull(),
-	status: campaignStatusEnum('campaign_status').default('inactive'),
+	status: campaignStatusEnum('campaign_status').notNull().default('inactive'),
 	createdAt: timestamp('created_at').default(sql`CURRENT_TIMESTAMP`)
 });
 
@@ -232,35 +232,21 @@ export type SelectFloorplan = InferSelectModel<typeof floorplans>;
 export type SelectCampaign = InferSelectModel<typeof campaigns>;
 export type SelectBeacon = InferSelectModel<typeof beacons>;
 
+export type SelectBeaconWithFloorplan = {
+	floorplan: typeof beaconsToFloorplans.$inferSelect;
+} & typeof beacons.$inferSelect;
+
 export type SelectFloorplanWithBeacons = {
-	id: string;
-	branchId: string;
-	img_path: string;
-	width: number;
-	height: number;
 	beaconsToFloorplans: {
 		beacon: typeof beacons.$inferSelect;
 	}[];
-};
+} & typeof floorplans.$inferSelect;
 
 export type SelectCampaignWithBeacons = {
-	id: string;
-	name: string;
-	branchId: string;
-	createdAt: Date | null;
-	status: string | null;
 	beacons: {
-		beacon: {
-			id: string;
-			name: string | null;
-			radius: number;
-			floorplan: {
-				x: number;
-				y: number;
-			};
-		};
+		beacon: SelectBeaconWithFloorplan;
 	}[];
-};
+} & typeof campaigns.$inferSelect;
 
 export type SelectEvent = {
 	[events._.name]: typeof events.$inferSelect;

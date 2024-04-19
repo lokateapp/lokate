@@ -1,13 +1,7 @@
 import { db } from '../../../../lib/server/db';
-import {
-	events,
-	beacons,
-	campaigns,
-	type SelectEvent,
-	campaignsToBeacons
-} from '../../../../schema';
+import { events, beacons, campaigns, type SelectEvent, campaignsToBeacons } from '$lib/schema';
 import { eq } from 'drizzle-orm';
-import type { PageServerLoad } from '../$types';
+import type { PageServerLoad } from './$types';
 
 // TODO: consider below for the entire application
 export const ssr = false;

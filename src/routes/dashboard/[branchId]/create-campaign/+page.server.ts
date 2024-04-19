@@ -1,5 +1,5 @@
 import { db } from '$lib/server/db';
-import { campaigns } from '../../../../schema';
+import { campaigns } from '$lib/schema';
 
 export const actions = {
 	createCampaign: async ({ locals, request, params }) => {

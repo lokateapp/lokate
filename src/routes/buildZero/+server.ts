@@ -12,7 +12,7 @@ import {
 	events,
 	floorplans,
 	beaconsToFloorplans
-} from '../../schema';
+} from '$lib/schema';
 
 // import {b} from "vitest/dist/types-198fd1d9";
 

@@ -1,6 +1,6 @@
 import type { RequestHandler } from './$types';
-import { beacons, campaignsToBeacons, customers, events } from '../../../schema';
-import { db } from '../../../lib/server/db';
+import { beacons, campaignsToBeacons, customers, events } from '$lib/schema';
+import { db } from '$lib/server/db';
 import { and, eq, desc } from 'drizzle-orm';
 
 enum EventStatus {
@@ -49,18 +49,23 @@ export const POST: RequestHandler = async ({ request }) => {
 			const campaignId = campaign.campaignId;
 			let failedEvent = null;
 			if (status === EventStatus.ENTER) {
-				failedEvent = await handleEnterEvent(
+				failedEvent = await handleEnterEvent({
 					timestamp,
-					customer.id,
+					customerId: customer.id,
 					branchId,
 					campaignId,
 					beaconId,
 					beaconRadius
-				);
+				});
 			} else if (status === EventStatus.STAY) {
-				failedEvent = await handleStayEvent(timestamp, customer.id, campaignId, beaconId);
+				failedEvent = await handleStayEvent({
+					timestamp,
+					customerId: customer.id,
+					campaignId,
+					beaconId
+				});
 			} else if (status === EventStatus.EXIT) {
-				failedEvent = await handleExitEvent(customer.id, campaignId, beaconId);
+				failedEvent = await handleExitEvent({ customerId: customer.id, campaignId, beaconId });
 			}
 
 			if (failedEvent !== null) {
@@ -93,20 +98,20 @@ export const POST: RequestHandler = async ({ request }) => {
 	}
 };
 
-const getCustomer = async (customerId) => {
+const getCustomer = async (customerId: string) => {
 	const retrivedCustomer = await db
 		.select()
 		.from(customers)
 		.where(eq(customers.customerId, customerId))
 		.limit(1);
 	let customer = retrivedCustomer[0];
-	if (customer === undefined || customer.length === 0) {
-		customer = handleCreateNewUser(customerId);
+	if (customer === undefined) {
+		customer = await handleCreateNewUser(customerId);
 	}
 	return customer;
 };
 
-const handleCreateNewUser = async (customerId) => {
+const handleCreateNewUser = async (customerId: string) => {
 	const newCustomer = {
 		id: crypto.randomUUID(),
 		customerId: customerId
@@ -115,14 +120,21 @@ const handleCreateNewUser = async (customerId) => {
 	return newCustomer;
 };
 
-const handleEnterEvent = async (
+const handleEnterEvent = async ({
 	timestamp,
 	customerId,
 	branchId,
 	campaignId,
 	beaconId,
 	beaconRadius
-) => {
+}: {
+	timestamp: number;
+	customerId: string;
+	branchId: string;
+	campaignId: string;
+	beaconId: string;
+	beaconRadius: number;
+}) => {
 	const { x, y } = await findCurrentBeaconPosition(beaconId);
 	if (x == 0 || y == 0) {
 		console.log('Beacon has not been placed yet');
@@ -145,7 +157,17 @@ const handleEnterEvent = async (
 	return null; // Return null for successful events
 };
 
-const handleStayEvent = async (timestamp, customerId, campaignId, beaconId) => {
+const handleStayEvent = async ({
+	timestamp,
+	customerId,
+	campaignId,
+	beaconId
+}: {
+	timestamp: number;
+	customerId: string;
+	campaignId: string;
+	beaconId: string;
+}) => {
 	const event = await db
 		.select()
 		.from(events)
@@ -171,7 +193,15 @@ const handleStayEvent = async (timestamp, customerId, campaignId, beaconId) => {
 	return null; // Return null for successful events
 };
 
-const handleExitEvent = async (customerId, campaignId, beaconId) => {
+const handleExitEvent = async ({
+	customerId,
+	campaignId,
+	beaconId
+}: {
+	customerId: string;
+	campaignId: string;
+	beaconId: string;
+}) => {
 	const event = await db
 		.select()
 		.from(events)

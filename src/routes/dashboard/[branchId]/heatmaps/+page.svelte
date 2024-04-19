@@ -2,6 +2,7 @@
 	import { onMount, onDestroy } from 'svelte';
 	import Heatmap from './Heatmap.svelte';
 	import type { PageData } from './$types';
+	import { Datepicker } from 'flowbite-svelte';
 
 	const SCALE = 2;
 
@@ -31,13 +32,14 @@
 	async function fetchHeatmapData(date: string) {
 		const res = await fetch(`/api/heatmaps?branchId=${data.branchId}&day=${date}&scale=${SCALE}`);
 		heatmapMatrix = await res.json();
+		console.log(heatmapMatrix);
 	}
 
 	onMount(async () => {
 		await fetchHeatmapData(currentDate);
-		intervalId = setInterval(async () => {
-			await fetchHeatmapData(currentDate);
-		}, 5000);
+		// intervalId = setInterval(async () => {
+		// 	await fetchHeatmapData(currentDate);
+		// }, 5000);
 	});
 
 	onDestroy(() => {
@@ -60,8 +62,9 @@
 
 	<!-- Date selection section -->
 	<div class="date-selection">
-		<label for="date">Select Date:</label>
-		<input type="date" id="date" bind:value={currentDate} on:change={handleDateSelect} />
+		<!-- <label for="date">Select Date:</label>
+		<input type="date" id="date" bind:value={currentDate} on:change={handleDateSelect} /> -->
+		<Datepicker datepickerFormat="dd/mm/yyyy" rel="external" />
 	</div>
 </div>
 
@@ -74,6 +77,6 @@
 
 	.date-selection {
 		position: absolute;
-		top: calc(100% - 100px);
+		top: calc(100px);
 	}
 </style>
