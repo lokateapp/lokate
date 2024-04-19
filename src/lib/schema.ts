@@ -130,6 +130,28 @@ export const campaigns = pgTable('campaigns', {
 	createdAt: timestamp('created_at').default(sql`CURRENT_TIMESTAMP`)
 });
 
+export const productGroups = pgTable('product_groups', {
+	id: uuid('id').primaryKey(),
+	groupName: varchar('group_name', { length: 40 }).notNull() // Changed to 'groupName' of type 'string'
+});
+
+export const productGroupsToCampaigns = pgTable(
+	'product_groups_to_campaigns',
+	{
+		campaignId: uuid('campaign_id')
+			.notNull()
+			.references(() => campaigns.id, { onDelete: 'cascade' }),
+		productGroupId: uuid('product_group_id')
+			.notNull()
+			.references(() => productGroups.id, { onDelete: 'cascade' }) // Reference to productGroups id
+	},
+	(table) => {
+		return {
+			pk: primaryKey({ columns: [table.campaignId, table.productGroupId] })
+		};
+	}
+);
+
 export const campaignsRelations = relations(campaigns, ({ one, many }) => ({
 	branch: one(branches, {
 		fields: [campaigns.branchId],

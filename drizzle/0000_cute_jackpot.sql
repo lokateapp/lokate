@@ -100,6 +100,17 @@ CREATE TABLE IF NOT EXISTS "auth_user" (
 --> statement-breakpoint
 CREATE UNIQUE INDEX IF NOT EXISTS "name_idx" ON "auth_user" ("username");
 --> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "product_groups" (
+   "id" uuid PRIMARY KEY NOT NULL,
+   "group_name" varchar(40) NOT NULL
+    );
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "product_groups_to_campaigns" (
+    "campaign_id" uuid NOT NULL,
+    "product_group_id" uuid NOT NULL,
+    CONSTRAINT product_groups_to_campaigns_campaign_id_product_group_id PRIMARY KEY("campaign_id","product_group_id")
+    );
+--> statement-breakpoint
 DO $$ BEGIN
  ALTER TABLE "beacons" ADD CONSTRAINT "beacons_branch_id_branches_id_fk" FOREIGN KEY ("branch_id") REFERENCES "branches"("id") ON DELETE cascade ON UPDATE no action;
 EXCEPTION
@@ -180,6 +191,18 @@ END $$;
 --> statement-breakpoint
 DO $$ BEGIN
  ALTER TABLE "user_session" ADD CONSTRAINT "user_session_user_id_auth_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "auth_user"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ALTER TABLE "product_groups_to_campaigns" ADD CONSTRAINT "product_groups_to_campaigns_campaign_id_campaigns_id_fk" FOREIGN KEY ("campaign_id") REFERENCES "campaigns"("id") ON DELETE cascade ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ALTER TABLE "product_groups_to_campaigns" ADD CONSTRAINT "product_groups_to_campaigns_product_group_id_product_groups_id_fk" FOREIGN KEY ("product_group_id") REFERENCES "product_groups"("id") ON DELETE cascade ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;

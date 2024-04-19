@@ -13,6 +13,7 @@ import {
 	floorplans,
 	beaconsToFloorplans
 } from '$lib/schema';
+import {productGroups} from "../../lib/schema";
 
 // import {b} from "vitest/dist/types-198fd1d9";
 
@@ -37,6 +38,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 		userId = user.userId;
 	}
 
+	generateProductGroups();
 	const customer1 = {
 		id: crypto.randomUUID(),
 		customerId: 'customer1'
@@ -398,3 +400,25 @@ async function getImageDimensions(imgPath: string) {
 // 	}
 // 	return matrix;
 // }
+
+async function generateProductGroups() {
+	const category_keys = [
+		'seker_sakiz', 'cikolata_biskuvi', 'cips', 'gevrek', 'bebek',
+		'sampuan_dusjeli', 'sabun', 'kisisel_bakim', 'camasir', 'bulasik',
+		'ev_temizligi', 'makarna_pirinc_bakliyat', 'hazirgida_baharat',
+		'sigara', 'pasta', 'peynir_tereyagi', 'dondurulmus', 'yumurta',
+		'salam_sosis_sucuk', 'kahve', 'cay', 'alet', 'sos', 'ekmek',
+		'sivi_yag', 'meyve_sebze', 'maden_suyu', 'icecek', 'kolonya',
+		'konserve_salca', 'pecete', 'mangal', 'poset', 'recel_bal',
+		'porselen', 'dondurma', 'kedi_kopek', 'kuruyemis', 'plastik',
+		'su', 'sut', 'ayran_yogurt', 'pil'
+	];
+
+	for (let i = 0; i < category_keys.length; i++) {
+		const category = {
+			id: crypto.randomUUID(),
+			groupName: category_keys[i]
+		};
+		await db.insert(productGroups).values(category);
+	}
+}
