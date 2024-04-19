@@ -1,11 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
-
 	import type KonvaType from 'konva';
-
 	import dayjs from 'dayjs';
-
 	import localizedFormat from 'dayjs/plugin/localizedFormat';
 	dayjs.extend(localizedFormat);
 
@@ -18,7 +15,6 @@
 		TableHead,
 		TableHeadCell,
 		Modal,
-		Checkbox,
 		Button,
 		Label,
 		Input,
@@ -33,8 +29,13 @@
 	import type { SelectBeaconWithFloorplan, SelectCampaignWithBeacons } from '$lib/schema';
 	export let data: PageData;
 
-	const { floorplan, availableBeacons, allCampaigns: campaigns } = data;
-	// console.log('data:', data.allCampaigns);
+	const {
+		floorplan,
+		availableBeacons,
+		allCampaigns: campaigns,
+		floorplanImgWidth,
+		floorplanImgHeight
+	} = data;
 
 	let items = campaigns;
 	let selectedRows: number[] = []; // = [0, 1, 2]
@@ -63,16 +64,9 @@
 		}
 	};
 
-	// const toggleAllCampaigns = () => {
-	// 	if (selectedRows.length === items.length) {
-	// 		selectedRows = [];
-	// 	} else {
-	// 		selectedRows = items.map((_, i) => i);
-	// 	}
-	// };
-
 	let Konva: typeof KonvaType;
 	let layer: KonvaType.Layer;
+	let rangeLayer: KonvaType.Layer;
 	let tooltipLayer: KonvaType.Layer;
 	let tooltip: KonvaType.Label;
 	let stage: KonvaType.Stage;
@@ -81,22 +75,19 @@
 	let isAddLocationToBeacon: boolean = false;
 	let beaconToAddLocation: SelectBeaconWithFloorplan | null = null;
 
-	const CANVAS_WIDTH = 500;
-	const CANVAS_HEIGHT = 800;
+	let CANVAS_WIDTH = floorplanImgWidth || 800;
+	let CANVAS_HEIGHT = floorplanImgHeight || 600;
+	let multiplier = 1;
 
 	onMount(async () => {
 		Konva = (await import('konva')).default;
-		// const parent: HTMLCanvasElement = document.getElementById('parent')! as HTMLCanvasElement;
+		const parent = document.getElementById('parent')! as HTMLCanvasElement;
 		// console.log('parent:', parent.clientWidth, parent.clientHeight);
-		const clientHeight = document.documentElement.clientHeight;
-		const clientWidth = document.documentElement.clientWidth;
+		multiplier = parent.clientWidth / CANVAS_WIDTH;
 		var konvaStage = new Konva.Stage({
-			container: 'canvas', // id of container <div>
-			width: CANVAS_WIDTH,
-			height: CANVAS_HEIGHT
-			// height: 400,
-			// width: parent.clientWidth,
-			// height: parent.clientHeight
+			container: 'canvas',
+			width: parent.clientWidth,
+			height: CANVAS_HEIGHT * multiplier
 		});
 		stage = konvaStage;
 
@@ -104,15 +95,18 @@
 		var konvaLayer = new Konva.Layer();
 		var konvaBackgroundLayer = new Konva.Layer();
 		var konvaTooltipLayer = new Konva.Layer();
+		var konvaRangeLayer = new Konva.Layer();
 
 		// add the layer to the stage
-		stage.add(konvaLayer);
 		stage.add(konvaBackgroundLayer);
+		stage.add(konvaRangeLayer);
+		stage.add(konvaLayer);
 		stage.add(konvaTooltipLayer);
 
 		// draw the image
 		konvaLayer.draw();
 		layer = konvaLayer;
+		rangeLayer = konvaRangeLayer;
 
 		tooltipLayer = konvaTooltipLayer;
 		tooltip = new Konva.Label({
@@ -169,9 +163,56 @@
 			};
 		}
 		stage.on('pointerdown', addLocationToBeacon);
+
+		stage.on('pointerenter', (event: any) => {
+			stage.container().style.cursor = 'pointer';
+		});
+
+		stage.on('pointerleave', (event: any) => {
+			stage.container().style.cursor = 'default';
+		});
+
+		var scaleBy = 1.01;
+		stage.on('wheel', (e: any) => {
+			// stop default scrolling
+			e.evt.preventDefault();
+			var oldScale = stage.scaleX();
+			var pointer = stage.getPointerPosition();
+			if (!pointer) {
+				return;
+			}
+			var mousePointTo = {
+				x: (pointer.x - stage.x()) / oldScale,
+				y: (pointer.y - stage.y()) / oldScale
+			};
+			// how to scale? Zoom in? Or zoom out?
+			let direction = e.evt.deltaY > 0 ? 1 : -1;
+			// when we zoom on trackpad, e.evt.ctrlKey is true
+			// in that case lets revert direction
+			if (e.evt.ctrlKey) {
+				direction = -direction;
+			}
+			var newScale = direction > 0 ? oldScale * scaleBy : oldScale / scaleBy;
+			if (newScale <= 1) {
+				var newPos = {
+					x: 0,
+					y: 0
+				};
+				stage.position(newPos);
+				return;
+			} else if (newScale > 3) {
+				return;
+			}
+			stage.scale({ x: newScale, y: newScale });
+			var newPos = {
+				x: pointer.x - mousePointTo.x * newScale,
+				y: pointer.y - mousePointTo.y * newScale
+			};
+			stage.position(newPos);
+		});
 	});
 
-	const BEACON_RANGE = 10;
+	const BEACON_RANGE = 2;
 
 	let beaconsMap: SelectBeaconWithFloorplan[] = [];
 
@@ -201,7 +242,6 @@
 		if (layer) {
 			updateMapDelete();
 			if (selectedRows && selectedRows.length > 0) {
-				// console.log('selectedRows:', selectedRows);
 				selectedRows.forEach((row) => {
 					if (items[row].beacons.length > 0) {
 						items[row].beacons.forEach(({ beacon }) => {
@@ -223,26 +263,24 @@
 
 		const circles = layer.find('Circle');
 		if (circles && circles.length > 0) {
-			circles.forEach((circle: any) => {
+			circles.forEach((circle) => {
 				if (circle.x() == pos.x && circle.y() == pos.y) {
+					circle.destroy();
 					return;
 				}
 			});
 		}
 		const beaconRange = beacon.radius;
 		Konva.Image.fromURL('/src/lib/assets/beacon.svg', function (beaconSvg) {
-			const IMAGE_W = beaconSvg.getWidth() / 5;
-			const IMAGE_H = beaconSvg.getHeight() / 5;
-			// console.log('beacon:', beacon);
-			// beacon.fill('red');
-			// change background color to red
+			const IMAGE_W = beaconSvg.getWidth() / 10;
+			const IMAGE_H = beaconSvg.getHeight() / 10;
 			beaconSvg.offset({
 				x: IMAGE_W,
 				y: IMAGE_H
 			});
 			beaconSvg.position({
-				x: pos.x,
-				y: pos.y
+				x: pos.x * multiplier,
+				y: pos.y * multiplier
 			});
 			beaconSvg.size({
 				width: IMAGE_W * 2,
@@ -252,9 +290,9 @@
 			beaconSvg.id(beacon.id.toString());
 
 			var circleRange = new Konva.Circle({
-				x: pos.x,
-				y: pos.y,
-				radius: BEACON_RANGE * beaconRange,
+				x: beaconSvg.x(),
+				y: beaconSvg.y(),
+				radius: beaconRange * BEACON_RANGE,
 				stroke: 'red',
 				strokeWidth: 1,
 				fill: 'red',
@@ -294,7 +332,7 @@
 				tooltip.hide();
 			});
 
-			layer.add(circleRange);
+			rangeLayer.add(circleRange);
 			layer.add(beaconSvg);
 			layer.draw();
 		});
@@ -367,7 +405,7 @@
 				var circleRange = new Konva.Circle({
 					x: pos.x,
 					y: pos.y,
-					radius: BEACON_RANGE * beaconRange,
+					radius: beaconRange * BEACON_RANGE,
 					stroke: 'red',
 					strokeWidth: 1,
 					fill: 'red',
@@ -418,7 +456,7 @@
 					layer.draw();
 				});
 
-				layer.add(circleRange);
+				rangeLayer.add(circleRange);
 				layer.add(beacon);
 				layer.draw();
 
@@ -460,7 +498,7 @@
 				return res.json();
 			})
 			.then(({ newCampaign }: { newCampaign: SelectCampaignWithBeacons }) => {
-				console.log('data:', newCampaign);
+				// console.log('data:', newCampaign);
 				items = [
 					...items,
 					{
@@ -503,7 +541,7 @@
 				return res.json();
 			})
 			.then(({ updatedCampaign }: { updatedCampaign: SelectCampaignWithBeacons }) => {
-				console.log('updatedCampaign:', updatedCampaign);
+				// console.log('updatedCampaign:', updatedCampaign);
 				items = items.map((item) => {
 					if (item.id == updatedCampaign.id) {
 						item = updatedCampaign;
@@ -525,7 +563,6 @@
 				'content-type': 'application/json'
 			}
 		}).then((res) => {
-			console.log('res:', res);
 			if (res.status === 200) {
 				items = items.filter((item) => item.id != id);
 				notify(`Campaign ${name} deleted`, 'success');
@@ -556,7 +593,6 @@
 				'content-type': 'application/json'
 			}
 		}).then((res) => {
-			console.log('res:', res);
 			if (res.status === 200) {
 				items = items.map((item) => {
 					if (item.id == campaignId) {
@@ -615,7 +651,7 @@
 		let beaconRanges: KonvaType.Circle[];
 
 		beaconSvgs = layer.find('Image');
-		beaconRanges = layer.find('Circle');
+		beaconRanges = rangeLayer.find('Circle');
 
 		beaconSvgs.forEach((beaconSvg: KonvaType.Image) => {
 			beaconSvg.destroy();
@@ -635,56 +671,29 @@
 </script>
 
 <div class="grid grid-cols-2 p-5 gap-5">
-	<div class="flex flex-col gap-5">
+	<div class="flex flex-col gap-10">
+		<div class="flex flex-row justify-between">
+			<h1 class="text-3xl font-semibold text-gray-800">Campaigns</h1>
+		</div>
 		<div>
-			<div class="flex flex-row justify-between items-center px-5 py-5 bg-slate-100">
-				<p class="text-xl font-semibold text-gray-900 dark:text-white">Campaigns</p>
-				<!-- <form method="POST" action="?/saveChanges"> -->
+			<div class="flex flex-row justify-end items-center px-5 py-5 bg-slate-100">
+				<!-- <p class="text-xl font-semibold text-gray-900 dark:text-white">Campaigns</p> -->
 				<div>
-					<!-- <Button
-						color="green"
-						pill
-						on:click={() => {
-							saveChanges();
-						}}
-						type="submit"
-					>
-						<i class="fa-solid fa-save fa-lg me-2" />
-						Save
-					</Button> -->
 					<Button
 						color="blue"
 						pill
 						on:click={() => {
 							isNewCampaignModalOpen = true;
 						}}
-						type="submit"
 					>
 						<i class="fa-solid fa-plus fa-lg me-2" />
 						New Campaign
 					</Button>
 				</div>
-				<!-- </form> -->
 			</div>
 			<Table hoverable={true} shadow>
-				<!-- <caption class="p-5 text-lg font-semibold text-left text-gray-900 bg-white dark:text-white dark:bg-gray-800">
-					Our products
-					<p class="mt-1 text-sm font-normal text-gray-500 dark:text-gray-400">Browse a list of Flowbite products designed to help you work and play, stay organized, get answers, keep in touch, grow your business, and more.</p>
-				  </caption> -->
 				<TableHead>
-					<TableBodyCell class="!p-4">
-						<!-- <Checkbox
-							checked={selectedRows?.length === items.length}
-							on:change={() => {
-								// if (selectedRows?.length === items.length) {
-								// 	selectedRows = [];
-								// } else {
-								// 	selectedRows = [...Array(items.length).keys()];
-								// }
-								toggleAllCampaigns();
-							}}
-						/> -->
-					</TableBodyCell>
+					<TableBodyCell class="!p-4" />
 					<TableHeadCell>Campaign name</TableHeadCell>
 					<TableHeadCell>Beacons</TableHeadCell>
 					<TableHeadCell>Created</TableHeadCell>
@@ -697,7 +706,6 @@
 					{#each items as item, i}
 						<TableBodyRow class={selectedRows?.includes(i) ? ' bg-gray-300' : 'bg-white'}>
 							<TableBodyCell class="!p-4">
-								<!-- <Checkbox checked={selectedRows.includes(i)} /> -->
 								<label class="swap">
 									<input
 										type="checkbox"
@@ -739,7 +747,7 @@
 									color="alternative"
 									pill
 									on:click={() => {
-										console.log('Edit');
+										// console.log('Edit');
 										if (editRow === i) {
 											editRow = -1;
 										} else {
@@ -782,7 +790,6 @@
 										<Toggle
 											on:change={async () => {
 												await updateCampaignStatus({ item: item }).then((res) => {
-													console.log('res:', res);
 													if (res.status === 200) {
 														item.status = item.status == 'active' ? 'inactive' : 'active';
 														notify(
@@ -886,8 +893,8 @@
 			</div> -->
 		</div>
 	</div>
-	<div class="relative max-w-fit" id="parent">
-		<div id="canvas" class="" />
+	<div class="h-full w-full" id="parent">
+		<div id="canvas" />
 	</div>
 </div>
 

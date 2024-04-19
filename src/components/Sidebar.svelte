@@ -22,14 +22,14 @@
 
 	var routes = [
 		{
-			name: 'editor',
-			icon: 'fa-solid fa-home fa-xl',
+			name: 'campaigns',
+			icon: 'fa-solid fa-home fa-lg',
 			// link: '/dashboard'
 			link: ''
 		},
 		{
 			name: 'beacons',
-			// icon: 'fa-solid fa-mobile-android-alt fa-lg',
+			// icon: 'fa-solid fa-mobile-android-alt',
 			icon: 'fa-solid fa-tower-broadcast',
 			// icon : BeaconSvg,
 			// svg: BeaconSvg,
@@ -37,7 +37,7 @@
 		},
 		{
 			name: 'heatmaps',
-			icon: 'fa-solid fa-fire',
+			icon: 'fa-solid fa-fire  fa-lg',
 			link: 'heatmaps'
 		},
 		// {

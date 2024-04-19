@@ -17,7 +17,8 @@ async function getBeacons(branchId: string) {
 		where: (beacon, { eq }) => eq(beacon.branchId, branchId),
 		with: {
 			floorplan: true
-		}
+		},
+		orderBy: (beacon, { asc }) => [asc(beacon.name)]
 	});
 }
 

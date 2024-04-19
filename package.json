@@ -34,7 +34,7 @@
 		"postcss": "^8.4.31",
 		"prettier": "^2.8.8",
 		"prettier-plugin-svelte": "^2.10.1",
-		"svelte": "^4.0.5",
+		"svelte": "^4.2.15",
 		"svelte-check": "^3.4.3",
 		"tailwindcss": "^3.3.5",
 		"tslib": "^2.4.1",
@@ -46,6 +46,7 @@
 	"dependencies": {
 		"@fortawesome/fontawesome-free": "^6.4.2",
 		"@lucia-auth/adapter-postgresql": "^2.0.1",
+		"@svelte-plugins/datepicker": "^1.0.9",
 		"dayjs": "^1.11.10",
 		"dotenv": "^16.3.1",
 		"drizzle-orm": "^0.29.0",
@@ -55,6 +56,7 @@
 		"postgres": "^3.4.0",
 		"sharp": "^0.33.3",
 		"svelte-konva": "^0.3.1",
-		"toastify-js": "^1.12.0"
+		"toastify-js": "^1.12.0",
+		"visual-heatmap": "^2.0.1"
 	}
 }

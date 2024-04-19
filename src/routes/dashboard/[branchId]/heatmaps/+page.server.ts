@@ -1,6 +1,8 @@
 import { db } from '$lib/server/db';
 import type { PageServerLoad } from '../$types';
 
+export const ssr = false;
+export const csr = true;
 export const load: PageServerLoad = async ({ params }) => {
 	const branchId = params.branchId;
 	const floorplan = await getFloorPlan(branchId);
