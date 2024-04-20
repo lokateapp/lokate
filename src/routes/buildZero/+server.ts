@@ -11,11 +11,10 @@ import {
 	branches,
 	events,
 	floorplans,
-	beaconsToFloorplans
+	beaconsToFloorplans,
+	productGroups,
+	EventStatus
 } from '$lib/schema';
-import {productGroups} from "../../lib/schema";
-
-// import {b} from "vitest/dist/types-198fd1d9";
 
 export const GET: RequestHandler = async ({ locals, url }) => {
 	let userId = null;
@@ -330,7 +329,7 @@ async function generateEvents(
 		const beaconPositions: { [key: string]: { x: number; y: number; r: number } } = {};
 
 		const getImagePromises = [];
-		for (const [beaconId, floorplan] of Object.entries(beaconsToFloorplansMap)) {
+		for (const [beaconId, floorplan] of Object.entries(beaconsToFloorplansMap) as any) {
 			const promise = getImageDimensions(floorplan.imgPath.slice(1)) // Remove the first '/' from the path
 				.then(({ floorplanImgWidth, floorplanImgHeight }) => {
 					const xPos = Math.floor(Math.random() * floorplanImgWidth);
@@ -361,7 +360,7 @@ async function generateEvents(
 			);
 
 			// 20% of events may remain at STAY status due to possible failure
-			const eventStatus = j % 5 === 0 ? 'STAY' : 'EXIT';
+			const eventStatus = j % 5 === 0 ? EventStatus.STAY : EventStatus.EXIT;
 			events.push({
 				id: crypto.randomUUID(),
 				status: eventStatus,
@@ -403,15 +402,49 @@ async function getImageDimensions(imgPath: string) {
 
 async function generateProductGroups() {
 	const category_keys = [
-		'seker_sakiz', 'cikolata_biskuvi', 'cips', 'gevrek', 'bebek',
-		'sampuan_dusjeli', 'sabun', 'kisisel_bakim', 'camasir', 'bulasik',
-		'ev_temizligi', 'makarna_pirinc_bakliyat', 'hazirgida_baharat',
-		'sigara', 'pasta', 'peynir_tereyagi', 'dondurulmus', 'yumurta',
-		'salam_sosis_sucuk', 'kahve', 'cay', 'alet', 'sos', 'ekmek',
-		'sivi_yag', 'meyve_sebze', 'maden_suyu', 'icecek', 'kolonya',
-		'konserve_salca', 'pecete', 'mangal', 'poset', 'recel_bal',
-		'porselen', 'dondurma', 'kedi_kopek', 'kuruyemis', 'plastik',
-		'su', 'sut', 'ayran_yogurt', 'pil'
+		'seker_sakiz',
+		'cikolata_biskuvi',
+		'cips',
+		'gevrek',
+		'bebek',
+		'sampuan_dusjeli',
+		'sabun',
+		'kisisel_bakim',
+		'camasir',
+		'bulasik',
+		'ev_temizligi',
+		'makarna_pirinc_bakliyat',
+		'hazirgida_baharat',
+		'sigara',
+		'pasta',
+		'peynir_tereyagi',
+		'dondurulmus',
+		'yumurta',
+		'salam_sosis_sucuk',
+		'kahve',
+		'cay',
+		'alet',
+		'sos',
+		'ekmek',
+		'sivi_yag',
+		'meyve_sebze',
+		'maden_suyu',
+		'icecek',
+		'kolonya',
+		'konserve_salca',
+		'pecete',
+		'mangal',
+		'poset',
+		'recel_bal',
+		'porselen',
+		'dondurma',
+		'kedi_kopek',
+		'kuruyemis',
+		'plastik',
+		'su',
+		'sut',
+		'ayran_yogurt',
+		'pil'
 	];
 
 	for (let i = 0; i < category_keys.length; i++) {

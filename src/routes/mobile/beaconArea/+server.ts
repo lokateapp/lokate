@@ -1,13 +1,7 @@
 import type { RequestHandler } from './$types';
-import { beacons, campaignsToBeacons, customers, events } from '$lib/schema';
+import { beacons, campaignsToBeacons, customers, events, EventStatus } from '$lib/schema';
 import { db } from '$lib/server/db';
 import { and, eq, desc } from 'drizzle-orm';
-
-enum EventStatus {
-	ENTER = 'ENTER',
-	EXIT = 'EXIT',
-	STAY = 'STAY'
-}
 
 export const POST: RequestHandler = async ({ request }) => {
 	try {

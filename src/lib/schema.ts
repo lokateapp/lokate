@@ -276,3 +276,9 @@ export type SelectEvent = {
 	[beacons._.name]: typeof beacons.$inferSelect;
 	[campaigns._.name]: typeof campaigns.$inferSelect;
 };
+
+export enum EventStatus {
+	ENTER = 'ENTER',
+	EXIT = 'EXIT',
+	STAY = 'STAY'
+}

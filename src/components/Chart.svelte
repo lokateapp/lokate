@@ -1,6 +1,4 @@
 <script lang="ts">
-	// import {d3} from
-	// import { onMount } from 'svelte';
 	import { onMount, onDestroy } from 'svelte';
 	import * as echarts from 'echarts';
 
@@ -63,7 +61,6 @@
 <div bind:clientWidth={width}>
 	<div {id} style="height: {height}px" />
 </div>
-
 
 <!-- D3 Charts -->
 <!-- import * as d3 from 'd3';
