@@ -3,7 +3,6 @@ import { events, beacons, campaigns, campaignsToBeacons, EventStatus } from '$li
 import { and, eq, gt, lt, sql } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
 import dayjs from 'dayjs';
-import type { Actions } from '@sveltejs/kit';
 
 export const ssr = false;
 export const csr = true;
@@ -40,8 +39,6 @@ export const load: PageServerLoad = async ({ params }) => {
 			// ...event["customers"],
 		};
 	});
-
-	// console.log('concatenatedEvents: ', concatenatedEvents);
 
 	return {
 		events: concatenatedEvents,
@@ -113,7 +110,6 @@ async function getCampaignsUsage(
 		.orderBy(campaigns.id);
 }
 
-//calculate number of unique customers that visited the branch
 async function calculateCustomers(
 	branchId: string,
 	from = dayjs(new Date())
@@ -141,5 +137,3 @@ async function calculateCustomers(
 		.groupBy(sql`DATE_TRUNC('day', ${events.enterTimestamp})`)
 		.orderBy(sql`DATE_TRUNC('day', ${events.enterTimestamp})`);
 }
-
-export const actions: Actions = {};

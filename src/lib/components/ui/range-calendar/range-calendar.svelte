@@ -1,17 +1,23 @@
 <script lang="ts">
-	import { RangeCalendar as RangeCalendarPrimitive } from "bits-ui";
-	import * as RangeCalendar from "./index.js";
-	import { cn } from "$lib/utils.js";
+	import { RangeCalendar as RangeCalendarPrimitive } from 'bits-ui';
+	import * as RangeCalendar from './index.js';
+	import { cn } from '$lib/utils.js';
+	import Button from '../button/button.svelte';
 
-	type $$Props = RangeCalendarPrimitive.Props;
+	type $$Props = RangeCalendarPrimitive.Props & {
+		open: boolean;
+		onClick: () => void;
+	};
 	type $$Events = RangeCalendarPrimitive.Events;
 
-	export let value: $$Props["value"] = undefined;
-	export let placeholder: $$Props["placeholder"] = undefined;
-	export let weekdayFormat: $$Props["weekdayFormat"] = "short";
-	export let startValue: $$Props["startValue"] = undefined;
+	export let value: $$Props['value'] = undefined;
+	export let placeholder: $$Props['placeholder'] = undefined;
+	export let weekdayFormat: $$Props['weekdayFormat'] = 'short';
+	export let startValue: $$Props['startValue'] = undefined;
+	export let open: boolean;
+	export let onClick: any;
 
-	let className: $$Props["class"] = undefined;
+	let className: $$Props['class'] = undefined;
 	export { className as class };
 </script>
 
@@ -21,7 +27,7 @@
 	bind:placeholder
 	bind:startValue
 	{weekdayFormat}
-	class={cn("p-3", className)}
+	class={cn('p-3', className)}
 	{...$$restProps}
 	let:months
 	let:weekdays
@@ -57,4 +63,15 @@
 			</RangeCalendar.Grid>
 		{/each}
 	</RangeCalendar.Months>
+	<Button
+		class="mt-3 w-full"
+		variant="default"
+		size="sm"
+		on:click={() => {
+			open = false;
+			onClick();
+		}}
+	>
+		Apply
+	</Button>
 </RangeCalendarPrimitive.Root>

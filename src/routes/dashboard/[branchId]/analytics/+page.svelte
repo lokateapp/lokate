@@ -16,30 +16,19 @@
 	dayjs.extend(localizedFormat);
 	import { EventStatus } from '$lib/schema';
 	// import type { DateRange } from 'bits-ui';
-	import { CalendarDate, getLocalTimeZone } from '@internationalized/date';
+	import { getLocalTimeZone, today } from '@internationalized/date';
 	import DateRangePicker from '$components/DateRangePicker.svelte';
+	import { page } from '$app/stores';
+	// import { notify } from '$components/notify';
+	import { onMount } from 'svelte';
+	import { ChevronLeft, ChevronRight } from 'lucide-svelte';
+	import * as Pagination from '$lib/components/ui/pagination/index.js';
 
-	const date6DaysBefore = dayjs().subtract(6, 'day');
-	const today = dayjs();
-	var campaignDateRangeValue = {
-		start: new CalendarDate(
-			date6DaysBefore.year(),
-			date6DaysBefore.month() + 1,
-			date6DaysBefore.date()
-		),
-		end: new CalendarDate(today.year(), today.month() + 1, today.date())
+	const TODAY = today(getLocalTimeZone());
+	let campaignDateRangeValue = {
+		start: TODAY.set({ day: TODAY.day - 6 }),
+		end: TODAY
 	};
-
-	var eventDateRangeValue = {
-		start: new CalendarDate(
-			date6DaysBefore.year(),
-			date6DaysBefore.month() + 1,
-			date6DaysBefore.date()
-		),
-		end: new CalendarDate(today.year(), today.month() + 1, today.date())
-	};
-
-	export let data: PageData;
 
 	$: width = window.innerWidth / 2;
 	$: height = window.innerHeight / 2;
@@ -49,20 +38,28 @@
 		height = window.innerHeight / 2;
 	});
 
-	const { events, beaconsObject, campaignsObject, allCampaigns, campaignsUsage, customersUsage } =
-		data;
+	export let data: PageData;
 
-	const last7DaysNames = Array.from({ length: 7 }, (_, i) => {
-		const date = today.subtract(i, 'day');
-		return {
-			name: date.format('ddd D'),
-			date: date.format('YYYY-MM-DD')
-		};
-	}).reverse();
+	const { beaconsObject, campaignsObject, allCampaigns } = data;
+	let events = data.events;
 
-	// $: if (eventDateRangeValue && eventDateRangeValue.end && eventDateRangeValue.start) {
-	// 	console.log('eventDateRangeValue : ', eventDateRangeValue);
-	// }
+	// let campaignsUsage = data.campaignsUsage;
+	// let customersUsage = data.customersUsage;
+	let campaignsUsage: { id: string; date: Date; count: number }[] = [];
+	let customersUsage: { date: Date; count: number }[] = [];
+	let totalEventCount: number = 0;
+
+	const getLast7Days = (givenDate: Date, length: number = 7) => {
+		return Array.from({ length: length }, (_, i) => {
+			const date = dayjs(givenDate).subtract(i, 'day');
+			return {
+				name: date.format('ddd, MMM D'),
+				date: date.format('YYYY-MM-DD')
+			};
+		}).reverse();
+	};
+
+	let last7Days = getLast7Days(TODAY.toDate(getLocalTimeZone()));
 
 	const seriesStyle: LineSeriesOption = {
 		symbolSize: 10,
@@ -81,12 +78,6 @@
 		tooltip: {
 			trigger: 'axis'
 		},
-		// legend: {
-		// 	data: ['Campaign1', 'Campaign2', 'Campaign3', 'Campaign4', 'Campaign5'],
-		// 	lineStyle: {
-		// 		width: 3
-		// 	}
-		// },
 		grid: {
 			left: '3%',
 			right: '4%',
@@ -101,86 +92,115 @@
 				}
 			}
 		},
-		xAxis: {
-			type: 'category',
-			boundaryGap: false,
-			data: last7DaysNames.map((day) => day.name)
-		},
+		// xAxis: {
+		// 	type: 'category',
+		// 	boundaryGap: false,
+		// 	data: last7Days.map((day) => day.name)
+		// },
 		yAxis: {
-			type: 'value',
-			axisLabel: {
-				formatter: '{value}',
-				color: '#6c757d',
-				fontSize: 12,
-				show: true
-			}
+			type: 'value'
 		}
-		// series: [
-		// 	{
-		// 		name: 'Campaign1',
-		// 		data: [120, 132, 101, 134, 90, 230, 210],
-		// 		...seriesStyle
-		// 	},
-		// 	{
-		// 		name: 'Campaign2',
-		// 		data: [220, 182, 191, 234, 290, 330, 310],
-		// 		...seriesStyle
-		// 	},
-		// 	{
-		// 		name: 'Campaign3',
-		// 		data: [150, 232, 201, 154, 190, 330, 410],
-		// 		...seriesStyle
-		// 	},
-		// 	{
-		// 		name: 'Campaign4',
-		// 		data: [320, 332, 301, 334, 390, 330, 320],
-		// 		...seriesStyle
-		// 	},
-		// 	{
-		// 		name: 'Campaign5',
-		// 		data: [820, 932, 901, 934, 1290, 1330, 1320],
-		// 		...seriesStyle
-		// 	}
-		// ]
 	};
 
-	$: if (allCampaigns.length > 0) {
-		// console.log('allCampaigns : ', allCampaigns);
-		option.legend = {
-			data: [...allCampaigns.map((campaign) => campaign.name), 'Number of unique customers'],
-			lineStyle: {
-				width: 3
-			}
-		};
-		option.series = [
-			...allCampaigns.map((campaign) => {
-				let filteredCampaigns = campaignsUsage.filter((usage) => usage.id === campaign.id);
-				let processedData = filteredCampaigns.map((usage) => {
+	$: {
+		if (allCampaigns.length > 0) {
+			// console.log('allCampaigns : ', allCampaigns);
+			option.legend = {
+				data: [...allCampaigns.map((campaign) => campaign.name), 'Number of unique customers'],
+				lineStyle: {
+					width: 3
+				}
+			};
+			option.series = [
+				...allCampaigns.map((campaign) => {
+					const filteredCampaigns = campaignsUsage.filter((usage) => usage.id === campaign.id);
+					let processedData = filteredCampaigns.map((usage) => {
+						return {
+							date: dayjs(usage.date).format('YYYY-MM-DD'),
+							count: usage.count
+						};
+					});
 					return {
-						date: dayjs(usage.date).format('YYYY-MM-DD'),
-						count: usage.count
+						name: campaign.name,
+						data: last7Days.map((day) => {
+							let data = processedData.find((usage) => usage.date === day.date);
+							return data ? data.count : 0;
+						}),
+						...seriesStyle
 					};
-				});
-				return {
-					name: campaign.name,
-					data: last7DaysNames.map((day) => {
-						let data = processedData.find((usage) => usage.date === day.date);
+				}),
+				{
+					name: 'Number of unique customers',
+					data: last7Days.map((day) => {
+						let data = customersUsage.find(
+							(usage) => dayjs(usage.date).format('YYYY-MM-DD') === day.date
+						);
 						return data ? data.count : 0;
 					}),
 					...seriesStyle
-				};
-			}),
-			{
-				name: 'Number of unique customers',
-				data: last7DaysNames.map((day) => {
-					let data = customersUsage.find(
-						(usage) => dayjs(usage.date).format('YYYY-MM-DD') === day.date
-					);
-					return data ? data.count : 0;
-				}),
-				...seriesStyle
-			}
-		];
+				}
+			];
+			option.xAxis = {
+				type: 'category',
+				boundaryGap: false,
+				data: last7Days.map((day) => day.name)
+			};
+		}
+	}
+	async function fetchCampaignsUsage(from: Date | null = null, to: Date | null = null) {
+		if (!from || !to) {
+			from = TODAY.set({ day: TODAY.day - 6 }).toDate(getLocalTimeZone());
+			to = TODAY.toDate(getLocalTimeZone());
+		}
+		from = dayjs(from).subtract(1, 'day').toDate();
+		await fetch(`/api/analytics/campaigns?branchId=${$page.params.branchId}&from=${from}&to=${to}`)
+			.then((res) => res.json())
+			.then(({ campaignsUsage: data, customerUsage: data2 }) => {
+				if (data) {
+					campaignsUsage = data;
+				}
+				if (data2) {
+					customersUsage = data2;
+				}
+			});
+		const range = dayjs(to).diff(dayjs(from), 'day');
+		last7Days = getLast7Days(to, range);
+	}
+
+	onMount(async () => {
+		await fetchCampaignsUsage();
+		await fetchEvents({ offset: 0 });
+	});
+
+	const onCampaignsUsageChange = async () => {
+		if (campaignDateRangeValue.start && campaignDateRangeValue.end) {
+			let from = campaignDateRangeValue.start?.toDate(getLocalTimeZone());
+			let to = campaignDateRangeValue.end?.toDate(getLocalTimeZone());
+			await fetchCampaignsUsage(from, to);
+		}
+	};
+
+	const fetchEvents = async ({ offset = 0, limit = 10 }) => {
+		// const test = $page.url.searchParams.get('offset');
+		// console.log('test : ', test);
+		await fetch(
+			`/api/analytics/events?branchId=${$page.params.branchId}&offset=${offset}&limit=${limit}`
+		)
+			.then((res) => res.json())
+			.then(({ selectedEvents, totalEventCount: count }) => {
+				if (selectedEvents) {
+					events = selectedEvents;
+					totalEventCount = count;
+				}
+			});
+	};
+
+	// let offsetSearchParam = parseInt($page.url.searchParams.get('offset') || '0');
+
+	let currentPage: number = 1;
+
+	$: {
+		fetchEvents({ offset: currentPage - 1 });
 	}
 </script>
 
@@ -193,15 +213,7 @@
 				<h3 class="mb-2 text-xl font-bold text-gray-900 dark:text-white">Events</h3>
 				<span class="text-base font-normal text-gray-500 dark:text-gray-400">Latest 10 events</span>
 			</div>
-			<DateRangePicker bind:value={eventDateRangeValue} />
-			<!-- <p>
-				{#if eventDateRangeValue}
-					{dayjs(eventDateRangeValue.start?.toDate(getLocalTimeZone())).format('ll')} -{' '}
-					{dayjs(eventDateRangeValue.end?.toDate(getLocalTimeZone())).format('ll')}
-				{:else}
-					All time
-				{/if}
-			</p> -->
+			<!-- <DateRangePicker bind:value={eventDateRangeValue} onClick={async () => {}} /> -->
 		</div>
 		<Table hoverable={true} shadow>
 			<TableHead>
@@ -235,6 +247,47 @@
 				{/each}
 			</TableBody>
 		</Table>
+		<div class="flex justify-end space-x-3 py-5">
+			<Pagination.Root
+				count={totalEventCount}
+				perPage={10}
+				let:pages
+				let:currentPage
+				bind:page={currentPage}
+				let:range
+			>
+				<Pagination.Content>
+					<Pagination.Item>
+						<Pagination.PrevButton>
+							<ChevronLeft class="h-4 w-4" />
+							<span class="hidden sm:block">Previous</span>
+						</Pagination.PrevButton>
+					</Pagination.Item>
+					{#each pages as page (page.key)}
+						{#if page.type === 'ellipsis'}
+							<Pagination.Item>
+								<Pagination.Ellipsis />
+							</Pagination.Item>
+						{:else}
+							<Pagination.Item>
+								<Pagination.Link {page} isActive={currentPage === page.value}>
+									{page.value}
+								</Pagination.Link>
+							</Pagination.Item>
+						{/if}
+					{/each}
+					<Pagination.Item>
+						<Pagination.NextButton>
+							<span class="hidden sm:block">Next</span>
+							<ChevronRight class="h-4 w-4" />
+						</Pagination.NextButton>
+					</Pagination.Item>
+				</Pagination.Content>
+				<p class="text-center text-[13px]">
+					Showing {range.start} - {range.end}
+				</p>
+			</Pagination.Root>
+		</div>
 	</div>
 	<div class="grid gap-4 3xl:grid-cols-1 2xl:grid-cols-1">
 		<div
@@ -247,7 +300,7 @@
 						Campaigns performance
 					</span>
 				</div>
-				<DateRangePicker bind:value={campaignDateRangeValue} />
+				<DateRangePicker bind:value={campaignDateRangeValue} onClick={onCampaignsUsageChange} />
 			</div>
 			<div>
 				<EChart

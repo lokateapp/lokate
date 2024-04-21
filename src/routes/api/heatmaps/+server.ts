@@ -17,15 +17,16 @@ export const GET: RequestHandler = async ({ url }) => {
 	}
 	const day = url.searchParams.get('day');
 
-	const date = new Date(day!);
-	console.log('date: ', date);
+	// console.log('day: ', day);
 
-	// const filteredEvents = await db.execute(
-	// 	sql`select * from ${events} where ${events.branchId} = ${branchId} and DATE(${events.enterTimestamp}) = ${day}`
-	// );
+	// const date = new Date(day!);
+	// console.log('date: ', date);
+
 	const filteredEvents = await db.query.events.findMany({
 		where: (event) => and(eq(event.branchId, branchId), sql`DATE(${event.enterTimestamp}) = ${day}`)
 	});
+
+	// console.log('filteredEvents: ', filteredEvents);
 
 	const floorplan = await getFloorPlan(branchId!);
 	const floorplanImgPath = floorplan?.imgPath.slice(1);

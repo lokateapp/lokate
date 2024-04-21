@@ -4,6 +4,7 @@
 	import { Navbar, Footer, Sidebar } from '../components';
 	import type { PageData } from './$types';
 	import { page } from '$app/stores';
+	import { Toaster } from 'svelte-sonner';
 
 	export let data: PageData;
 </script>
@@ -30,3 +31,4 @@
 		</div>
 	{/if}
 </section>
+<Toaster richColors position="top-right" />
