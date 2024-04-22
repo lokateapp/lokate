@@ -9,9 +9,9 @@
 	export let data: PageData;
 </script>
 
-<section class="bg-white min-h-screen flex flex-col">
+<section class="bg-white w-screen h-fit min-h-screen">
 	{#if data.user}
-		<Navbar />
+		<Navbar branches={data.branches} />
 		{#if !$page.route.id?.startsWith('/branches')}
 			<Sidebar />
 			<div class="ml-20">
@@ -20,7 +20,6 @@
 		{:else}
 			<slot />
 		{/if}
-		<!-- sm:ml-64 -->
 	{:else}
 		<slot />
 	{/if}
