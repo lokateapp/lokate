@@ -13,6 +13,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		}
 	} else if (
 		event.url.pathname.startsWith('/buildZero') ||
+		event.url.pathname.startsWith('/deleteAll') ||
 		event.url.pathname.startsWith('/helper') ||
 		event.url.pathname.startsWith('/api')
 	) {

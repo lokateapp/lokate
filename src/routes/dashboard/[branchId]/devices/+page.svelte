@@ -52,7 +52,8 @@
 	let deviceToAddLocation: SelectBeaconWithFloorplan | null = null;
 	let isDraggable: boolean = false;
 
-	let isSaveChanges: boolean = false;
+	// let isSaveChanges: boolean = false;
+	let isSaveChanges: { [key: string]: boolean } = {};
 
 	const MIN_RANGE_BEACON = 1;
 	const MAX_RANGE_BEACON = 15;
@@ -332,7 +333,7 @@
 
 			if (draggable) {
 				beaconSvg.on('dragmove', (event: any) => {
-					isSaveChanges = true;
+					isSaveChanges[beacon.id] = true;
 					beacon.floorplan = {
 						beaconId: pos.beaconId,
 						floorplanId: pos.floorplanId,
@@ -497,7 +498,7 @@
 			}
 		}).then((res) => {
 			if (res.status === 200) {
-				isSaveChanges = false;
+				isSaveChanges[device.id] = false;
 				notify('Changes saved successfully', 'success');
 			} else {
 				notify('Error saving changes', 'error');
@@ -530,13 +531,6 @@
 			beaconRange.destroy();
 		});
 	};
-
-	const previousTable = () => {
-		alert('Previous btn clicked. Make a call to your server to fetch data.');
-	};
-	const nextTable = () => {
-		alert('Next btn clicked. Make a call to your server to fetch data.');
-	};
 </script>
 
 <div class="grid grid-cols-4 p-5 gap-5">
@@ -545,11 +539,6 @@
 			<div class="flex flex-col gap-10 justify-center">
 				<div class="flex flex-row justify-between">
 					<h1 class="text-3xl font-semibold text-gray-800">Devices</h1>
-					<!-- <div class="flex flex-row">
-					<button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-						Request new beacon
-					</button>
-				</div> -->
 				</div>
 				<div class="">
 					<Table hoverable={true} shadow>
@@ -599,7 +588,7 @@
 													placeholder={device.name}
 													bind:value={device.name}
 													on:input={(e) => {
-														isSaveChanges = true;
+														isSaveChanges[device.id] = true;
 														// updateBeaconInfo(e, true);
 													}}
 												/>
@@ -612,7 +601,7 @@
 													max={MAX_RANGE_BEACON}
 													bind:value={device.radius}
 													on:change={(e) => {
-														isSaveChanges = true;
+														isSaveChanges[device.id] = true;
 														// updateBeaconInfo(e, false);
 													}}
 													step={BEACON_RANGE_STEP}
@@ -659,7 +648,7 @@
 												{/if}
 											</div>
 											<div>
-												{#if isSaveChanges}
+												{#if isSaveChanges[device.id]}
 													<Button
 														color="green"
 														pill

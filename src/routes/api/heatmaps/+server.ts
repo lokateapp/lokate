@@ -17,10 +17,7 @@ export const GET: RequestHandler = async ({ url }) => {
 	}
 	const day = url.searchParams.get('day');
 
-	// console.log('day: ', day);
-
-	// const date = new Date(day!);
-	// console.log('date: ', date);
+	let scale = parseInt(url.searchParams.get('scale')!);
 
 	const filteredEvents = await db.query.events.findMany({
 		where: (event) => and(eq(event.branchId, branchId), sql`DATE(${event.enterTimestamp}) = ${day}`)
@@ -49,14 +46,22 @@ export const GET: RequestHandler = async ({ url }) => {
 				const distance = Math.sqrt((x - event.locationX) ** 2 + (y - event.locationY) ** 2);
 				if (distance <= radius) {
 					heatMapData.push({
-						x,
-						y,
+						x: x * scale,
+						y: y * scale,
 						value: value / distance
 					});
 				}
 			}
 		}
 	});
+
+	// Min-max feature scaling
+	// const min = Math.min(...heatMapData.map((data) => data.value));
+	// const max = Math.max(...heatMapData.map((data) => data.value));
+	// heatMapData = heatMapData.map((data) => ({
+	// 	...data,
+	// 	value: (data.value - min) / (max - min)
+	// }));
 	// console.log('heatMapData: ', heatMapData);
 	return json(heatMapData);
 };

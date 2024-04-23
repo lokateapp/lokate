@@ -1,11 +1,11 @@
 {
-  "id": "de6953f2-e1cc-4b47-8b92-0cc176163ab5",
+  "id": "56288a51-edb3-4b7b-ace7-946acb35a6fb",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "5",
   "dialect": "pg",
   "tables": {
-    "beaconPositions": {
-      "name": "beaconPositions",
+    "beacons": {
+      "name": "beacons",
       "schema": "",
       "columns": {
         "id": {
@@ -14,92 +14,33 @@
           "primaryKey": true,
           "notNull": true
         },
-        "beacon_id": {
-          "name": "beacon_id",
+        "branch_id": {
+          "name": "branch_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "proximity_uuid": {
+          "name": "proximity_uuid",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
         "major": {
           "name": "major",
-          "type": "varchar(100)",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
         "minor": {
           "name": "minor",
-          "type": "varchar(100)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "timestamp": {
-          "name": "timestamp",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "CURRENT_TIMESTAMP"
-        },
-        "x": {
-          "name": "x",
           "type": "integer",
           "primaryKey": false,
           "notNull": true
-        },
-        "y": {
-          "name": "y",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "beacon_fk": {
-          "name": "beacon_fk",
-          "tableFrom": "beaconPositions",
-          "tableTo": "beacons",
-          "columnsFrom": [
-            "beacon_id",
-            "major",
-            "minor"
-          ],
-          "columnsTo": [
-            "id",
-            "major",
-            "minor"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "beacons": {
-      "name": "beacons",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "varchar(15)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "branch_id": {
-          "name": "branch_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
         },
         "radius": {
           "name": "radius",
-          "type": "integer",
+          "type": "double precision",
           "primaryKey": false,
           "notNull": true
         },
@@ -108,39 +49,14 @@
           "type": "varchar(40)",
           "primaryKey": false,
           "notNull": false
-        },
-        "major": {
-          "name": "major",
-          "type": "varchar(100)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "minor": {
-          "name": "minor",
-          "type": "varchar(100)",
-          "primaryKey": false,
-          "notNull": false
         }
       },
       "indexes": {},
       "foreignKeys": {
-        "beacons_user_id_auth_user_id_fk": {
-          "name": "beacons_user_id_auth_user_id_fk",
+        "beacons_branch_id_branches_id_fk": {
+          "name": "beacons_branch_id_branches_id_fk",
           "tableFrom": "beacons",
-          "tableTo": "auth_user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "beacons_branch_id_branch_id_fk": {
-          "name": "beacons_branch_id_branch_id_fk",
-          "tableFrom": "beacons",
-          "tableTo": "branch",
+          "tableTo": "branches",
           "columnsFrom": [
             "branch_id"
           ],
@@ -151,20 +67,80 @@
           "onUpdate": "no action"
         }
       },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "beacons_to_floorplans": {
+      "name": "beacons_to_floorplans",
+      "schema": "",
+      "columns": {
+        "beacon_id": {
+          "name": "beacon_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "floorplan_id": {
+          "name": "floorplan_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "x": {
+          "name": "x",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "y": {
+          "name": "y",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "beacons_to_floorplans_beacon_id_beacons_id_fk": {
+          "name": "beacons_to_floorplans_beacon_id_beacons_id_fk",
+          "tableFrom": "beacons_to_floorplans",
+          "tableTo": "beacons",
+          "columnsFrom": [
+            "beacon_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "beacons_to_floorplans_floorplan_id_floorplans_id_fk": {
+          "name": "beacons_to_floorplans_floorplan_id_floorplans_id_fk",
+          "tableFrom": "beacons_to_floorplans",
+          "tableTo": "floorplans",
+          "columnsFrom": [
+            "floorplan_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {
-        "beacons_id_major_minor_pk": {
-          "name": "beacons_id_major_minor_pk",
+        "beacons_to_floorplans_beacon_id_floorplan_id_pk": {
+          "name": "beacons_to_floorplans_beacon_id_floorplan_id_pk",
           "columns": [
-            "id",
-            "major",
-            "minor"
+            "beacon_id",
+            "floorplan_id"
           ]
         }
       },
       "uniqueConstraints": {}
     },
-    "branch": {
-      "name": "branch",
+    "branches": {
+      "name": "branches",
       "schema": "",
       "columns": {
         "id": {
@@ -172,10 +148,48 @@
           "type": "uuid",
           "primaryKey": true,
           "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "varchar(15)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "address": {
+          "name": "address",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "latitude": {
+          "name": "latitude",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "longitude": {
+          "name": "longitude",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": true
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "branches_user_id_auth_user_id_fk": {
+          "name": "branches_user_id_auth_user_id_fk",
+          "tableFrom": "branches",
+          "tableTo": "auth_user",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
@@ -189,23 +203,23 @@
           "primaryKey": true,
           "notNull": true
         },
+        "branch_id": {
+          "name": "branch_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
         "text": {
           "name": "text",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "user_id": {
-          "name": "user_id",
-          "type": "varchar(15)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "campaignStatus": {
-          "name": "campaignStatus",
+        "campaign_status": {
+          "name": "campaign_status",
           "type": "campaignStatus",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "default": "'inactive'"
         },
         "created_at": {
@@ -218,25 +232,25 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "campaigns_user_id_auth_user_id_fk": {
-          "name": "campaigns_user_id_auth_user_id_fk",
+        "campaigns_branch_id_branches_id_fk": {
+          "name": "campaigns_branch_id_branches_id_fk",
           "tableFrom": "campaigns",
-          "tableTo": "auth_user",
+          "tableTo": "branches",
           "columnsFrom": [
-            "user_id"
+            "branch_id"
           ],
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "campaignsToBeacons": {
-      "name": "campaignsToBeacons",
+    "campaigns_to_beacons": {
+      "name": "campaigns_to_beacons",
       "schema": "",
       "columns": {
         "campaign_id": {
@@ -250,25 +264,13 @@
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
-        },
-        "major": {
-          "name": "major",
-          "type": "varchar(100)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "minor": {
-          "name": "minor",
-          "type": "varchar(100)",
-          "primaryKey": false,
-          "notNull": true
         }
       },
       "indexes": {},
       "foreignKeys": {
-        "campaignsToBeacons_campaign_id_campaigns_id_fk": {
-          "name": "campaignsToBeacons_campaign_id_campaigns_id_fk",
-          "tableFrom": "campaignsToBeacons",
+        "campaigns_to_beacons_campaign_id_campaigns_id_fk": {
+          "name": "campaigns_to_beacons_campaign_id_campaigns_id_fk",
+          "tableFrom": "campaigns_to_beacons",
           "tableTo": "campaigns",
           "columnsFrom": [
             "campaign_id"
@@ -279,32 +281,26 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "beacon_fk": {
-          "name": "beacon_fk",
-          "tableFrom": "campaignsToBeacons",
+        "campaigns_to_beacons_beacon_id_beacons_id_fk": {
+          "name": "campaigns_to_beacons_beacon_id_beacons_id_fk",
+          "tableFrom": "campaigns_to_beacons",
           "tableTo": "beacons",
           "columnsFrom": [
-            "beacon_id",
-            "major",
-            "minor"
+            "beacon_id"
           ],
           "columnsTo": [
-            "id",
-            "major",
-            "minor"
+            "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
-        "campaignsToBeacons_campaign_id_beacon_id_major_minor_pk": {
-          "name": "campaignsToBeacons_campaign_id_beacon_id_major_minor_pk",
+        "campaigns_to_beacons_campaign_id_beacon_id_pk": {
+          "name": "campaigns_to_beacons_campaign_id_beacon_id_pk",
           "columns": [
             "campaign_id",
-            "beacon_id",
-            "major",
-            "minor"
+            "beacon_id"
           ]
         }
       },
@@ -348,20 +344,50 @@
           "primaryKey": false,
           "notNull": true
         },
-        "enterTimestamp": {
-          "name": "enterTimestamp",
-          "type": "timestamp",
+        "enter_timestamp": {
+          "name": "enter_timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true
         },
-        "possibleExitTimestamp": {
-          "name": "possibleExitTimestamp",
-          "type": "timestamp",
+        "possible_exit_timestamp": {
+          "name": "possible_exit_timestamp",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "location_x": {
+          "name": "location_x",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "location_y": {
+          "name": "location_y",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "radius": {
+          "name": "radius",
+          "type": "double precision",
           "primaryKey": false,
           "notNull": true
         },
         "customer_id": {
           "name": "customer_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "branch_id": {
+          "name": "branch_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "beacon_id": {
+          "name": "beacon_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
@@ -388,6 +414,32 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
+        "events_branch_id_branches_id_fk": {
+          "name": "events_branch_id_branches_id_fk",
+          "tableFrom": "events",
+          "tableTo": "branches",
+          "columnsFrom": [
+            "branch_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "events_beacon_id_beacons_id_fk": {
+          "name": "events_beacon_id_beacons_id_fk",
+          "tableFrom": "events",
+          "tableTo": "beacons",
+          "columnsFrom": [
+            "beacon_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
         "events_campaign_id_campaigns_id_fk": {
           "name": "events_campaign_id_campaigns_id_fk",
           "tableFrom": "events",
@@ -399,6 +451,60 @@
             "id"
           ],
           "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "floorplans": {
+      "name": "floorplans",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "branch_id": {
+          "name": "branch_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "img_path": {
+          "name": "img_path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "width": {
+          "name": "width",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "height": {
+          "name": "height",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "floorplans_branch_id_branches_id_fk": {
+          "name": "floorplans_branch_id_branches_id_fk",
+          "tableFrom": "floorplans",
+          "tableTo": "branches",
+          "columnsFrom": [
+            "branch_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
@@ -445,6 +551,85 @@
         }
       },
       "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "product_groups": {
+      "name": "product_groups",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "group_name": {
+          "name": "group_name",
+          "type": "varchar(40)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "product_groups_to_campaigns": {
+      "name": "product_groups_to_campaigns",
+      "schema": "",
+      "columns": {
+        "campaign_id": {
+          "name": "campaign_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "product_group_id": {
+          "name": "product_group_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "product_groups_to_campaigns_campaign_id_campaigns_id_fk": {
+          "name": "product_groups_to_campaigns_campaign_id_campaigns_id_fk",
+          "tableFrom": "product_groups_to_campaigns",
+          "tableTo": "campaigns",
+          "columnsFrom": [
+            "campaign_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "product_groups_to_campaigns_product_group_id_product_groups_id_fk": {
+          "name": "product_groups_to_campaigns_product_group_id_product_groups_id_fk",
+          "tableFrom": "product_groups_to_campaigns",
+          "tableTo": "product_groups",
+          "columnsFrom": [
+            "product_group_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "product_groups_to_campaigns_campaign_id_product_group_id_pk": {
+          "name": "product_groups_to_campaigns_campaign_id_product_group_id_pk",
+          "columns": [
+            "campaign_id",
+            "product_group_id"
+          ]
+        }
+      },
       "uniqueConstraints": {}
     },
     "user_session": {

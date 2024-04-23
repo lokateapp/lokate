@@ -40,7 +40,7 @@
 		const res = await fetch(
 			`/api/heatmaps?branchId=${data.branchId}&day=${date.toDate(
 				getLocalTimeZone()
-			)}`
+			)}&scale=${SCALE}`
 		);
 		heatmapMatrix = await res.json();
 		// console.log('heatmapMatrix: ', heatmapMatrix);
@@ -57,28 +57,17 @@
 		clearInterval(intervalId);
 		heatmapMatrix = [];
 	});
+
+	let width = data.floorplan?.width ? data.floorplan.width * SCALE : 0;
+	let height = data.floorplan?.height ? data.floorplan.height * SCALE : 0;
 </script>
 
-<div>
-	<div style="position: relative; display: inline-block; transform-origin: top left;">
-		<!-- <img src={imageSrc} alt="Floorplan" /> -->
-		<div class="heatmap-overlay m-5" style="background-image: url({imageSrc});">
-			<div class="relative flex justify-end">
-				<DatePicker bind:value={currentDate} onClick={() => {}} />
-			</div>
-
-			<Heatmap
-				{heatmapMatrix}
-				imageWidth={data.floorplan?.width ?? 0}
-				imageHeight={data.floorplan?.height ?? 0}
-			/>
+<div style="width: {width}px; height: {height}px;">
+	<div class="ml-10 mt-10">
+		<div class="flex justify-end">
+			<DatePicker bind:value={currentDate} onClick={() => {}} />
 		</div>
+
+		<Heatmap {heatmapMatrix} imageSrc={imageSrc || ''} imageWidth={width} imageHeight={height} />
 	</div>
 </div>
-
-<style>
-	.heatmap-overlay {
-		background-size: contain;
-		background-repeat: no-repeat;
-	}
-</style>
