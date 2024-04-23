@@ -1,0 +1,1 @@
+These endpoints are not part of Lokate; they are part of demo applications.
