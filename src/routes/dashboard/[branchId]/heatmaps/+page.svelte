@@ -40,7 +40,7 @@
 		const res = await fetch(
 			`/api/heatmaps?branchId=${data.branchId}&day=${date.toDate(
 				getLocalTimeZone()
-			)}&scale=${SCALE}`
+			)}`
 		);
 		heatmapMatrix = await res.json();
 		// console.log('heatmapMatrix: ', heatmapMatrix);

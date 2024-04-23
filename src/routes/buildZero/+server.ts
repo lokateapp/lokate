@@ -125,8 +125,8 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	await db.insert(beaconsToFloorplans).values({
 		beaconId: beacon3.id,
 		floorplanId: floorplan1.id,
-		x: 700,
-		y: 700
+		x: 400,
+		y: 400
 	})
 
 	const beacon4 = {
