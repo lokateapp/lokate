@@ -13,7 +13,8 @@ import {
 	floorplans,
 	beaconsToFloorplans,
 	productGroups,
-	EventStatus
+	EventStatus,
+	productGroupsToCampaigns
 } from '$lib/schema';
 
 export const GET: RequestHandler = async ({ locals, url }) => {
@@ -37,7 +38,6 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 		userId = user.userId;
 	}
 
-	generateProductGroups();
 	const customer1 = {
 		id: crypto.randomUUID(),
 		customerId: 'customer1'
@@ -102,16 +102,32 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	};
 	await db.insert(beacons).values(beacon2);
 
+	// place pink beacon to the floorplan
+	await db.insert(beaconsToFloorplans).values({
+		beaconId: beacon2.id,
+		floorplanId: floorplan1.id,
+		x: 100,
+		y: 100
+	})
+
 	const beacon3 = {
 		id: crypto.randomUUID(),
 		branchId: branch1.id,
 		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
 		major: 1,
 		minor: 2,
-		radius: 5.0,
+		radius: 0.5,
 		name: 'Red'
 	};
 	await db.insert(beacons).values(beacon3);
+
+	// place red beacon to the floorplan
+	await db.insert(beaconsToFloorplans).values({
+		beaconId: beacon3.id,
+		floorplanId: floorplan1.id,
+		x: 700,
+		y: 700
+	})
 
 	const beacon4 = {
 		id: crypto.randomUUID(),
@@ -207,6 +223,9 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 
 	const insertBeaconsToFloorplansPromises = [];
 	for (const [beaconId, floorplan] of Object.entries(beaconsToFloorplansMap)) {
+		if (beaconId == beacon2.id || beaconId == beacon3.id) {
+			continue;	// red and pink beacons are already placed
+		}
 		// initial positions of beacons is (0,0)
 		const data = { beaconId, floorplanId: floorplan.id, x: 0, y: 0 };
 		insertBeaconsToFloorplansPromises.push(db.insert(beaconsToFloorplans).values(data));
@@ -274,6 +293,8 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	for (const event of randomEvents) {
 		await db.insert(events).values(event);
 	}
+
+	generateProductGroups(branchesToCampaignsMap[branch1.id]);
 
 	// Build the response object with information about the created entities
 	const responseObj = {
@@ -400,7 +421,7 @@ async function getImageDimensions(imgPath: string) {
 // 	return matrix;
 // }
 
-async function generateProductGroups() {
+async function generateProductGroups(campaigns: any) {
 	const category_keys = [
 		'seker_sakiz',
 		'cikolata_biskuvi',
@@ -453,5 +474,15 @@ async function generateProductGroups() {
 			groupName: category_keys[i]
 		};
 		await db.insert(productGroups).values(category);
+
+		// there are two campaigns in branch1, hence length of campaigns array is two
+		// first half of the products is mapped to the first campaign
+		// second half of the products is mapped to the second campaign
+		// the same mapping is performed in the demo mobile application
+		const match = {
+			campaignId: i < category_keys.length / 2 ? campaigns[0] : campaigns[1],
+			productGroupId: category.id
+		}
+		await db.insert(productGroupsToCampaigns).values(match);
 	}
 }
