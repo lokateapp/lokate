@@ -207,6 +207,7 @@ const handleExitEvent = async ({
 				eq(events.status, EventStatus.STAY)
 			)
 		)
+		.orderBy(desc(events.enterTimestamp))
 		.limit(1);
 
 	if (event.length === 0) {
