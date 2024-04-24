@@ -40,7 +40,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 
 	const customer1 = {
 		id: crypto.randomUUID(),
-		customerId: 'customer1'
+		customerId: 'umut'
 	};
 	await db.insert(customers).values(customer1);
 
@@ -108,7 +108,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 		floorplanId: floorplan1.id,
 		x: 100,
 		y: 100
-	})
+	});
 
 	const beacon3 = {
 		id: crypto.randomUUID(),
@@ -127,7 +127,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 		floorplanId: floorplan1.id,
 		x: 400,
 		y: 400
-	})
+	});
 
 	const beacon4 = {
 		id: crypto.randomUUID(),
@@ -224,7 +224,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	const insertBeaconsToFloorplansPromises = [];
 	for (const [beaconId, floorplan] of Object.entries(beaconsToFloorplansMap)) {
 		if (beaconId == beacon2.id || beaconId == beacon3.id) {
-			continue;	// red and pink beacons are already placed
+			continue; // red and pink beacons are already placed
 		}
 		// initial positions of beacons is (0,0)
 		const data = { beaconId, floorplanId: floorplan.id, x: 0, y: 0 };
@@ -482,7 +482,7 @@ async function generateProductGroups(campaigns: any) {
 		const match = {
 			campaignId: i < category_keys.length / 2 ? campaigns[0] : campaigns[1],
 			productGroupId: category.id
-		}
+		};
 		await db.insert(productGroupsToCampaigns).values(match);
 	}
 }

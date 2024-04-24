@@ -1,5 +1,5 @@
 import type { RequestHandler } from './$types';
-import { campaigns, productGroups, productGroupsToCampaigns } from '$lib/schema';
+import { campaigns, customers, productGroups, productGroupsToCampaigns } from '$lib/schema';
 import { db } from '$lib/server/db';
 import { eq } from 'drizzle-orm';
 
@@ -13,8 +13,17 @@ const PURCHASE_ANALYTICS_URL = 'http://localhost:5000/probabilityToBuy';
 export const GET: RequestHandler = async ({ url }) => {
 	try {
 		const customerId = url.searchParams.get('customerId');
+		const customer = await db
+			.select()
+			.from(customers)
+			.where(eq(customers.customerId, customerId!))
+			.limit(1);
 
-		const response = await fetch(`${PURCHASE_ANALYTICS_URL}/${customerId}`);
+		if (customer === undefined) {
+			throw new Error('Unknown customer');
+		}
+
+		const response = await fetch(`${PURCHASE_ANALYTICS_URL}/${customer[0].id}`);
 		const categoriesProbabilities: CategoryProbability[] = await response.json();
 
 		// select top 4 category
@@ -45,9 +54,11 @@ export const GET: RequestHandler = async ({ url }) => {
 			campaignVisitOrders: []
 		};
 
-		return new Response(JSON.stringify(responseObject), { status: 200 });
+		return new Response(JSON.stringify(responseObject), {
+			status: 200,
+			headers: { 'Content-Type': 'application/json' }
+		});
 	} catch (error) {
-		// Handle errors appropriately
 		console.error('Error:', error);
 		return new Response('Internal Server Error', { status: 500 });
 	}
