@@ -2,7 +2,6 @@ import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
 import { auth } from '$lib/server/lucia';
 import crypto from 'crypto';
-import sharp from 'sharp';
 import {
 	beacons,
 	campaigns,
@@ -16,6 +15,7 @@ import {
 	EventStatus,
 	productGroupsToCampaigns
 } from '$lib/schema';
+import { getImageDimensions } from '$lib/get-img-dimensions';
 
 export const GET: RequestHandler = async ({ locals, url }) => {
 	let userId = null;
@@ -349,19 +349,15 @@ async function generateEvents(
 		// it is just for populating heatmaps with some pseudo events happening on different locations
 		const beaconPositions: { [key: string]: { x: number; y: number; r: number } } = {};
 
-		const getImagePromises = [];
 		for (const [beaconId, floorplan] of Object.entries(beaconsToFloorplansMap) as any) {
-			const promise = getImageDimensions(floorplan.imgPath.slice(1)) // Remove the first '/' from the path
-				.then(({ floorplanImgWidth, floorplanImgHeight }) => {
-					const xPos = Math.floor(Math.random() * floorplanImgWidth);
-					const yPos = Math.floor(Math.random() * floorplanImgHeight);
-					const radius = Math.random() * 15;
-					beaconPositions[beaconId] = { x: xPos, y: yPos, r: radius };
-				});
-			getImagePromises.push(promise);
+			const { floorplanImgWidth, floorplanImgHeight } = getImageDimensions(
+				floorplan.imgPath.slice(1)
+			);
+			const xPos = Math.floor(Math.random() * floorplanImgWidth);
+			const yPos = Math.floor(Math.random() * floorplanImgHeight);
+			const radius = Math.random() * 15;
+			beaconPositions[beaconId] = { x: xPos, y: yPos, r: radius };
 		}
-		await Promise.all(getImagePromises);
-
 		// generate 100 events for each day
 		const startDate = new Date();
 		startDate.setDate(startDate.getDate() - i);
@@ -399,14 +395,6 @@ async function generateEvents(
 	}
 
 	return events;
-}
-
-async function getImageDimensions(imgPath: string) {
-	const metadata = await sharp(imgPath).metadata();
-	return {
-		floorplanImgWidth: metadata.width!,
-		floorplanImgHeight: metadata.height!
-	};
 }
 
 // function generateHeatmapMatrix(width: number, height: number) {

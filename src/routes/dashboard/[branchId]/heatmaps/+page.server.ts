@@ -1,3 +1,4 @@
+import { getImageDimensions } from '$lib/get-img-dimensions';
 import { db } from '$lib/server/db';
 import type { PageServerLoad } from '../$types';
 
@@ -7,7 +8,15 @@ export const load: PageServerLoad = async ({ params }) => {
 	const branchId = params.branchId;
 	const floorplan = await getFloorPlan(branchId);
 
-	return { branchId, floorplan };
+	let floorplanImgWidth = 0,
+		floorplanImgHeight = 0;
+	if (floorplan) {
+		const data = getImageDimensions(floorplan.imgPath.slice(1));
+		floorplanImgWidth = data.floorplanImgWidth;
+		floorplanImgHeight = data.floorplanImgHeight;
+	}
+
+	return { branchId, floorplan, floorplanImgWidth, floorplanImgHeight };
 };
 
 async function getFloorPlan(branchId: string) {

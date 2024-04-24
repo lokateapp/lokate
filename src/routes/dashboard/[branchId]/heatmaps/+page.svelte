@@ -10,6 +10,8 @@
 	export let data: PageData;
 	const imageSrc = data.floorplan?.imgPath;
 
+	const { floorplanImgWidth, floorplanImgHeight } = data;
+
 	const SCALE = 2;
 	const TIME_INTERVAL = 5000;
 
@@ -58,8 +60,8 @@
 		heatmapMatrix = [];
 	});
 
-	let width = data.floorplan?.width ? data.floorplan.width * SCALE : 0;
-	let height = data.floorplan?.height ? data.floorplan.height * SCALE : 0;
+	let width = floorplanImgWidth ? floorplanImgWidth * SCALE : 0;
+	let height = floorplanImgHeight ? floorplanImgHeight * SCALE : 0;
 </script>
 
 <div style="width: {width}px; height: {height}px;">

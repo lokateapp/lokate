@@ -43,8 +43,6 @@
 	const { beaconsObject, campaignsObject, allCampaigns } = data;
 	let events = data.events;
 
-	// let campaignsUsage = data.campaignsUsage;
-	// let customersUsage = data.customersUsage;
 	let campaignsUsage: { id: string; date: Date; count: number }[] = [];
 	let customersUsage: { date: Date; count: number }[] = [];
 	let totalEventCount: number = 0;
@@ -92,11 +90,6 @@
 				}
 			}
 		},
-		// xAxis: {
-		// 	type: 'category',
-		// 	boundaryGap: false,
-		// 	data: last7Days.map((day) => day.name)
-		// },
 		yAxis: {
 			type: 'value'
 		}
