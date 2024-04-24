@@ -5,8 +5,8 @@ import type { PageServerLoad } from '../$types';
 export const load: PageServerLoad = async ({ params }) => {
 	const branchId = params.branchId;
 	const floorplan = await getFloorPlan(branchId);
-	const floorplanImgPath = floorplan?.imgPath.slice(1);
-	const { floorplanImgWidth, floorplanImgHeight } = getImageDimensions(floorplanImgPath!);
+	const floorplanImgPath = floorplan?.imgPath;
+	const { floorplanImgWidth, floorplanImgHeight } = await getImageDimensions(floorplanImgPath!);
 	const beacons = await getBeacons(branchId);
 
 	return { branchId, floorplan, floorplanImgWidth, floorplanImgHeight, beacons };

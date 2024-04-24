@@ -11,7 +11,7 @@ export const load: PageServerLoad = async ({ params }) => {
 	let floorplanImgWidth = 0,
 		floorplanImgHeight = 0;
 	if (floorplan) {
-		const data = getImageDimensions(floorplan.imgPath.slice(1));
+		const data = await getImageDimensions(floorplan.imgPath);
 		floorplanImgWidth = data.floorplanImgWidth;
 		floorplanImgHeight = data.floorplanImgHeight;
 	}

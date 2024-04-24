@@ -25,8 +25,8 @@ export const GET: RequestHandler = async ({ url }) => {
 	// console.log('filteredEvents: ', filteredEvents);
 
 	const floorplan = await getFloorPlan(branchId!);
-	const floorplanImgPath = floorplan?.imgPath.slice(1);
-	const { floorplanImgWidth, floorplanImgHeight } = getImageDimensions(floorplanImgPath!);
+	const floorplanImgPath = floorplan?.imgPath;
+	const { floorplanImgWidth, floorplanImgHeight } = await getImageDimensions(floorplanImgPath!);
 
 	let heatMapData: HeatmapData[] = [];
 	filteredEvents.forEach((event) => {

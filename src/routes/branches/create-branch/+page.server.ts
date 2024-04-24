@@ -1,8 +1,11 @@
 import { db } from '$lib/server/db';
 import { redirect } from '@sveltejs/kit';
 import { branches, floorplans } from '$lib/schema';
-import fs from 'fs/promises';
-import path from 'path';
+import { put } from '@vercel/blob';
+import { BLOB_READ_WRITE_TOKEN } from '$env/static/private';
+
+// import fs from 'fs/promises';
+// import path from 'path';
 
 export const actions = {
 	createBranch: async ({ locals, request }) => {
@@ -25,19 +28,24 @@ export const actions = {
 
 			// Handle file upload
 			const file = data.get('floorplan') as File;
+
 			const fileName = `${Date.now()}_${file.name}`;
-			const filePath = path.join('src', 'lib', 'assets', 'store_plans', fileName);
+
+			const { url: filePath } = await put(fileName, file, {
+				access: 'public',
+				token: BLOB_READ_WRITE_TOKEN
+			});
 
 			const floorplan = {
 				id: crypto.randomUUID(),
 				branchId: branch.id,
-				imgPath: `/${filePath}`,
+				imgPath: filePath,
 				width: width,
 				height: height
 			};
 
 			try {
-				await fs.writeFile(filePath, Buffer.from(await file.arrayBuffer()));
+				// await fs.writeFile(filePath, Buffer.from(await file.arrayBuffer()));
 
 				await db.insert(branches).values(branch);
 

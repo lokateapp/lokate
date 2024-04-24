@@ -47,6 +47,7 @@
 		"@fortawesome/fontawesome-free": "^6.4.2",
 		"@internationalized/date": "^3.5.2",
 		"@lucia-auth/adapter-postgresql": "^2.0.1",
+		"@vercel/blob": "^0.23.2",
 		"bits-ui": "^0.21.4",
 		"clsx": "^2.1.0",
 		"dayjs": "^1.11.10",

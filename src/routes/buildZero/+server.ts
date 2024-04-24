@@ -65,7 +65,9 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	const floorplan1 = {
 		id: crypto.randomUUID(),
 		branchId: branch1.id,
-		imgPath: '/src/lib/assets/store_plans/sp3.jpg',
+		// imgPath: '/src/lib/assets/store_plans/sp3.jpg',
+		imgPath:
+			'https://8nudshqewdlruco8.public.blob.vercel-storage.com/1713950990547_sp3-Ly7E7c2HjN6TEfzehzkeZjJkm5Hj9K.jpg',
 		width: 1000,
 		height: 1200
 	};
@@ -74,7 +76,9 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	const floorplan2 = {
 		id: crypto.randomUUID(),
 		branchId: branch2.id,
-		imgPath: '/src/lib/assets/store_plans/sp2.jpg',
+		// imgPath: '/src/lib/assets/store_plans/sp2.jpg',
+		imgPath:
+			'https://8nudshqewdlruco8.public.blob.vercel-storage.com/1713952071531_sp2-QRlaPNGuL3TBrQjr0ZLrL1PahDUojg.jpg',
 		width: 1500,
 		height: 1100
 	};
@@ -350,9 +354,7 @@ async function generateEvents(
 		const beaconPositions: { [key: string]: { x: number; y: number; r: number } } = {};
 
 		for (const [beaconId, floorplan] of Object.entries(beaconsToFloorplansMap) as any) {
-			const { floorplanImgWidth, floorplanImgHeight } = getImageDimensions(
-				floorplan.imgPath.slice(1)
-			);
+			const { floorplanImgWidth, floorplanImgHeight } = await getImageDimensions(floorplan.imgPath);
 			const xPos = Math.floor(Math.random() * floorplanImgWidth);
 			const yPos = Math.floor(Math.random() * floorplanImgHeight);
 			const radius = Math.random() * 15;
