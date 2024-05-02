@@ -1,5 +1,5 @@
 {
-  "id": "56288a51-edb3-4b7b-ace7-946acb35a6fb",
+  "id": "14daefbe-272d-4d1c-8e8d-1b52ad96265f",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "5",
   "dialect": "pg",
@@ -358,13 +358,13 @@
         },
         "location_x": {
           "name": "location_x",
-          "type": "integer",
+          "type": "double precision",
           "primaryKey": false,
           "notNull": true
         },
         "location_y": {
           "name": "location_y",
-          "type": "integer",
+          "type": "double precision",
           "primaryKey": false,
           "notNull": true
         },

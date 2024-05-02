@@ -232,6 +232,10 @@ export const events = pgTable('events', {
 	status: text('status').notNull(),
 	enterTimestamp: timestamp('enter_timestamp', { withTimezone: true }).notNull(),
 	possibleExitTimestamp: timestamp('possible_exit_timestamp', { withTimezone: true }).notNull(),
+	// although it may seem that we can obtain below three fields by some joins, those fields will
+	// correspond to up-to-date information about beacon position and radius, but a beacon position
+	// or radius might be changed after the occurrence of an event. Therefore we need to save the
+	// position and radius at the time event occurred.
 	locationX: doublePrecision('location_x').notNull(),
 	locationY: doublePrecision('location_y').notNull(),
 	radius: doublePrecision('radius').notNull(),
