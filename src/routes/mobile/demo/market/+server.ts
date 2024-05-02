@@ -3,12 +3,9 @@ import { campaigns, customers, productGroups, productGroupsToCampaigns } from '$
 import { db } from '$lib/server/db';
 import { eq } from 'drizzle-orm';
 
-interface CategoryProbability {
-	category: string;
-	probability: number;
-}
+type CategoryToProbability = [string, number];
 
-const PURCHASE_ANALYTICS_URL = 'http://localhost:5000/probabilityToBuy';
+const PURCHASE_ANALYTICS_URL = 'http://localhost:8000/purchase-analytics';
 
 export const GET: RequestHandler = async ({ url }) => {
 	try {
@@ -24,15 +21,18 @@ export const GET: RequestHandler = async ({ url }) => {
 		}
 
 		const response = await fetch(`${PURCHASE_ANALYTICS_URL}/${customer[0].id}`);
-		const categoriesProbabilities: CategoryProbability[] = await response.json();
+
+		if (!response.ok) {
+			throw new Error(`ML Backend error: ${await response.text()}`);
+		}
+
+		const categoriesProbabilities: CategoryToProbability[] = await response.json();
 
 		// select top 4 category
-		const topCategories = categoriesProbabilities
-			.sort((a, b) => b.probability - a.probability)
-			.slice(0, 4);
+		const topCategories = categoriesProbabilities.sort((a, b) => b[1] - a[1]).slice(0, 4);
 
 		const topCampaigns = new Set();
-		for (const { category } of topCategories) {
+		for (const categoryToProbability of topCategories) {
 			topCampaigns.add(
 				(
 					await db
@@ -43,7 +43,7 @@ export const GET: RequestHandler = async ({ url }) => {
 							eq(campaigns.id, productGroupsToCampaigns.campaignId)
 						)
 						.innerJoin(productGroups, eq(productGroups.id, productGroupsToCampaigns.productGroupId))
-						.where(eq(productGroups.groupName, category))
+						.where(eq(productGroups.groupName, categoryToProbability[0]))
 						.limit(1)
 				)[0].campaigns.name
 			);

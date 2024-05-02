@@ -680,7 +680,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="col-span-2 h-full w-full" id="parent">
+	<div id="parent" style="width: {CANVAS_WIDTH}px; height: {CANVAS_HEIGHT}px">
 		<div id="canvas" />
 	</div>
 </div>
