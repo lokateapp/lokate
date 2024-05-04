@@ -62,9 +62,18 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	};
 	await db.insert(branches).values(branch2);
 
+	const branch3 = {
+		id: crypto.randomUUID(),
+		userId: userId,
+		address: 'Polatli',
+		latitude: 39.867891,
+		longitude: 32.144638
+	};
+	await db.insert(branches).values(branch3);
+
 	const floorplan1 = {
 		id: crypto.randomUUID(),
-		branchId: branch1.id,
+		branchId: branch3.id,
 		imgPath: '/src/lib/assets/store_plans/sp3.jpg',
 		// imgPath:
 		// 'https://8nudshqewdlruco8.public.blob.vercel-storage.com/1713950990547_sp3-Ly7E7c2HjN6TEfzehzkeZjJkm5Hj9K.jpg',
@@ -84,6 +93,21 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	};
 	await db.insert(floorplans).values(floorplan2);
 
+	const floorplan3 = {
+		id: crypto.randomUUID(),
+		branchId: branch1.id,
+		imgPath: '/src/lib/assets/store_plans/sp4.jpg',
+		// imgPath:
+		// 'https://8nudshqewdlruco8.public.blob.vercel-storage.com/1713950990547_sp3-Ly7E7c2HjN6TEfzehzkeZjJkm5Hj9K.jpg',
+		width: 1000,
+		height: 1200
+	};
+	await db.insert(floorplans).values(floorplan3);
+
+	// floorplan3 is used for clustering
+	// it takes time to execute the following line, so comment out if not needed
+	initializeFloorplan3(floorplan3);
+
 	const beacon1 = {
 		id: crypto.randomUUID(),
 		branchId: branch2.id,
@@ -97,7 +121,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 
 	const beacon2 = {
 		id: crypto.randomUUID(),
-		branchId: branch1.id,
+		branchId: branch3.id,
 		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
 		major: 1,
 		minor: 1,
@@ -116,7 +140,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 
 	const beacon3 = {
 		id: crypto.randomUUID(),
-		branchId: branch1.id,
+		branchId: branch3.id,
 		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
 		major: 1,
 		minor: 2,
@@ -146,7 +170,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 
 	const beacon5 = {
 		id: crypto.randomUUID(),
-		branchId: branch1.id,
+		branchId: branch3.id,
 		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
 		major: 1,
 		minor: 3,
@@ -157,7 +181,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 
 	const beacon6 = {
 		id: crypto.randomUUID(),
-		branchId: branch1.id,
+		branchId: branch3.id,
 		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
 		major: 1,
 		minor: 4,
@@ -168,7 +192,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 
 	const beacon7 = {
 		id: crypto.randomUUID(),
-		branchId: branch1.id,
+		branchId: branch3.id,
 		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
 		major: 1,
 		minor: 5,
@@ -179,7 +203,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 
 	const beacon8 = {
 		id: crypto.randomUUID(),
-		branchId: branch1.id,
+		branchId: branch3.id,
 		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
 		major: 1,
 		minor: 6,
@@ -190,7 +214,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 
 	const beacon9 = {
 		id: crypto.randomUUID(),
-		branchId: branch1.id,
+		branchId: branch3.id,
 		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
 		major: 1,
 		minor: 7,
@@ -201,7 +225,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 
 	const beacon10 = {
 		id: crypto.randomUUID(),
-		branchId: branch1.id,
+		branchId: branch3.id,
 		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
 		major: 1,
 		minor: 8,
@@ -239,7 +263,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	const campaign1Id = crypto.randomUUID();
 	await db.insert(campaigns).values({
 		id: campaign1Id,
-		branchId: branch1.id,
+		branchId: branch3.id,
 		name: 'Campaign 1',
 		status: 'active'
 	});
@@ -247,7 +271,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	const campaign2Id = crypto.randomUUID();
 	await db.insert(campaigns).values({
 		id: campaign2Id,
-		branchId: branch1.id,
+		branchId: branch3.id,
 		name: 'Campaign 2',
 		status: 'active'
 	});
@@ -261,7 +285,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	});
 
 	const branchesToCampaignsMap = {
-		[branch1.id]: [campaign1Id, campaign2Id],
+		[branch3.id]: [campaign1Id, campaign2Id],
 		[branch2.id]: [campaign3Id]
 	};
 
@@ -288,7 +312,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 
 	const randomEvents = await generateEvents(
 		customer1.id,
-		branch1.id,
+		branch3.id,
 		branchesToCampaignsMap,
 		campaignsToBeaconsMap,
 		beaconsToFloorplansMap
@@ -298,7 +322,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 		await db.insert(events).values(event);
 	}
 
-	generateProductGroups(branchesToCampaignsMap[branch1.id]);
+	generateProductGroups(branchesToCampaignsMap[branch3.id]);
 
 	// Build the response object with information about the created entities
 	const responseObj = {
@@ -465,7 +489,7 @@ async function generateProductGroups(campaigns: any) {
 		};
 		await db.insert(productGroups).values(category);
 
-		// there are two campaigns in branch1, hence length of campaigns array is two
+		// there are two campaigns in branch3, hence length of campaigns array is two
 		// first half of the products is mapped to the first campaign
 		// second half of the products is mapped to the second campaign
 		// the same mapping is performed in the demo mobile application
@@ -476,3 +500,328 @@ async function generateProductGroups(campaigns: any) {
 		await db.insert(productGroupsToCampaigns).values(match);
 	}
 }
+
+async function initializeFloorplan3(floorplan3: any) {
+	const beaconLocations = [
+		{
+			name: 'entry',
+			location: [425, 339]
+		},
+		{
+			name: 'b1',
+			location: [617, 324]
+		},
+		{
+			name: 'b2',
+			location: [693, 322]
+		},
+		{
+			name: 'b3',
+			location: [604, 262]
+		},
+		{
+			name: 'b4',
+			location: [679, 251]
+		},
+		{
+			name: 'b5',
+			location: [648, 116]
+		},
+		{
+			name: 'b6',
+			location: [559, 32]
+		},
+		{
+			name: 'b7',
+			location: [548, 221]
+		},
+		{
+			name: 'b8',
+			location: [501, 179]
+		},
+		{
+			name: 'b9',
+			location: [432, 60]
+		},
+		{
+			name: 'b10',
+			location: [453, 223]
+		},
+		{
+			name: 'b11',
+			location: [405, 177]
+		},
+		{
+			name: 'b12',
+			location: [386, 108]
+		},
+		{
+			name: 'b13',
+			location: [366, 37]
+		},
+		{
+			name: 'b14',
+			location: [357, 224]
+		},
+		{
+			name: 'b15',
+			location: [314, 181]
+		},
+		{
+			name: 'b16',
+			location: [279, 107]
+		},
+		{
+			name: 'b17',
+			location: [269, 200]
+		},
+		{
+			name: 'b18',
+			location: [225, 154]
+		},
+		{
+			name: 'b19',
+			location: [227, 220]
+		},
+		{
+			name: 'b20',
+			location: [200, 255]
+		},
+		{
+			name: 'b21',
+			location: [161, 108]
+		},
+		{
+			name: 'b22',
+			location: [20, 272]
+		},
+		{
+			name: 'b23',
+			location: [72, 297]
+		},
+		{
+			name: 'b24',
+			location: [37, 327]
+		},
+		{
+			name: 'exit',
+			location: [200, 338]
+		}
+	];
+
+	const createdBeaconIds = [];
+	const createdCampaignIds = [];
+	const major = 3;
+	const radius = 5.0;
+	const branchId: string = floorplan3.branchId;
+	for (const [i, beaconLocation] of beaconLocations.entries()) {
+		const minor = i + 1;
+		const beacon = {
+			id: crypto.randomUUID(),
+			branchId,
+			proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
+			major,
+			minor,
+			radius,
+			name: beaconLocation.name
+		};
+		await db.insert(beacons).values(beacon);
+		createdBeaconIds.push(beacon.id);
+		await db.insert(beaconsToFloorplans).values({
+			beaconId: beacon.id,
+			floorplanId: floorplan3.id,
+			x: beaconLocation.location[0],
+			y: beaconLocation.location[1]
+		});
+		const campaignId = crypto.randomUUID();
+		await db.insert(campaigns).values({
+			id: campaignId,
+			branchId,
+			name: beaconLocation.name,
+			status: 'active'
+		});
+		createdCampaignIds.push(campaignId);
+		await db.insert(campaignsToBeacons).values({
+			campaignId,
+			beaconId: beacon.id
+		});
+	}
+
+	await generateRoutes(beaconLocations, branchId, createdBeaconIds, createdCampaignIds);
+}
+
+async function generateRoutes(
+	beaconLocations: any,
+	branchId: string,
+	createdBeaconIds: string[],
+	createdCampaignIds: string[]
+) {
+	const beaconGraph: number[][] = generateBeaconGraph(beaconLocations);
+	const numberOfRoutes = 30_000;
+	let customerNo = 0;
+	let customerId = '';
+	for (let i = 0; i < numberOfRoutes; i++) {
+		// there will be 1_000 customers, and each customer will have a route for each day of a month
+		if (i % 30 == 0) {
+			++customerNo;
+			customerId = crypto.randomUUID();
+			await db.insert(customers).values({
+				id: customerId,
+				customerId: `customer${customerNo}`
+			});
+		}
+		const route = generateSingleRoute(beaconGraph);
+		await generateRouteEvents(
+			beaconLocations,
+			route,
+			(i % 30) + 1,
+			customerId,
+			branchId,
+			createdBeaconIds,
+			createdCampaignIds
+		);
+		// console.log(route);
+	}
+}
+
+async function generateRouteEvents(
+	beaconLocations: any,
+	route: number[],
+	day: number,
+	customerId: string,
+	branchId: string,
+	createdBeaconIds: string[],
+	createdCampaignIds: string[]
+) {
+	const enterDay = new Date();
+	enterDay.setDate(day);
+
+	for (let [i, beaconIdx] of route.entries()) {
+		const {
+			_,
+			location: [x, y]
+		} = beaconLocations[beaconIdx];
+
+		enterDay.setHours(12, i, 0, 0);
+		const enterTimestamp = new Date(enterDay.getTime());
+		enterDay.setSeconds(30);
+		const possibleExitTimestamp = new Date(enterDay.getTime());
+
+		await db.insert(events).values({
+			id: crypto.randomUUID(),
+			status: EventStatus.EXIT,
+			enterTimestamp,
+			possibleExitTimestamp,
+			locationX: x,
+			locationY: y,
+			radius: 5.0,
+			customerId,
+			branchId,
+			beaconId: createdBeaconIds[beaconIdx],
+			campaignId: createdCampaignIds[beaconIdx]
+		});
+	}
+}
+
+// perform loop-erased random walk
+// https://en.wikipedia.org/wiki/Loop-erased_random_walk
+function generateSingleRoute(beaconGraph: number[][]) {
+	const numberOfBeacons = beaconGraph.length;
+	let currentPosition = 0; // enter beacon
+	let route = [currentPosition];
+	while (currentPosition != numberOfBeacons - 1) {
+		let sum = 0;
+		let target = Math.random();
+		let nextPosition = -1;
+		for (let j = 0; j < numberOfBeacons && sum < target; j++) {
+			sum += beaconGraph[currentPosition][j];
+			++nextPosition;
+		}
+
+		// erase loop if exists
+		const loopIndex = route.indexOf(nextPosition);
+		if (loopIndex != -1) {
+			route.splice(loopIndex);
+		}
+
+		currentPosition = nextPosition;
+		route.push(currentPosition);
+	}
+	return route;
+}
+
+function generateBeaconGraph(beaconLocations: any) {
+	// 0th index: entry, 25th index: exit
+	const notNormalizedBeaconGraph: number[][] = [
+		/* 0*/ [9, 7, 3, 6, 2, 0, 0, 8, 6, 1, 9, 5, 3, 0, 8, 6, 2, 5, 2, 5, 6, 0, 2, 7, 2, 3],
+		/* 1*/ [0, 0, 8, 9, 6, 2, 0, 5, 4, 2, 7, 5, 2, 0, 5, 4, 2, 3, 0, 3, 6, 0, 3, 4, 3, 3],
+		/* 2*/ [0, 5, 0, 6, 8, 3, 0, 2, 0, 3, 3, 2, 2, 0, 3, 0, 0, 0, 0, 4, 5, 0, 0, 3, 4, 2],
+		/* 3*/ [0, 3, 2, 0, 9, 7, 3, 10, 4, 5, 8, 3, 3, 2, 5, 3, 0, 2, 0, 3, 4, 0, 2, 6, 2, 6],
+		/* 4*/ [0, 2, 3, 4, 0, 8, 6, 4, 5, 4, 2, 3, 5, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3],
+		/* 5*/ [0, 2, 2, 4, 3, 0, 9, 5, 4, 3, 0, 3, 3, 2, 0, 0, 0, 0, 3, 4, 4, 0, 0, 2, 0, 2],
+		/* 6*/ [0, 0, 0, 2, 2, 3, 0, 6, 8, 10, 4, 5, 6, 7, 3, 2, 2, 2, 3, 0, 0, 0, 0, 0, 0, 0],
+		/* 7*/ [0, 6, 2, 7, 5, 6, 8, 3, 10, 3, 4, 2, 6, 4, 3, 3, 2, 0, 2, 2, 4, 0, 2, 5, 2, 3],
+		/* 8*/ [0, 2, 0, 2, 3, 4, 8, 6, 0, 6, 7, 5, 6, 3, 2, 2, 3, 2, 2, 0, 0, 0, 0, 0, 0, 2],
+		/* 9*/ [0, 0, 0, 0, 0, 5, 8, 4, 6, 0, 10, 2, 5, 8, 2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		/*10*/ [0, 7, 3, 5, 2, 0, 6, 6, 8, 2, 0, 7, 5, 0, 5, 2, 2, 2, 3, 3, 5, 2, 0, 4, 2, 4],
+		/*11*/ [0, 2, 0, 2, 0, 5, 7, 4, 7, 5, 8, 0, 8, 2, 7, 5, 4, 2, 3, 0, 0, 2, 2, 4, 3, 4],
+		/*12*/ [0, 0, 2, 3, 3, 5, 8, 3, 6, 6, 4, 7, 0, 2, 6, 4, 7, 2, 2, 2, 0, 2, 0, 0, 2, 0],
+		/*13*/ [0, 0, 0, 0, 2, 4, 5, 3, 5, 10, 2, 2, 3, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		/*14*/ [0, 3, 2, 2, 0, 0, 2, 2, 2, 3, 5, 7, 6, 0, 0, 7, 3, 3, 2, 5, 6, 0, 2, 4, 3, 5],
+		/*15*/ [0, 0, 0, 0, 0, 2, 3, 0, 2, 2, 3, 5, 6, 2, 8, 0, 9, 8, 4, 3, 3, 4, 3, 4, 2, 5],
+		/*16*/ [0, 0, 0, 0, 0, 0, 2, 0, 2, 2, 3, 4, 6, 2, 3, 8, 0, 7, 8, 3, 2, 7, 2, 3, 0, 2],
+		/*17*/ [0, 0, 0, 0, 0, 0, 2, 0, 2, 2, 0, 3, 4, 2, 3, 6, 7, 0, 8, 9, 4, 3, 0, 3, 2, 5],
+		/*18*/ [0, 0, 0, 0, 0, 2, 2, 2, 4, 2, 3, 2, 3, 0, 2, 3, 7, 8, 0, 8, 4, 9, 0, 5, 2, 3],
+		/*19*/ [0, 2, 0, 0, 0, 0, 2, 0, 2, 3, 2, 3, 2, 0, 6, 5, 5, 8, 8, 0, 10, 6, 2, 4, 5, 7],
+		/*20*/ [0, 3, 2, 3, 0, 0, 0, 2, 2, 0, 3, 3, 2, 0, 5, 6, 4, 4, 5, 8, 0, 6, 2, 6, 3, 9],
+		/*21*/ [0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 2, 2, 0, 0, 4, 5, 3, 7, 6, 8, 0, 0, 5, 2, 6],
+		/*22*/ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 8, 3],
+		/*23*/ [0, 3, 2, 4, 2, 0, 0, 0, 0, 0, 3, 2, 2, 0, 4, 3, 2, 4, 2, 3, 8, 6, 7, 0, 24, 7],
+		/*24*/ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 2, 0, 2, 4, 3, 6, 8, 0, 10],
+		/*25*/ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+	];
+
+	return normalizeBeaconGraph(notNormalizedBeaconGraph);
+}
+
+// make each edge correspond to probability
+function normalizeBeaconGraph(beaconGraph: number[][]) {
+	for (let i = 0; i < beaconGraph.length; i++) {
+		let sum = 0;
+		for (let j = 0; j < beaconGraph.length; j++) {
+			sum += beaconGraph[i][j];
+		}
+		if (sum == 0) continue;
+		for (let j = 0; j < beaconGraph.length; j++) {
+			beaconGraph[i][j] /= sum;
+		}
+	}
+	return beaconGraph;
+}
+
+// /* 0*/ [0, 7, 3, 6, 2, 1, 1, 8, 6, 5, 9, 5, 3, 1, 8, 6, 2, 5, 2, 5, 6, 1, 2, 7, 2, 3],
+// /* 1*/ [0, 1, 8, 9, 6, 2, 1, 5, 4, 2, 7, 5, 2, 1, 5, 4, 2, 3, 1, 3, 6, 1, 3, 4, 3, 3],
+// /* 2*/ [0, 5, 1, 6, 8, 3, 1, 2, 1, 3, 3, 2, 2, 1, 3, 1, 1, 1, 1, 4, 5, 1, 1, 3, 4, 2],
+// /* 3*/ [0, 3, 2, 1, 9, 7, 3, 10, 4, 5, 8, 3, 3, 2, 5, 3, 1, 2, 1, 3, 4, 1, 2, 6, 2, 6],
+// /* 4*/ [0, 2, 3, 4, 1, 8, 6, 4, 5, 4, 2, 3, 5, 3, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3],
+// /* 5*/ [0, 2, 2, 4, 3, 1, 9, 5, 4, 3, 1, 3, 3, 2, 1, 1, 1, 1, 3, 4, 4, 1, 1, 2, 1, 2],
+// /* 6*/ [0, 1, 1, 2, 2, 3, 1, 6, 8, 10, 4, 5, 6, 7, 3, 2, 2, 2, 3, 1, 1, 1, 1, 1, 1, 1],
+// /* 7*/ [0, 6, 2, 7, 5, 6, 8, 3, 10, 3, 4, 2, 6, 4, 3, 3, 2, 1, 2, 2, 4, 1, 2, 5, 2, 3],
+// /* 8*/ [0, 2, 1, 2, 3, 4, 8, 6, 1, 6, 7, 5, 6, 3, 2, 2, 3, 2, 2, 1, 1, 1, 1, 1, 1, 2],
+// /* 9*/ [0, 1, 1, 1, 1, 5, 8, 4, 6, 1, 10, 2, 5, 8, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+// /*10*/ [0, 7, 3, 5, 2, 1, 6, 6, 8, 2, 1, 7, 5, 1, 5, 2, 2, 2, 3, 3, 5, 2, 1, 4, 2, 4],
+// /*11*/ [0, 2, 1, 2, 1, 5, 7, 4, 7, 5, 8, 1, 8, 2, 7, 5, 4, 2, 3, 1, 1, 2, 2, 4, 3, 4],
+// /*12*/ [0, 1, 2, 3, 3, 5, 8, 3, 6, 6, 4, 7, 1, 2, 6, 4, 7, 2, 2, 2, 1, 2, 1, 1, 2, 1],
+// /*13*/ [0, 1, 1, 1, 2, 4, 5, 3, 5, 10, 2, 2, 3, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+// /*14*/ [0, 3, 2, 2, 1, 1, 2, 2, 2, 3, 5, 7, 6, 1, 1, 7, 3, 3, 2, 5, 6, 1, 2, 4, 3, 5],
+// /*15*/ [0, 1, 1, 1, 1, 2, 3, 1, 2, 2, 3, 5, 6, 2, 8, 1, 9, 8, 4, 3, 3, 4, 3, 4, 2, 5],
+// /*16*/ [0, 1, 1, 1, 1, 1, 2, 1, 2, 2, 3, 4, 6, 2, 3, 8, 1, 7, 8, 3, 2, 7, 2, 3, 1, 2],
+// /*17*/ [0, 1, 1, 1, 1, 1, 2, 1, 2, 2, 1, 3, 4, 2, 3, 6, 7, 1, 8, 9, 4, 3, 1, 3, 2, 5],
+// /*18*/ [0, 1, 1, 1, 1, 2, 2, 2, 4, 2, 3, 2, 3, 1, 2, 3, 7, 8, 1, 8, 4, 9, 1, 5, 2, 3],
+// /*19*/ [0, 2, 1, 1, 1, 1, 2, 1, 2, 3, 2, 3, 2, 1, 6, 5, 5, 8, 8, 1, 10, 6, 2, 4, 5, 7],
+// /*20*/ [0, 3, 2, 3, 1, 1, 1, 2, 2, 1, 3, 3, 2, 1, 5, 6, 4, 4, 5, 8, 1, 6, 2, 6, 3, 9],
+// /*21*/ [0, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 2, 2, 1, 1, 4, 5, 3, 7, 6, 8, 1, 1, 5, 2, 6],
+// /*22*/ [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 8, 8, 3],
+// /*23*/ [0, 3, 2, 4, 2, 1, 1, 1, 1, 1, 3, 2, 2, 1, 4, 3, 2, 4, 2, 3, 8, 6, 7, 1, 24, 7],
+// /*24*/ [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 2, 1, 2, 4, 3, 6, 8, 1, 10],
+// /*25*/ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]

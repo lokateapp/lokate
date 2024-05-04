@@ -8,7 +8,10 @@ import {
 	floorplans,
 	beaconsToFloorplans,
 	productGroups,
-	productGroupsToCampaigns
+	productGroupsToCampaigns,
+	session,
+	key,
+	user
 } from '$lib/schema';
 import { db } from '$lib/server/db';
 import type { RequestHandler } from './$types';
@@ -25,6 +28,9 @@ export const GET: RequestHandler = async () => {
 	await db.delete(floorplans);
 	await db.delete(branches);
 	await db.delete(customers);
+	await db.delete(session);
+	await db.delete(key);
+	await db.delete(user);
 
 	// await db.delete();
 
