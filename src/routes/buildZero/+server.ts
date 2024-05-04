@@ -106,7 +106,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 
 	// floorplan3 is used for clustering
 	// it takes time to execute the following line, so comment out if not needed
-	initializeFloorplan3(floorplan3);
+	// initializeFloorplan3(floorplan3);
 
 	const beacon1 = {
 		id: crypto.randomUUID(),
