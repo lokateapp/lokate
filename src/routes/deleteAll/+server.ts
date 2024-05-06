@@ -18,7 +18,6 @@ import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async () => {
 	await db.delete(events);
-
 	await db.delete(beaconsToFloorplans);
 	await db.delete(campaignsToBeacons);
 	await db.delete(beacons);
@@ -31,8 +30,6 @@ export const GET: RequestHandler = async () => {
 	await db.delete(session);
 	await db.delete(key);
 	await db.delete(user);
-
-	// await db.delete();
 
 	const responseBody = JSON.stringify('All data deleted');
 
