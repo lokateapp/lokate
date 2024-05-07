@@ -9,6 +9,11 @@
 	export let data: PageData;
 </script>
 
+<svelte:head>
+	<title>Lokate</title>
+	<meta name="robots" content="noindex nofollow" />
+</svelte:head>
+
 <section class="bg-white w-screen h-fit min-h-screen">
 	{#if data.user}
 		<Navbar branches={data.branches} />

@@ -21,12 +21,13 @@
 		MultiSelect,
 		Badge,
 		Toggle,
-		PaginationItem,
 		ButtonGroup,
 		Tooltip
 	} from 'flowbite-svelte';
 	import type { PageData } from './$types';
 	import type { SelectBeaconWithFloorplan, SelectCampaignWithBeacons } from '$lib/schema';
+	import * as Pagination from '$lib/components/ui/pagination/index.js';
+	import { ChevronLeft, ChevronRight } from 'lucide-svelte';
 	export let data: PageData;
 
 	const {
@@ -37,7 +38,17 @@
 		floorplanImgHeight
 	} = data;
 
-	let items = campaigns;
+	// const SVG_URL =
+	// 	'https://8nudshqewdlruco8.public.blob.vercel-storage.com/1713976455179_beacon-6H4OICwXNmAHIxkAW4iet0Pt4DIhUL.svg';
+	const SVG_URL = '/src/lib/assets/beacon.svg';
+
+	let itemOffset = 1;
+	let itemsPerPage = 9;
+	// let items = campaigns;
+	$: items = campaigns.slice(
+		(itemOffset - 1) * itemsPerPage,
+		(itemOffset - 1) * itemsPerPage + itemsPerPage
+	);
 	let selectedRows: number[] = []; // = [0, 1, 2]
 	let editRow: number;
 
@@ -271,7 +282,7 @@
 			});
 		}
 		const beaconRange = beacon.radius;
-		Konva.Image.fromURL('/src/lib/assets/beacon.svg', function (beaconSvg) {
+		Konva.Image.fromURL(SVG_URL, function (beaconSvg) {
 			const IMAGE_W = beaconSvg.getWidth() / 10;
 			const IMAGE_H = beaconSvg.getHeight() / 10;
 			beaconSvg.offset({
@@ -361,7 +372,7 @@
 					}
 				});
 			});
-			Konva.Image.fromURL('/src/lib/assets/beacon.svg', function (beacon) {
+			Konva.Image.fromURL(SVG_URL, function (beacon) {
 				const IMAGE_W = beacon.getWidth() / 5;
 				const IMAGE_H = beacon.getHeight() / 5;
 				// console.log('beacon:', beacon);
@@ -661,13 +672,6 @@
 			beaconRange.destroy();
 		});
 	};
-
-	const previousTable = () => {
-		alert('Previous btn clicked. Make a call to your server to fetch data.');
-	};
-	const nextTable = () => {
-		alert('Next btn clicked. Make a call to your server to fetch data.');
-	};
 </script>
 
 <div class="grid grid-cols-2 p-5 gap-5">
@@ -677,7 +681,6 @@
 		</div>
 		<div>
 			<div class="flex flex-row justify-end items-center px-5 py-5 bg-slate-100">
-				<!-- <p class="text-xl font-semibold text-gray-900 dark:text-white">Campaigns</p> -->
 				<div>
 					<Button
 						color="blue"
@@ -887,13 +890,50 @@
 					{/each}
 				</TableBody>
 			</Table>
-			<!-- <div class="flex justify-end space-x-3 py-5">
-				<PaginationItem large on:click={previousTable}>Previous</PaginationItem>
-				<PaginationItem large on:click={nextTable}>Next</PaginationItem>
-			</div> -->
+			<div class="flex justify-end space-x-3 py-5">
+				<Pagination.Root
+					count={campaigns.length}
+					perPage={itemsPerPage}
+					let:pages
+					let:currentPage
+					bind:page={itemOffset}
+					let:range
+				>
+					<Pagination.Content>
+						<Pagination.Item>
+							<Pagination.PrevButton>
+								<ChevronLeft class="h-4 w-4" />
+								<span class="hidden sm:block">Previous</span>
+							</Pagination.PrevButton>
+						</Pagination.Item>
+						{#each pages as page (page.key)}
+							{#if page.type === 'ellipsis'}
+								<Pagination.Item>
+									<Pagination.Ellipsis />
+								</Pagination.Item>
+							{:else}
+								<Pagination.Item>
+									<Pagination.Link {page} isActive={currentPage === page.value}>
+										{page.value}
+									</Pagination.Link>
+								</Pagination.Item>
+							{/if}
+						{/each}
+						<Pagination.Item>
+							<Pagination.NextButton>
+								<span class="hidden sm:block">Next</span>
+								<ChevronRight class="h-4 w-4" />
+							</Pagination.NextButton>
+						</Pagination.Item>
+					</Pagination.Content>
+					<p class="text-center text-[13px]">
+						Showing {range.start} - {range.end}
+					</p>
+				</Pagination.Root>
+			</div>
 		</div>
 	</div>
-	<div class="h-full w-full" id="parent">
+	<div class="h-full w-full mt-16" id="parent">
 		<div id="canvas" />
 	</div>
 </div>

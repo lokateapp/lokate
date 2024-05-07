@@ -18,10 +18,15 @@
 	import localizedFormat from 'dayjs/plugin/localizedFormat';
 	import type { SelectBeaconWithFloorplan } from '$lib/schema';
 	import { notify } from '$components/notify';
+	import * as Pagination from '$lib/components/ui/pagination/index.js';
+	import { ChevronLeft, ChevronRight } from 'lucide-svelte';
 	dayjs.extend(localizedFormat);
 
 	export let data: PageData;
 
+	// const SVG_URL =
+	// 	'https://8nudshqewdlruco8.public.blob.vercel-storage.com/1713976455179_beacon-6H4OICwXNmAHIxkAW4iet0Pt4DIhUL.svg';
+	const SVG_URL = '/src/lib/assets/beacon.svg';
 	const {
 		beacons: devices,
 		floorplan,
@@ -29,7 +34,13 @@
 		floorplanImgWidth: CANVAS_WIDTH
 	} = data;
 
-	let items = devices;
+	let itemOffset = 1;
+	let itemsPerPage = 10;
+	$: items = devices.slice(
+		(itemOffset - 1) * itemsPerPage,
+		(itemOffset - 1) * itemsPerPage + itemsPerPage
+	);
+	// let items = devices;
 
 	let selectedRows: number[] = []; // = [0, 1, 2]
 	let editRow: number;
@@ -250,7 +261,7 @@
 			});
 		}
 		const beaconRange = beacon.radius;
-		Konva.Image.fromURL('/src/lib/assets/beacon.svg', function (beaconSvg) {
+		Konva.Image.fromURL(SVG_URL, function (beaconSvg) {
 			const IMAGE_W = beaconSvg.getWidth() / 15;
 			const IMAGE_H = beaconSvg.getHeight() / 15;
 			// console.log('beacon:', beacon);
@@ -337,8 +348,8 @@
 					beacon.floorplan = {
 						beaconId: pos.beaconId,
 						floorplanId: pos.floorplanId,
-						x: event.target.x(),
-						y: event.target.y()
+						x: event.target.x() / multiplier,
+						y: event.target.y() / multiplier
 					};
 					// update beaconsMap position
 					// beaconsMap = beaconsMap.map((beaconMap) => {
@@ -378,13 +389,13 @@
 					item.floorplan = {
 						beaconId: item.id,
 						floorplanId: floorplan.id,
-						x: pos.x,
-						y: pos.y
+						x: pos.x / multiplier,
+						y: pos.y / multiplier
 					};
 				}
 			});
 
-			Konva.Image.fromURL('/src/lib/assets/beacon.svg', function (beacon) {
+			Konva.Image.fromURL(SVG_URL, function (beacon) {
 				const IMAGE_W = beacon.getWidth() / 5;
 				const IMAGE_H = beacon.getHeight() / 5;
 				beacon.offset({
@@ -552,7 +563,7 @@
 								<span class="sr-only">Edit</span>
 							</TableHeadCell>
 						</TableHead>
-						{#each devices as device, device_index}
+						{#each items as device, device_index}
 							<TableBodyRow
 								on:click={() => {
 									if (editRow === device_index) {
@@ -672,15 +683,53 @@
 							{/if}
 						{/each}
 					</Table>
-					<!-- <div class="flex justify-end space-x-3 py-5">
-						<PaginationItem large on:click={previousTable}>Previous</PaginationItem>
-						<PaginationItem large on:click={nextTable}>Next</PaginationItem>
-					</div> -->
+				</div>
+				<div class="flex justify-end space-x-3 py-5">
+					<Pagination.Root
+						count={devices.length}
+						perPage={itemsPerPage}
+						let:pages
+						let:currentPage
+						bind:page={itemOffset}
+						let:range
+					>
+						<Pagination.Content>
+							<Pagination.Item>
+								<Pagination.PrevButton>
+									<ChevronLeft class="h-4 w-4" />
+									<span class="hidden sm:block">Previous</span>
+								</Pagination.PrevButton>
+							</Pagination.Item>
+							{#each pages as page (page.key)}
+								{#if page.type === 'ellipsis'}
+									<Pagination.Item>
+										<Pagination.Ellipsis />
+									</Pagination.Item>
+								{:else}
+									<Pagination.Item>
+										<Pagination.Link {page} isActive={currentPage === page.value}>
+											{page.value}
+										</Pagination.Link>
+									</Pagination.Item>
+								{/if}
+							{/each}
+							<Pagination.Item>
+								<Pagination.NextButton>
+									<span class="hidden sm:block">Next</span>
+									<ChevronRight class="h-4 w-4" />
+								</Pagination.NextButton>
+							</Pagination.Item>
+						</Pagination.Content>
+						<p class="text-center text-[13px]">
+							Showing {range.start} - {range.end}
+						</p>
+					</Pagination.Root>
 				</div>
 			</div>
 		</div>
 	</div>
-	<div id="parent" style="width: {CANVAS_WIDTH}px; height: {CANVAS_HEIGHT}px">
+	<!-- style="width: {CANVAS_WIDTH}px; height: {CANVAS_HEIGHT}px" -->
+	<div id="parent" class="col-span-2 mt-16">
 		<div id="canvas" />
 	</div>
 </div>
