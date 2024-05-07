@@ -16,14 +16,14 @@ export const GET: RequestHandler = async ({ url }) => {
 			.where(eq(customers.customerId, customerId!))
 			.limit(1);
 
-		if (customer === undefined) {
+		if (customer.length === 0) {
 			throw new Error('Unknown customer');
 		}
 
 		const response = await fetch(`${PURCHASE_ANALYTICS_URL}/${customer[0].id}`);
 
 		if (!response.ok) {
-			throw new Error(`ML Backend error: ${await response.text()}`);
+			throw new Error(`ML Backend (purchase analytics) error: ${await response.text()}`);
 		}
 
 		const categoriesProbabilities: CategoryToProbability[] = await response.json();
@@ -50,8 +50,7 @@ export const GET: RequestHandler = async ({ url }) => {
 		}
 
 		const responseObject = {
-			affinedCampaigns: Array.from(topCampaigns),
-			campaignVisitOrders: []
+			affinedCampaigns: Array.from(topCampaigns)
 		};
 
 		return new Response(JSON.stringify(responseObject), {
@@ -63,12 +62,3 @@ export const GET: RequestHandler = async ({ url }) => {
 		return new Response('Internal Server Error', { status: 500 });
 	}
 };
-
-// {
-//     "affinedCampaigns": ["", "", ""],   // only for market app, based on purchase analytics
-//     "campaignVisitOrders": [            // for all apps
-//         ["", ""],
-//         ["", ""],
-//         ["", ""],
-//     ]
-// }
