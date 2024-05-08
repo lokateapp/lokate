@@ -46,6 +46,8 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 		await prepareMuseumDemo();
 	} else if (demo === 'gym') {
 		await prepareGymDemo();
+	} else {
+		await prepareMarketDemo();
 	}
 
 	const customer = {
