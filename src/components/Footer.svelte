@@ -40,6 +40,29 @@
 					</div>
 				</fieldset>
 			</form>
+			<nav>
+				<button
+					class="btn"
+					on:click={async () => {
+						await fetch('/deleteAll');
+						await fetch('/buildZero?demo=market');
+					}}>Market</button
+				>
+				<button
+					class="btn"
+					on:click={async () => {
+						await fetch('/deleteAll');
+						await fetch('/buildZero?demo=museum');
+					}}>Museum</button
+				>
+				<button
+					class="btn"
+					on:click={async () => {
+						await fetch('/deleteAll');
+						await fetch('/buildZero?demo=gym');
+					}}>Gym</button
+				>
+			</nav>
 		</footer>
 	</div>
 </footer>

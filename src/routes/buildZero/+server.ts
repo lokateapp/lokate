@@ -38,48 +38,21 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	// 	userId = user.userId;
 	// }
 
-	const user1 = await auth.createUser({
-		key: {
-			providerId: 'username', // auth method
-			providerUserId: 'market'.toLowerCase(), // unique id when using "username" auth method
-			password: 'market' // hashed by Lucia
-		},
-		attributes: {
-			username: 'market'
-		}
-	});
+	const demo = url.searchParams.get('demo');
 
-	const user2 = await auth.createUser({
-		key: {
-			providerId: 'username', // auth method
-			providerUserId: 'museum'.toLowerCase(), // unique id when using "username" auth method
-			password: 'museum' // hashed by Lucia
-		},
-		attributes: {
-			username: 'museum'
-		}
-	});
-
-	const user3 = await auth.createUser({
-		key: {
-			providerId: 'username', // auth method
-			providerUserId: 'gym'.toLowerCase(), // unique id when using "username" auth method
-			password: 'gym' // hashed by Lucia
-		},
-		attributes: {
-			username: 'gym'
-		}
-	});
+	if (demo === 'market') {
+		await prepareMarketDemo();
+	} else if (demo === 'museum') {
+		await prepareMuseumDemo();
+	} else if (demo === 'gym') {
+		await prepareGymDemo();
+	}
 
 	const customer = {
 		id: crypto.randomUUID(),
 		customerId: 'umut'
 	};
 	await db.insert(customers).values(customer);
-
-	await prepareMarketDemo(user1.userId);
-	// await prepareMuseumDemo(user2.userId);
-	// await prepareGymDemo(user3.userId);
 
 	const responseBody = JSON.stringify('Success!');
 
@@ -90,7 +63,19 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 
 // DEMO 1 (Shopping):
 
-async function prepareMarketDemo(userId: any) {
+async function prepareMarketDemo() {
+	const user = await auth.createUser({
+		key: {
+			providerId: 'username', // auth method
+			providerUserId: 'market'.toLowerCase(), // unique id when using "username" auth method
+			password: 'market' // hashed by Lucia
+		},
+		attributes: {
+			username: 'market'
+		}
+	});
+	const userId: string = user.userId;
+
 	const branch1 = {
 		id: crypto.randomUUID(),
 		userId,
@@ -199,7 +184,19 @@ async function prepareMarketDemo(userId: any) {
 
 // DEMO 2 (Museum):
 
-async function prepareMuseumDemo(userId: any) {
+async function prepareMuseumDemo() {
+	const user = await auth.createUser({
+		key: {
+			providerId: 'username', // auth method
+			providerUserId: 'museum'.toLowerCase(), // unique id when using "username" auth method
+			password: 'museum' // hashed by Lucia
+		},
+		attributes: {
+			username: 'museum'
+		}
+	});
+	const userId: string = user.userId;
+
 	const branch1 = {
 		id: crypto.randomUUID(),
 		userId,
@@ -239,10 +236,22 @@ async function prepareMuseumDemo(userId: any) {
 
 // DEMO 3 (Gym):
 
-async function prepareGymDemo(userId: any) {
+async function prepareGymDemo() {
+	const user = await auth.createUser({
+		key: {
+			providerId: 'username', // auth method
+			providerUserId: 'gym'.toLowerCase(), // unique id when using "username" auth method
+			password: 'gym' // hashed by Lucia
+		},
+		attributes: {
+			username: 'gym'
+		}
+	});
+	const userId: string = user.userId;
+
 	const branch1 = {
 		id: crypto.randomUUID(),
-		userId: userId,
+		userId,
 		address: 'Bilkent',
 		latitude: 39.867891,
 		longitude: 32.748718
