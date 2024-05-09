@@ -15,11 +15,9 @@
 	import localizedFormat from 'dayjs/plugin/localizedFormat';
 	dayjs.extend(localizedFormat);
 	import { EventStatus } from '$lib/schema';
-	// import type { DateRange } from 'bits-ui';
 	import { getLocalTimeZone, today } from '@internationalized/date';
 	import DateRangePicker from '$components/DateRangePicker.svelte';
 	import { page } from '$app/stores';
-	// import { notify } from '$components/notify';
 	import { onMount } from 'svelte';
 	import { ChevronLeft, ChevronRight } from 'lucide-svelte';
 	import * as Pagination from '$lib/components/ui/pagination/index.js';
@@ -70,9 +68,6 @@
 
 	let option: EChartsOption = {
 		animation: true,
-		// title: {
-		// 	text: 'Campaigns Performance'
-		// },
 		tooltip: {
 			trigger: 'axis'
 		},
@@ -204,24 +199,19 @@
 		<div class="items-center justify-between mb-2 lg:flex">
 			<div class="mb-4 lg:mb-0">
 				<h3 class="mb-2 text-xl font-bold text-gray-900 dark:text-white">Events</h3>
-				<span class="text-base font-normal text-gray-500 dark:text-gray-400">Latest 10 events</span>
 			</div>
-			<!-- <DateRangePicker bind:value={eventDateRangeValue} onClick={async () => {}} /> -->
 		</div>
 		<Table hoverable={true} shadow>
 			<TableHead>
-				<TableHeadCell>Event Id</TableHeadCell>
 				<TableHeadCell>Campaign Name</TableHeadCell>
 				<TableHeadCell>Beacon Name</TableHeadCell>
 				<TableHeadCell>Status</TableHeadCell>
-				<TableHeadCell>Enter Timestamp</TableHeadCell>
+				<TableHeadCell>Customer Id</TableHeadCell>
+				<TableHeadCell>Timestamp</TableHeadCell>
 			</TableHead>
 			<TableBody tableBodyClass="divide-y">
 				{#each events as event}
 					<TableBodyRow>
-						<TableBodyCell class="!p-4">
-							{event.id}
-						</TableBodyCell>
 						<TableBodyCell>
 							{campaignsObject[event.campaignId]}
 						</TableBodyCell>
@@ -235,6 +225,7 @@
 								<Badge rounded color="red">Exit</Badge>
 							{/if}
 						</TableBodyCell>
+						<TableBodyCell>{event.customerId}</TableBodyCell>
 						<TableBodyCell>{dayjs(event.enterTimestamp).format('llll')}</TableBodyCell>
 					</TableBodyRow>
 				{/each}
@@ -288,9 +279,9 @@
 		>
 			<div class="items-center justify-between mb-2 lg:flex">
 				<div class="mb-4 lg:mb-0">
-					<h3 class="mb-2 text-xl font-bold text-gray-900 dark:text-white">Campaigns</h3>
+					<h3 class="mb-2 text-xl font-bold text-gray-900 dark:text-white">Campaigns Performace</h3>
 					<span class="text-base font-normal text-gray-500 dark:text-gray-400">
-						Campaigns performance
+						Number of total events for each campaign in given date range
 					</span>
 				</div>
 				<DateRangePicker bind:value={campaignDateRangeValue} onClick={onCampaignsUsageChange} />

@@ -512,8 +512,8 @@ async function generateRouteEvents(
 ) {
 	let routeEvents = [];
 	const enterDay = new Date();
-	enterDay.setMonth(enterDay.getMonth());
-	enterDay.setDate(day);
+	// enterDay.setMonth(enterDay.getMonth());
+	enterDay.setDate(enterDay.getDate() - day);
 
 	for (let [i, beaconIdx] of route.entries()) {
 		const { x, y } = placements[beaconIdx];
@@ -582,7 +582,7 @@ async function generateRandomEvents(
 	let randomEvents = [];
 
 	// for the past week
-	for (let i = 0; i < 7; i++) {
+	for (let i = 1; i < 7; i++) {
 		// beacons will be placed to different locations with different radiuses on each day,
 		// which means events will occur on different locations, but notice that this has nothing
 		// to do with beacon placement on the floorplan, i.e. no update to beacons_to_floorplans table

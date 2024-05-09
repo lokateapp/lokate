@@ -66,7 +66,8 @@
 
 <div style="width: {width}px; height: {height}px;">
 	<div class="ml-10 mt-10">
-		<div class="flex justify-end">
+		<div class="flex justify-between">
+			<h1 class="mb-2 text-2xl font-bold text-gray-900 dark:text-white">Heatmap</h1>
 			<DatePicker bind:value={currentDate} onClick={() => {}} />
 		</div>
 

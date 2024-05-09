@@ -1,8 +1,8 @@
 import dayjs from 'dayjs';
 import type { RequestHandler } from './$types';
-import { beacons, branches, campaigns, campaignsToBeacons, events } from '$lib/schema';
+import { beacons, branches, campaigns, campaignsToBeacons, customers, events } from '$lib/schema';
 import { db } from '$lib/server/db';
-import { eq } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 import { json } from '@sveltejs/kit';
 
 export const GET: RequestHandler = async ({ url }) => {
@@ -53,16 +53,19 @@ export const GET: RequestHandler = async ({ url }) => {
 		.from(events)
 		.innerJoin(beacons, eq(events.beaconId, beacons.id))
 		.innerJoin(campaignsToBeacons, eq(beacons.id, campaignsToBeacons.beaconId))
+		.innerJoin(customers, eq(events.customerId, customers.id))
 		.innerJoin(campaigns, eq(campaignsToBeacons.campaignId, campaigns.id))
 		.where(eq(campaigns.branchId, branchId))
 		.limit(limit ? parseInt(limit) : 10)
-		.offset(offset ? parseInt(offset) * (limit ? parseInt(limit) : 10) : 0);
+		.offset(offset ? parseInt(offset) * (limit ? parseInt(limit) : 10) : 0)
+		.orderBy(desc(events.enterTimestamp));
 
 	const concatenatedEvents = selectedEvents.map((event) => {
 		return {
 			...event['beacons'],
 			...event['campaigns'],
-			...event['events']
+			...event['events'],
+			...event['customers']
 		};
 	});
 

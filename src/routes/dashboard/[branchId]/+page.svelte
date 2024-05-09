@@ -43,7 +43,7 @@
 	const SVG_URL = '/src/lib/assets/beacon.svg';
 
 	let itemOffset = 1;
-	let itemsPerPage = 9;
+	let itemsPerPage = 6;
 	// let items = campaigns;
 	$: items = campaigns.slice(
 		(itemOffset - 1) * itemsPerPage,

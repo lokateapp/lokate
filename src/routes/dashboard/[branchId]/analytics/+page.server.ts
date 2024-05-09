@@ -1,5 +1,12 @@
 import { db } from '$lib/server/db';
-import { events, beacons, campaigns, campaignsToBeacons, EventStatus } from '$lib/schema';
+import {
+	events,
+	beacons,
+	campaigns,
+	campaignsToBeacons,
+	EventStatus,
+	customers
+} from '$lib/schema';
 import { and, eq, gt, lt, sql } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
 import dayjs from 'dayjs';
@@ -35,8 +42,8 @@ export const load: PageServerLoad = async ({ params }) => {
 		return {
 			...event['beacons'],
 			...event['campaigns'],
-			...event['events']
-			// ...event["customers"],
+			...event['events'],
+			...event['customers']
 		};
 	});
 
@@ -57,7 +64,7 @@ async function getEvents(branchId: string) {
 		.innerJoin(beacons, eq(events.beaconId, beacons.id))
 		.innerJoin(campaignsToBeacons, eq(beacons.id, campaignsToBeacons.beaconId))
 		.innerJoin(campaigns, eq(campaignsToBeacons.campaignId, campaigns.id))
-		// .innerJoin(customers, eq(events.customerId, customers.id))
+		.innerJoin(customers, eq(events.customerId, customers.id))
 		.where(eq(campaigns.branchId, branchId))
 		.limit(10);
 }
