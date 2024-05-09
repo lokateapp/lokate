@@ -199,23 +199,19 @@
 		<div class="items-center justify-between mb-2 lg:flex">
 			<div class="mb-4 lg:mb-0">
 				<h3 class="mb-2 text-xl font-bold text-gray-900 dark:text-white">Events</h3>
-				<span class="text-base font-normal text-gray-500 dark:text-gray-400">Latest 10 events</span>
 			</div>
 		</div>
 		<Table hoverable={true} shadow>
 			<TableHead>
-				<!-- <TableHeadCell>Event Id</TableHeadCell> -->
 				<TableHeadCell>Campaign Name</TableHeadCell>
 				<TableHeadCell>Beacon Name</TableHeadCell>
 				<TableHeadCell>Status</TableHeadCell>
-				<TableHeadCell>Enter Timestamp</TableHeadCell>
+				<TableHeadCell>Customer Id</TableHeadCell>
+				<TableHeadCell>Timestamp</TableHeadCell>
 			</TableHead>
 			<TableBody tableBodyClass="divide-y">
 				{#each events as event}
 					<TableBodyRow>
-						<!-- <TableBodyCell class="!p-4">
-							{event.id}
-						</TableBodyCell> -->
 						<TableBodyCell>
 							{campaignsObject[event.campaignId]}
 						</TableBodyCell>
@@ -229,6 +225,7 @@
 								<Badge rounded color="red">Exit</Badge>
 							{/if}
 						</TableBodyCell>
+						<TableBodyCell>{event.customerId}</TableBodyCell>
 						<TableBodyCell>{dayjs(event.enterTimestamp).format('llll')}</TableBodyCell>
 					</TableBodyRow>
 				{/each}
