@@ -38,23 +38,24 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	// 	userId = user.userId;
 	// }
 
+	const customer = {
+		id: crypto.randomUUID(),
+		customerId: 'umut'
+	};
+
+	await db.insert(customers).values(customer);
+
 	const demo = url.searchParams.get('demo');
 
 	if (demo === 'market') {
-		await prepareMarketDemo();
+		await prepareMarketDemo(customer.id);
 	} else if (demo === 'museum') {
 		await prepareMuseumDemo();
 	} else if (demo === 'gym') {
 		await prepareGymDemo();
 	} else {
-		await prepareMarketDemo();
+		await prepareMarketDemo(customer.id);
 	}
-
-	const customer = {
-		id: crypto.randomUUID(),
-		customerId: 'umut'
-	};
-	await db.insert(customers).values(customer);
 
 	const responseBody = JSON.stringify('Success!');
 
@@ -65,7 +66,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 
 // DEMO 1 (Shopping):
 
-async function prepareMarketDemo() {
+async function prepareMarketDemo(customerId: string) {
 	const user = await auth.createUser({
 		key: {
 			providerId: 'username', // auth method
@@ -105,8 +106,16 @@ async function prepareMarketDemo() {
 		placements1,
 		campaignMappings1,
 		normalizeBeaconGraph(marketNotNormalizedBeaconGraph),
-		3000
+		300
 	);
+	await generateProductGroups(campaignMappings1); // generate only for branch that will be shown on demo app
+	await generateYesterdayEventsForDemoCustomer(
+		customerId,
+		branch1.id,
+		placements1,
+		campaignMappings1,
+		5000
+	); // only for demo
 
 	// ---------------------------------------------------------------------
 
@@ -131,7 +140,7 @@ async function prepareMarketDemo() {
 	const beacons2 = await initializePseudoBeacons(branch2.id, 2, 1, 10);
 	const placements2 = await placeBeaconsToFloorplans(beacons2, floorplan2);
 	const campaignMappings2 = await createCampaigns(branch2.id, beacons2);
-	generateRandomEvents(branch2.id, floorplan2, beacons2, placements2, campaignMappings2, 100);
+	// generateRandomEvents(branch2.id, floorplan2, beacons2, placements2, campaignMappings2, 100); // comment if clustering model will be trained
 
 	// ---------------------------------------------------------------------
 
@@ -156,7 +165,7 @@ async function prepareMarketDemo() {
 	const beacons3 = await initializePseudoBeacons(branch3.id, 3, 1, 10);
 	const placements3 = await placeBeaconsToFloorplans(beacons3, floorplan3);
 	const campaignMappings3 = await createCampaigns(branch3.id, beacons3);
-	generateRandomEvents(branch3.id, floorplan3, beacons3, placements3, campaignMappings3, 100);
+	// generateRandomEvents(branch3.id, floorplan3, beacons3, placements3, campaignMappings3, 100); // comment if clustering model will be trained
 
 	// ---------------------------------------------------------------------
 
@@ -181,7 +190,7 @@ async function prepareMarketDemo() {
 	const beacons4 = await initializePseudoBeacons(branch4.id, 4, 1, 10);
 	const placements4 = await placeBeaconsToFloorplans(beacons4, floorplan4);
 	const campaignMappings4 = await createCampaigns(branch4.id, beacons4);
-	generateRandomEvents(branch4.id, floorplan4, beacons4, placements4, campaignMappings4, 100);
+	// generateRandomEvents(branch4.id, floorplan4, beacons4, placements4, campaignMappings4, 100); // comment if clustering model will be trained
 }
 
 // DEMO 2 (Museum):
@@ -635,102 +644,16 @@ async function generateRandomEvents(
 	await db.insert(events).values(randomEvents);
 }
 
-/* CUSTOM DATA (NOT RANDOM) */
-
-// Annotated (BeaconName)
-const marketBeaconLocations = [
-	[425, 339], // Entry (Pink)
-	[548, 221], // 7 (Red)
-	[501, 179], // 8 (White)
-	[225, 154], // 18 (Yellow)
-	[617, 324], // 1 (Pseudo1)
-	[693, 322], // 2 (Pseudo2)
-	[604, 262], // 3 (Pseudo3)
-	[679, 251], // 4 (Pseudo4)
-	[648, 116], // 5 (Pseudo5)
-	[559, 32], // 6 (Pseudo6)
-	[432, 60], // 9 (Pseudo7)
-	[453, 223], // 10 (Pseudo8)
-	[405, 177], // 11 (Pseudo9)
-	[386, 108], // 12 (Pseudo10)
-	[366, 37], // 13 (Pseudo11)
-	[357, 224], // 14 (Pseudo12)
-	[314, 181], // 15 (Pseudo13)
-	[279, 107], // 16 (Pseudo14)
-	[269, 200], // 17 (Pseudo15)
-	[227, 220], // 19 (Pseudo16)
-	[200, 255], // 20 (Pseudo17)
-	[161, 108], // 21 (Pseudo18)
-	[20, 272], // 22 (Pseudo19)
-	[72, 297], // 23 (Pseudo20)
-	[37, 327], // 24 (Pseudo21)
-	[200, 338] // Exit (Pseudo22)
-];
-const marketCampaigns = [
-	'Giriş',
-	'Bebek maması',
-	'Bebek bezi',
-	'Bira',
-	'Ekmek',
-	'Bakliyat',
-	'Konserve',
-	'Kuruyemiş',
-	'Kasap',
-	'Çay',
-	'İçecek',
-	'Bulaşık',
-	'Deterjan',
-	'Süt',
-	'Dondurma',
-	'Cips',
-	'Çikolata',
-	'Dondurulmuş hazır gıda',
-	'Kişisel Bakım',
-	'Şarap',
-	'Kasa',
-	'Sandviç',
-	'Kağıt',
-	'Kalem',
-	'Defter',
-	'Çıkış'
-];
-const marketNotNormalizedBeaconGraph: number[][] = [
-	/* 0*/ [0, 7, 3, 6, 2, 0, 0, 8, 6, 1, 9, 5, 3, 0, 8, 6, 2, 5, 2, 5, 6, 0, 2, 7, 2, 0],
-	/* 1*/ [0, 0, 8, 9, 6, 2, 0, 5, 4, 2, 7, 5, 2, 0, 5, 4, 2, 3, 0, 3, 6, 0, 3, 4, 3, 3],
-	/* 2*/ [0, 5, 0, 6, 8, 3, 0, 2, 0, 3, 3, 2, 2, 0, 3, 0, 0, 0, 0, 4, 5, 0, 0, 3, 4, 2],
-	/* 3*/ [0, 3, 2, 0, 9, 7, 3, 10, 4, 5, 8, 3, 3, 2, 5, 3, 0, 2, 0, 3, 4, 0, 2, 6, 2, 6],
-	/* 4*/ [0, 2, 3, 4, 0, 8, 6, 4, 5, 4, 2, 3, 5, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3],
-	/* 5*/ [0, 2, 2, 4, 3, 0, 9, 5, 4, 3, 0, 3, 3, 2, 0, 0, 0, 0, 3, 4, 4, 0, 0, 2, 0, 2],
-	/* 6*/ [0, 0, 0, 2, 2, 3, 0, 6, 8, 10, 4, 5, 6, 7, 3, 2, 2, 2, 3, 0, 0, 0, 0, 0, 0, 0],
-	/* 7*/ [0, 6, 2, 7, 5, 6, 8, 3, 10, 3, 4, 2, 6, 4, 3, 3, 2, 0, 2, 2, 4, 0, 2, 5, 2, 3],
-	/* 8*/ [0, 2, 0, 2, 3, 4, 8, 6, 0, 6, 7, 5, 6, 3, 2, 2, 3, 2, 2, 0, 0, 0, 0, 0, 0, 2],
-	/* 9*/ [0, 0, 0, 0, 0, 5, 8, 4, 6, 0, 10, 2, 5, 8, 2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-	/*10*/ [0, 7, 3, 5, 2, 0, 6, 6, 8, 2, 0, 7, 5, 0, 5, 2, 2, 2, 3, 3, 5, 2, 0, 4, 2, 4],
-	/*11*/ [0, 2, 0, 2, 0, 5, 7, 4, 7, 5, 8, 0, 8, 2, 7, 5, 4, 2, 3, 0, 0, 2, 2, 4, 3, 4],
-	/*12*/ [0, 0, 2, 3, 3, 5, 8, 3, 6, 6, 4, 7, 0, 2, 6, 4, 7, 2, 2, 2, 0, 2, 0, 0, 2, 0],
-	/*13*/ [0, 0, 0, 0, 2, 4, 5, 3, 5, 10, 2, 2, 3, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-	/*14*/ [0, 3, 2, 2, 0, 0, 2, 2, 2, 3, 5, 7, 6, 0, 0, 7, 3, 3, 2, 5, 6, 0, 2, 4, 3, 5],
-	/*15*/ [0, 0, 0, 0, 0, 2, 3, 0, 2, 2, 3, 5, 6, 2, 8, 0, 9, 8, 4, 3, 3, 4, 3, 4, 2, 5],
-	/*16*/ [0, 0, 0, 0, 0, 0, 2, 0, 2, 2, 3, 4, 6, 2, 3, 8, 0, 7, 8, 3, 2, 7, 2, 3, 0, 2],
-	/*17*/ [0, 0, 0, 0, 0, 0, 2, 0, 2, 2, 0, 3, 4, 2, 3, 6, 7, 0, 8, 9, 4, 3, 0, 3, 2, 5],
-	/*18*/ [0, 0, 0, 0, 0, 2, 2, 2, 4, 2, 3, 2, 3, 0, 2, 3, 7, 8, 0, 8, 4, 9, 0, 5, 2, 3],
-	/*19*/ [0, 2, 0, 0, 0, 0, 2, 0, 2, 3, 2, 3, 2, 0, 6, 5, 5, 8, 8, 0, 10, 6, 2, 4, 5, 7],
-	/*20*/ [0, 3, 2, 3, 0, 0, 0, 2, 2, 0, 3, 3, 2, 0, 5, 6, 4, 4, 5, 8, 0, 6, 2, 6, 3, 9],
-	/*21*/ [0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 2, 2, 0, 0, 4, 5, 3, 7, 6, 8, 0, 0, 5, 2, 6],
-	/*22*/ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 8, 3],
-	/*23*/ [0, 3, 2, 4, 2, 0, 0, 0, 0, 0, 3, 2, 2, 0, 4, 3, 2, 4, 2, 3, 8, 6, 7, 0, 24, 7],
-	/*24*/ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 2, 0, 2, 4, 3, 6, 8, 0, 10],
-	/*25*/ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-];
-
-// TODO: figure out what to do with the following
-async function generateProductGroups(campaigns: any) {
+async function generateProductGroups(campaignMappings: any) {
 	const category_keys = [
+		'bebek',
+		'kuruyemis',
+		'icecek',
+		'kahve',
 		'seker_sakiz',
 		'cikolata_biskuvi',
 		'cips',
 		'gevrek',
-		'bebek',
 		'sampuan_dusjeli',
 		'sabun',
 		'kisisel_bakim',
@@ -745,7 +668,6 @@ async function generateProductGroups(campaigns: any) {
 		'dondurulmus',
 		'yumurta',
 		'salam_sosis_sucuk',
-		'kahve',
 		'cay',
 		'alet',
 		'sos',
@@ -753,7 +675,6 @@ async function generateProductGroups(campaigns: any) {
 		'sivi_yag',
 		'meyve_sebze',
 		'maden_suyu',
-		'icecek',
 		'kolonya',
 		'konserve_salca',
 		'pecete',
@@ -763,7 +684,6 @@ async function generateProductGroups(campaigns: any) {
 		'porselen',
 		'dondurma',
 		'kedi_kopek',
-		'kuruyemis',
 		'plastik',
 		'su',
 		'sut',
@@ -771,24 +691,222 @@ async function generateProductGroups(campaigns: any) {
 		'pil'
 	];
 
-	for (let i = 0; i < category_keys.length; i++) {
+	const category1 = {
+		id: crypto.randomUUID(),
+		groupName: category_keys[0] // bebek
+	};
+	const match1 = {
+		productGroupId: category1.id,
+		campaignId: campaignMappings[1].campaignId // bebek bezi
+	};
+	await db.insert(productGroups).values(category1);
+	await db.insert(productGroupsToCampaigns).values(match1);
+
+	const category2 = {
+		id: crypto.randomUUID(),
+		groupName: category_keys[1] // kuruyemis
+	};
+	const match2 = {
+		productGroupId: category2.id,
+		campaignId: campaignMappings[2].campaignId // kuruyemis
+	};
+	await db.insert(productGroups).values(category2);
+	await db.insert(productGroupsToCampaigns).values(match2);
+
+	const category3 = {
+		id: crypto.randomUUID(),
+		groupName: category_keys[2] // icecek
+	};
+	const match3 = {
+		productGroupId: category3.id,
+		campaignId: campaignMappings[3].campaignId // bira
+	};
+	await db.insert(productGroups).values(category3);
+	await db.insert(productGroupsToCampaigns).values(match3);
+
+	const category4 = {
+		id: crypto.randomUUID(),
+		groupName: category_keys[3] // kahve
+	};
+	const match4 = {
+		productGroupId: category4.id,
+		campaignId: campaignMappings[15].campaignId // kahve
+	};
+	await db.insert(productGroups).values(category4);
+	await db.insert(productGroupsToCampaigns).values(match4);
+
+	const forbidden_indexes = [1, 2, 3, 15];
+
+	// first 4 categories are already matched
+	for (let i = 4; i < category_keys.length; i++) {
 		const category = {
 			id: crypto.randomUUID(),
 			groupName: category_keys[i]
 		};
 		await db.insert(productGroups).values(category);
 
-		// there are two campaigns in branch3, hence length of campaigns array is two
-		// first half of the products is mapped to the first campaign
-		// second half of the products is mapped to the second campaign
-		// the same mapping is performed in the demo mobile application
+		// avoid forbidded indexes
+		let campaignIdx = Math.floor(Math.random() * campaignMappings.length);
+		while (forbidden_indexes.includes(campaignIdx)) {
+			campaignIdx = Math.floor(Math.random() * campaignMappings.length);
+		}
+		// randomly match remaining categories (we don't care)
 		const match = {
-			campaignId: i < category_keys.length / 2 ? campaigns[0] : campaigns[1],
+			campaignId: campaignMappings[campaignIdx].campaignId,
 			productGroupId: category.id
 		};
 		await db.insert(productGroupsToCampaigns).values(match);
 	}
 }
+
+async function generateYesterdayEventsForDemoCustomer(
+	customerId: string,
+	branchId: string,
+	placements: any,
+	campaignMappings: any,
+	n: number
+) {
+	function getRandomTimestamp(start: Date, end: Date): Date {
+		const startTime = start.getTime();
+		const endTime = end.getTime();
+		const randomTime = startTime + Math.random() * (endTime - startTime);
+		return new Date(randomTime);
+	}
+
+	// events will be generated for campaigns with indexes 1, 2, 3, 15 (bebek bezi, kuruyemis, bira, kahve)
+	const indexes = [1, 2, 3, 15];
+
+	let yesterdayEvents = [];
+
+	const startDate = new Date();
+	startDate.setDate(startDate.getDate() - 1);
+	startDate.setHours(8, 0, 0, 0); // Set start time to 8:00 AM
+	const endDate = new Date();
+	endDate.setDate(endDate.getDate() - 1);
+	endDate.setHours(22, 0, 0, 0); // Set end time to 10:00 PM
+
+	for (let j = 0; j < n; j++) {
+		const randomIdx = indexes[Math.floor(Math.random() * indexes.length)];
+		const beaconId = placements[randomIdx].beaconId;
+		const campaignId = campaignMappings[randomIdx].campaignId;
+		const x = placements[randomIdx].x;
+		const y = placements[randomIdx].y;
+		const r = 5.0;
+		const enterTimestamp = getRandomTimestamp(startDate, endDate); // Random timestamp within the specified range
+		const possibleExitTimestamp = new Date(
+			enterTimestamp.getTime() + Math.floor(Math.random() * 50000) + 10000
+		);
+
+		// 20% of events may remain at STAY status due to possible failure
+		const eventStatus = j % 5 === 0 ? EventStatus.STAY : EventStatus.EXIT;
+		yesterdayEvents.push({
+			id: crypto.randomUUID(),
+			status: eventStatus,
+			enterTimestamp,
+			possibleExitTimestamp,
+			locationX: x,
+			locationY: y,
+			radius: r,
+			customerId,
+			branchId,
+			beaconId,
+			campaignId
+		});
+	}
+
+	await db.insert(events).values(yesterdayEvents);
+}
+
+/* CUSTOM DATA (NOT RANDOM) */
+
+// Annotated (BeaconName)
+const marketBeaconLocations = [
+	[425, 339], // Entry (Pink)
+	[604, 262], // 3 (Red)
+	[559, 32], // 6 (Yellow)
+	[366, 37], // 13 (White)
+	[617, 324], // 1 (Pseudo1)
+	[693, 322], // 2 (Pseudo2)
+	[679, 251], // 4 (Pseudo3)
+	[648, 116], // 5 (Pseudo4)
+	[548, 221], // 7 (Pseudo5)
+	[501, 179], // 8 (Pseudo6)
+	[432, 60], // 9 (Pseudo7)
+	[453, 223], // 10 (Pseudo8)
+	[405, 177], // 11 (Pseudo9)
+	[386, 108], // 12 (Pseudo10)
+	[357, 224], // 14 (Pseudo11)
+	[314, 181], // 15 (Pseudo12)
+	[279, 107], // 16 (Pseudo13)
+	[269, 200], // 17 (Pseudo14)
+	[225, 154], // 18 (Pseudo15)
+	[227, 220], // 19 (Pseudo16)
+	[200, 255], // 20 (Pseudo17)
+	[161, 108], // 21 (Pseudo18)
+	[20, 272], // 22 (Pseudo19)
+	[72, 297], // 23 (Pseudo20)
+	[37, 327], // 24 (Pseudo21)
+	[200, 338] // Exit (Pseudo22)
+];
+const marketCampaigns = [
+	'giris',
+	'bebek bezi',
+	'kuruyemis',
+	'bira',
+	'ekmek',
+	'bakliyat',
+	'konserve',
+	'kasap',
+	'icecek',
+	'bulasik',
+	'deterjan',
+	'sut',
+	'cay',
+	'dondurma',
+	'cips',
+	'kahve',
+	'cikolata',
+	'dondurulmus hazir gida',
+	'kisisel bakim',
+	'sarap',
+	'kasa',
+	'sandvic',
+	'kagit',
+	'kalem',
+	'defter',
+	'cikis'
+];
+// BEER
+// entry -> bebek bezi -> kuruyemis -> bira -> kahve -> exit
+// entry -> 3 -> 6 -> 13 -> 15 -> exit
+const marketNotNormalizedBeaconGraph: number[][] = [
+	/* 0*/ [0, 7, 3, 99, 2, 0, 0, 8, 6, 1, 9, 5, 3, 0, 8, 6, 2, 5, 2, 5, 6, 0, 2, 7, 2, 0],
+	/* 1*/ [0, 0, 8, 9, 6, 2, 0, 5, 4, 2, 7, 5, 2, 0, 5, 4, 2, 3, 0, 3, 6, 0, 3, 4, 3, 3],
+	/* 2*/ [0, 5, 0, 6, 8, 3, 0, 2, 0, 3, 3, 2, 2, 0, 3, 0, 0, 0, 0, 4, 5, 0, 0, 3, 4, 2],
+	/* 3*/ [0, 3, 2, 0, 9, 7, 99, 10, 4, 5, 8, 3, 3, 2, 5, 3, 0, 2, 0, 3, 4, 0, 2, 6, 2, 6],
+	/* 4*/ [0, 2, 3, 4, 0, 8, 6, 4, 5, 4, 2, 3, 5, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3],
+	/* 5*/ [0, 2, 2, 4, 3, 0, 9, 5, 4, 3, 0, 3, 3, 2, 0, 0, 0, 0, 3, 4, 4, 0, 0, 2, 0, 2],
+	/* 6*/ [0, 0, 0, 2, 2, 3, 0, 6, 8, 10, 4, 5, 6, 99, 3, 2, 2, 2, 3, 0, 0, 0, 0, 0, 0, 0],
+	/* 7*/ [0, 6, 2, 7, 5, 6, 8, 3, 10, 3, 4, 2, 6, 4, 3, 3, 2, 0, 2, 2, 4, 0, 2, 5, 2, 3],
+	/* 8*/ [0, 2, 0, 2, 3, 4, 8, 6, 0, 6, 7, 5, 6, 3, 2, 2, 3, 2, 2, 0, 0, 0, 0, 0, 0, 2],
+	/* 9*/ [0, 0, 0, 0, 0, 5, 8, 4, 6, 0, 10, 2, 5, 8, 2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+	/*10*/ [0, 7, 3, 5, 2, 0, 6, 6, 8, 2, 0, 7, 5, 0, 5, 2, 2, 2, 3, 3, 5, 2, 0, 4, 2, 4],
+	/*11*/ [0, 2, 0, 2, 0, 5, 7, 4, 7, 5, 8, 0, 8, 2, 7, 5, 4, 2, 3, 0, 0, 2, 2, 4, 3, 4],
+	/*12*/ [0, 0, 2, 3, 3, 5, 8, 3, 6, 6, 4, 7, 0, 2, 6, 4, 7, 2, 2, 2, 0, 2, 0, 0, 2, 0],
+	/*13*/ [0, 0, 0, 0, 2, 4, 5, 3, 5, 10, 2, 2, 3, 0, 0, 99, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+	/*14*/ [0, 3, 2, 2, 0, 0, 2, 2, 2, 3, 5, 7, 6, 0, 0, 7, 3, 3, 2, 5, 6, 0, 2, 4, 3, 5],
+	/*15*/ [0, 0, 0, 0, 0, 2, 3, 0, 2, 2, 3, 5, 6, 2, 8, 0, 9, 8, 4, 3, 3, 4, 3, 4, 2, 99],
+	/*16*/ [0, 0, 0, 0, 0, 0, 2, 0, 2, 2, 3, 4, 6, 2, 3, 8, 0, 7, 8, 3, 2, 7, 2, 3, 0, 2],
+	/*17*/ [0, 0, 0, 0, 0, 0, 2, 0, 2, 2, 0, 3, 4, 2, 3, 6, 7, 0, 8, 9, 4, 3, 0, 3, 2, 5],
+	/*18*/ [0, 0, 0, 0, 0, 2, 2, 2, 4, 2, 3, 2, 3, 0, 2, 3, 7, 8, 0, 8, 4, 9, 0, 5, 2, 3],
+	/*19*/ [0, 2, 0, 0, 0, 0, 2, 0, 2, 3, 2, 3, 2, 0, 6, 5, 5, 8, 8, 0, 10, 6, 2, 4, 5, 7],
+	/*20*/ [0, 3, 2, 3, 0, 0, 0, 2, 2, 0, 3, 3, 2, 0, 5, 6, 4, 4, 5, 8, 0, 6, 2, 6, 3, 9],
+	/*21*/ [0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 2, 2, 0, 0, 4, 5, 3, 7, 6, 8, 0, 0, 5, 2, 6],
+	/*22*/ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 8, 3],
+	/*23*/ [0, 3, 2, 4, 2, 0, 0, 0, 0, 0, 3, 2, 2, 0, 4, 3, 2, 4, 2, 3, 8, 6, 7, 0, 24, 7],
+	/*24*/ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 2, 0, 2, 4, 3, 6, 8, 0, 10],
+	/*25*/ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+];
 
 // /* 0*/ [0, 7, 3, 6, 2, 1, 1, 8, 6, 5, 9, 5, 3, 1, 8, 6, 2, 5, 2, 5, 6, 1, 2, 7, 2, 3],
 // /* 1*/ [0, 1, 8, 9, 6, 2, 1, 5, 4, 2, 7, 5, 2, 1, 5, 4, 2, 3, 1, 3, 6, 1, 3, 4, 3, 3],
@@ -816,3 +934,62 @@ async function generateProductGroups(campaigns: any) {
 // /*23*/ [0, 3, 2, 4, 2, 1, 1, 1, 1, 1, 3, 2, 2, 1, 4, 3, 2, 4, 2, 3, 8, 6, 7, 1, 24, 7],
 // /*24*/ [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 2, 1, 2, 4, 3, 6, 8, 1, 10],
 // /*25*/ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+// const marketNotNormalizedBeaconGraph: number[][] = [
+// 	/* 0*/ [0, 7, 3, 6, 2, 0, 0, 8, 6, 1, 9, 5, 3, 0, 8, 6, 2, 5, 2, 5, 6, 0, 2, 7, 2, 0],
+// 	/* 1*/ [0, 0, 8, 9, 6, 2, 0, 5, 4, 2, 7, 5, 2, 0, 5, 4, 2, 3, 0, 3, 6, 0, 3, 4, 3, 3],
+// 	/* 2*/ [0, 5, 0, 6, 8, 3, 0, 2, 0, 3, 3, 2, 2, 0, 3, 0, 0, 0, 0, 4, 5, 0, 0, 3, 4, 2],
+// 	/* 3*/ [0, 3, 2, 0, 9, 7, 3, 10, 4, 5, 8, 3, 3, 2, 5, 3, 0, 2, 0, 3, 4, 0, 2, 6, 2, 6],
+// 	/* 4*/ [0, 2, 3, 4, 0, 8, 6, 4, 5, 4, 2, 3, 5, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3],
+// 	/* 5*/ [0, 2, 2, 4, 3, 0, 9, 5, 4, 3, 0, 3, 3, 2, 0, 0, 0, 0, 3, 4, 4, 0, 0, 2, 0, 2],
+// 	/* 6*/ [0, 0, 0, 2, 2, 3, 0, 6, 8, 10, 4, 5, 6, 7, 3, 2, 2, 2, 3, 0, 0, 0, 0, 0, 0, 0],
+// 	/* 7*/ [0, 6, 2, 7, 5, 6, 8, 3, 10, 3, 4, 2, 6, 4, 3, 3, 2, 0, 2, 2, 4, 0, 2, 5, 2, 3],
+// 	/* 8*/ [0, 2, 0, 2, 3, 4, 8, 6, 0, 6, 7, 5, 6, 3, 2, 2, 3, 2, 2, 0, 0, 0, 0, 0, 0, 2],
+// 	/* 9*/ [0, 0, 0, 0, 0, 5, 8, 4, 6, 0, 10, 2, 5, 8, 2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+// 	/*10*/ [0, 7, 3, 5, 2, 0, 6, 6, 8, 2, 0, 7, 5, 0, 5, 2, 2, 2, 3, 3, 5, 2, 0, 4, 2, 4],
+// 	/*11*/ [0, 2, 0, 2, 0, 5, 7, 4, 7, 5, 8, 0, 8, 2, 7, 5, 4, 2, 3, 0, 0, 2, 2, 4, 3, 4],
+// 	/*12*/ [0, 0, 2, 3, 3, 5, 8, 3, 6, 6, 4, 7, 0, 2, 6, 4, 7, 2, 2, 2, 0, 2, 0, 0, 2, 0],
+// 	/*13*/ [0, 0, 0, 0, 2, 4, 5, 3, 5, 10, 2, 2, 3, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+// 	/*14*/ [0, 3, 2, 2, 0, 0, 2, 2, 2, 3, 5, 7, 6, 0, 0, 7, 3, 3, 2, 5, 6, 0, 2, 4, 3, 5],
+// 	/*15*/ [0, 0, 0, 0, 0, 2, 3, 0, 2, 2, 3, 5, 6, 2, 8, 0, 9, 8, 4, 3, 3, 4, 3, 4, 2, 5],
+// 	/*16*/ [0, 0, 0, 0, 0, 0, 2, 0, 2, 2, 3, 4, 6, 2, 3, 8, 0, 7, 8, 3, 2, 7, 2, 3, 0, 2],
+// 	/*17*/ [0, 0, 0, 0, 0, 0, 2, 0, 2, 2, 0, 3, 4, 2, 3, 6, 7, 0, 8, 9, 4, 3, 0, 3, 2, 5],
+// 	/*18*/ [0, 0, 0, 0, 0, 2, 2, 2, 4, 2, 3, 2, 3, 0, 2, 3, 7, 8, 0, 8, 4, 9, 0, 5, 2, 3],
+// 	/*19*/ [0, 2, 0, 0, 0, 0, 2, 0, 2, 3, 2, 3, 2, 0, 6, 5, 5, 8, 8, 0, 10, 6, 2, 4, 5, 7],
+// 	/*20*/ [0, 3, 2, 3, 0, 0, 0, 2, 2, 0, 3, 3, 2, 0, 5, 6, 4, 4, 5, 8, 0, 6, 2, 6, 3, 9],
+// 	/*21*/ [0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 2, 2, 0, 0, 4, 5, 3, 7, 6, 8, 0, 0, 5, 2, 6],
+// 	/*22*/ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 8, 3],
+// 	/*23*/ [0, 3, 2, 4, 2, 0, 0, 0, 0, 0, 3, 2, 2, 0, 4, 3, 2, 4, 2, 3, 8, 6, 7, 0, 24, 7],
+// 	/*24*/ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 2, 0, 2, 4, 3, 6, 8, 0, 10],
+// 	/*25*/ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+// ];
+
+// 2 ROUTES
+// const marketNotNormalizedBeaconGraph: number[][] = [
+// 	/* 0*/ [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+// 	/* 1*/ [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+// 	/* 2*/ [0, 5, 0, 6, 8, 3, 0, 2, 0, 3, 3, 2, 2, 0, 3, 0, 0, 0, 0, 4, 5, 0, 0, 3, 4, 2],
+// 	/* 3*/ [0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+// 	/* 4*/ [0, 2, 3, 4, 0, 8, 6, 4, 5, 4, 2, 3, 5, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3],
+// 	/* 5*/ [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+// 	/* 6*/ [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+// 	/* 7*/ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+// 	/* 8*/ [0, 2, 0, 2, 3, 4, 8, 6, 0, 6, 7, 5, 6, 3, 2, 2, 3, 2, 2, 0, 0, 0, 0, 0, 0, 2],
+// 	/* 9*/ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+// 	/*10*/ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+// 	/*11*/ [0, 2, 0, 2, 0, 5, 7, 4, 7, 5, 8, 0, 8, 2, 7, 5, 4, 2, 3, 0, 0, 2, 2, 4, 3, 4],
+// 	/*12*/ [0, 0, 2, 3, 3, 5, 8, 3, 6, 6, 4, 7, 0, 2, 6, 4, 7, 2, 2, 2, 0, 2, 0, 0, 2, 0],
+// 	/*13*/ [0, 0, 0, 0, 2, 4, 5, 3, 5, 10, 2, 2, 3, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+// 	/*14*/ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+// 	/*15*/ [0, 0, 0, 0, 0, 2, 3, 0, 2, 2, 3, 5, 6, 2, 8, 0, 9, 8, 4, 3, 3, 4, 3, 4, 2, 5],
+// 	/*16*/ [0, 0, 0, 0, 0, 0, 2, 0, 2, 2, 3, 4, 6, 2, 3, 8, 0, 7, 8, 3, 2, 7, 2, 3, 0, 2],
+// 	/*17*/ [0, 0, 0, 0, 0, 0, 2, 0, 2, 2, 0, 3, 4, 2, 3, 6, 7, 0, 8, 9, 4, 3, 0, 3, 2, 5],
+// 	/*18*/ [0, 0, 0, 0, 0, 2, 2, 2, 4, 2, 3, 2, 3, 0, 2, 3, 7, 8, 0, 8, 4, 9, 0, 5, 2, 3],
+// 	/*19*/ [0, 2, 0, 0, 0, 0, 2, 0, 2, 3, 2, 3, 2, 0, 6, 5, 5, 8, 8, 0, 10, 6, 2, 4, 5, 7],
+// 	/*20*/ [0, 3, 2, 3, 0, 0, 0, 2, 2, 0, 3, 3, 2, 0, 5, 6, 4, 4, 5, 8, 0, 6, 2, 6, 3, 9],
+// 	/*21*/ [0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 2, 2, 0, 0, 4, 5, 3, 7, 6, 8, 0, 0, 5, 2, 6],
+// 	/*22*/ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 8, 3],
+// 	/*23*/ [0, 3, 2, 4, 2, 0, 0, 0, 0, 0, 3, 2, 2, 0, 4, 3, 2, 4, 2, 3, 8, 6, 7, 0, 24, 7],
+// 	/*24*/ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 2, 0, 2, 4, 3, 6, 8, 0, 10],
+// 	/*25*/ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+// ];
