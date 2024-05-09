@@ -40,9 +40,8 @@
 		(itemOffset - 1) * itemsPerPage,
 		(itemOffset - 1) * itemsPerPage + itemsPerPage
 	);
-	// let items = devices;
 
-	let selectedRows: number[] = []; // = [0, 1, 2]
+	$: selectedRows = (items && items.map((_, i) => i)) || [];
 	let editRow: number;
 
 	const closeAllDevices = () => {
@@ -136,7 +135,6 @@
 		);
 
 		tooltipLayer.add(tooltip);
-		tooltip.hide();
 
 		// add stage a background image
 		if (floorplan?.imgPath) {
@@ -318,28 +316,48 @@
 
 			circleRange.id(beacon.id.toString());
 
-			beaconSvg.on('pointerenter', (event: any) => {
-				// scale up
-				event.target.scale({ x: 1.1, y: 1.1 });
-				tooltip.getText().setText(`${beaconName}`);
+			tooltip = new Konva.Label({
+				x: beaconSvg.x(),
+				y: beaconSvg.y(),
+				opacity: 0.9
+			});
 
-				tooltip.position({
-					x: event.target.x(),
-					y: event.target.y()
-				});
-				// tooltip.text(`Beacon ${beaconsMap.length}`);
-				tooltip.show();
+			tooltip.add(
+				new Konva.Tag({
+					fill: 'rgba(0,0,0,0.7)',
+					cornerRadius: 5,
+					pointerDirection: 'down',
+					pointerWidth: 10,
+					pointerHeight: 10,
+					lineJoin: 'round',
+					shadowColor: 'black',
+					shadowBlur: 10,
+					shadowOffsetX: 10,
+					shadowOffsetY: 10,
+					shadowOpacity: 0.5
+				})
+			);
+
+			tooltip.add(
+				new Konva.Text({
+					text: `${beaconName}`,
+					fontFamily: 'Calibri',
+					fontSize: 18,
+					padding: 5,
+					fill: 'white'
+				})
+			);
+
+			tooltip.id(beacon.id.toString());
+
+			beaconSvg.on('pointerenter', (event: any) => {
+				event.target.scale({ x: 1.3, y: 1.3 });
 				layer.draw();
 			});
 
-			// mouseout
 			beaconSvg.on('pointerleave', (event: any) => {
-				// scale down
 				event.target.scale({ x: 1, y: 1 });
 				layer.draw();
-				// setTimeout(() => {
-				// }, 1000);
-				tooltip.hide();
 			});
 
 			if (draggable) {
@@ -351,23 +369,18 @@
 						x: event.target.x() / multiplier,
 						y: event.target.y() / multiplier
 					};
-					// update beaconsMap position
-					// beaconsMap = beaconsMap.map((beaconMap) => {
-					// 	if (beaconMap.id == beacon.id) {
-					// 		beaconMap.position = {
-					// 			x: event.target.x(),
-					// 			y: event.target.y()
-					// 		};
-					// 	}
-					// 	return beaconMap;
-					// });
-					// console.log(event);
 					circleRange.x(event.target.x());
 					circleRange.y(event.target.y());
+
+					tooltip.position({
+						x: event.target.x(),
+						y: event.target.y()
+					});
 					layer.draw();
 				});
 			}
 
+			tooltipLayer.add(tooltip);
 			rangeLayer.add(circleRange);
 			layer.add(beaconSvg);
 			layer.draw();
@@ -443,41 +456,57 @@
 					opacity: 0.2
 				});
 
-				// mousemove
+				tooltip = new Konva.Label({
+					x: pos.x,
+					y: pos.y,
+					opacity: 0.9
+				});
+
+				tooltip.add(
+					new Konva.Tag({
+						fill: 'rgba(0,0,0,0.7)',
+						cornerRadius: 5,
+						pointerDirection: 'down',
+						pointerWidth: 10,
+						pointerHeight: 10,
+						lineJoin: 'round',
+						shadowColor: 'black',
+						shadowBlur: 10,
+						shadowOffsetX: 10,
+						shadowOffsetY: 10,
+						shadowOpacity: 0.5
+					})
+				);
+
+				tooltip.add(
+					new Konva.Text({
+						text: `${beaconName}`,
+						fontFamily: 'Calibri',
+						fontSize: 18,
+						padding: 5,
+						fill: 'white'
+					})
+				);
+
+				tooltip.id(beacon.id.toString());
+
 				beacon.on('pointerenter', (event: any) => {
-					// scale up
 					event.target.scale({ x: 1.1, y: 1.1 });
-
-					// update tooltip
-					// tooltip.getText().text(`Beacon ${beaconsMap.length}`);
-					tooltip.getText().setText(`${beaconName}`);
-
-					tooltip.position({
-						x: event.target.x(),
-						y: event.target.y()
-					});
-					// tooltip.text(`Beacon ${beaconsMap.length}`);
-					tooltip.show();
 					layer.draw();
 				});
 
-				// mouseout
 				beacon.on('pointerleave', (event: any) => {
-					// scale down
 					event.target.scale({ x: 1, y: 1 });
 					layer.draw();
-					// setTimeout(() => {
-					// }, 1000);
-					tooltip.hide();
 				});
 
 				beacon.on('dragmove', (event: any) => {
-					// console.log(event);
 					circleRange.x(event.target.x());
 					circleRange.y(event.target.y());
 					layer.draw();
 				});
 
+				tooltipLayer.add(tooltip);
 				rangeLayer.add(circleRange);
 				layer.add(beacon);
 				layer.draw();
@@ -510,6 +539,7 @@
 		}).then((res) => {
 			if (res.status === 200) {
 				isSaveChanges[device.id] = false;
+				isDraggable = false;
 				notify('Changes saved successfully', 'success');
 			} else {
 				notify('Error saving changes', 'error');
@@ -530,6 +560,14 @@
 
 		let beaconSvgs: KonvaType.Image[];
 		let beaconRanges: KonvaType.Circle[];
+
+		let beaconLabels: KonvaType.Label[];
+
+		beaconLabels = tooltipLayer.find('Label');
+
+		beaconLabels.forEach((beaconLabel: KonvaType.Label) => {
+			beaconLabel.destroy();
+		});
 
 		beaconSvgs = layer.find('Image');
 		beaconRanges = rangeLayer.find('Circle');
@@ -568,8 +606,14 @@
 								on:click={() => {
 									if (editRow === device_index) {
 										editRow = -1;
+										if (!isDraggable) {
+											selectedRows = (items && items.map((_, i) => i)) || [];
+										}
 									} else {
 										editRow = device_index;
+										if (!isDraggable) {
+											selectedRows = [device_index];
+										}
 									}
 								}}
 							>
