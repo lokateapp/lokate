@@ -592,7 +592,6 @@
 				<div class="">
 					<Table hoverable={true} shadow>
 						<TableHead>
-							<TableHeadCell>Beacon ID</TableHeadCell>
 							<TableHeadCell>Name</TableHeadCell>
 							<TableHeadCell>Range</TableHeadCell>
 							<TableHeadCell>Major</TableHeadCell>
@@ -617,8 +616,9 @@
 									}
 								}}
 							>
-								<TableBodyCell>{device.id}</TableBodyCell>
-								<TableBodyCell>{device.name}</TableBodyCell>
+								<TableBodyCell>
+									{device.name}
+								</TableBodyCell>
 								<TableBodyCell>{device.radius} m.</TableBodyCell>
 								<TableBodyCell>{device.major}</TableBodyCell>
 								<TableBodyCell>{device.minor}</TableBodyCell>
@@ -634,8 +634,9 @@
 							</TableBodyRow>
 							{#if editRow === device_index}
 								<TableBodyRow>
-									<TableBodyCell colspan={6}>
-										<div class="flex flex-row justify-between items-center">
+									<TableBodyCell colspan={5}>
+										<p>Beacon ID: {device.id}</p>
+										<div class="flex flex-row justify-between items-center mt-3">
 											<div class="">
 												<Label for="beacon-name" class="block mb-2">Beacon Name</Label>
 												<Input
@@ -644,7 +645,6 @@
 													bind:value={device.name}
 													on:input={(e) => {
 														isSaveChanges[device.id] = true;
-														// updateBeaconInfo(e, true);
 													}}
 												/>
 											</div>

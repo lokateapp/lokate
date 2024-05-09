@@ -204,7 +204,7 @@
 		</div>
 		<Table hoverable={true} shadow>
 			<TableHead>
-				<TableHeadCell>Event Id</TableHeadCell>
+				<!-- <TableHeadCell>Event Id</TableHeadCell> -->
 				<TableHeadCell>Campaign Name</TableHeadCell>
 				<TableHeadCell>Beacon Name</TableHeadCell>
 				<TableHeadCell>Status</TableHeadCell>
@@ -213,9 +213,9 @@
 			<TableBody tableBodyClass="divide-y">
 				{#each events as event}
 					<TableBodyRow>
-						<TableBodyCell class="!p-4">
+						<!-- <TableBodyCell class="!p-4">
 							{event.id}
-						</TableBodyCell>
+						</TableBodyCell> -->
 						<TableBodyCell>
 							{campaignsObject[event.campaignId]}
 						</TableBodyCell>
