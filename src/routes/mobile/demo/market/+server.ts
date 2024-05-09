@@ -3,54 +3,71 @@ import { campaigns, customers, productGroups, productGroupsToCampaigns } from '$
 import { db } from '$lib/server/db';
 import { eq } from 'drizzle-orm';
 
-type CategoryToProbability = [string, number];
-
 const PURCHASE_ANALYTICS_URL = 'http://localhost:8000/purchase-analytics';
+const VISIT_ANALYTICS_URL = 'http://localhost:8000/visit-analytics';
+
+async function handlePurchaseAnalytics(customerId: string) {
+	const response = await fetch(`${PURCHASE_ANALYTICS_URL}/${customerId}`);
+
+	if (!response.ok) {
+		throw new Error(`ML Backend (purchase analytics) error: ${await response.text()}`);
+	}
+
+	const topCategories: string[] = await response.json();
+
+	const topCampaigns = new Set();
+	for (const category of topCategories) {
+		topCampaigns.add(
+			(
+				await db
+					.selectDistinct()
+					.from(campaigns)
+					.innerJoin(
+						productGroupsToCampaigns,
+						eq(campaigns.id, productGroupsToCampaigns.campaignId)
+					)
+					.innerJoin(productGroups, eq(productGroups.id, productGroupsToCampaigns.productGroupId))
+					.where(eq(productGroups.groupName, category))
+					.limit(1)
+			)[0].campaigns.name
+		);
+	}
+
+	return Array.from(topCampaigns);
+}
+
+async function handleVisitAnalytics(customerId: string) {
+	const response = await fetch(`${VISIT_ANALYTICS_URL}/${customerId}`);
+
+	if (!response.ok) {
+		throw new Error(`ML Backend (visit analytics) error: ${await response.text()}`);
+	}
+
+	const nextCampaign: string = await response.json();
+	return nextCampaign;
+}
 
 export const GET: RequestHandler = async ({ url }) => {
 	try {
-		const customerId = url.searchParams.get('customerId');
+		const customerName = url.searchParams.get('customerId');
 		const customer = await db
 			.select()
 			.from(customers)
-			.where(eq(customers.customerId, customerId!))
+			.where(eq(customers.customerId, customerName!))
 			.limit(1);
 
 		if (customer.length === 0) {
 			throw new Error('Unknown customer');
 		}
 
-		const response = await fetch(`${PURCHASE_ANALYTICS_URL}/${customer[0].id}`);
+		const customerId = customer[0].id;
 
-		if (!response.ok) {
-			throw new Error(`ML Backend (purchase analytics) error: ${await response.text()}`);
-		}
-
-		const categoriesProbabilities: CategoryToProbability[] = await response.json();
-
-		// select top 4 category
-		const topCategories = categoriesProbabilities.sort((a, b) => b[1] - a[1]).slice(0, 4);
-
-		const topCampaigns = new Set();
-		for (const categoryToProbability of topCategories) {
-			topCampaigns.add(
-				(
-					await db
-						.selectDistinct()
-						.from(campaigns)
-						.innerJoin(
-							productGroupsToCampaigns,
-							eq(campaigns.id, productGroupsToCampaigns.campaignId)
-						)
-						.innerJoin(productGroups, eq(productGroups.id, productGroupsToCampaigns.productGroupId))
-						.where(eq(productGroups.groupName, categoryToProbability[0]))
-						.limit(1)
-				)[0].campaigns.name
-			);
-		}
+		const topCampaigns = await handlePurchaseAnalytics(customerId);
+		const nextCampaign = await handleVisitAnalytics(customerId);
 
 		const responseObject = {
-			affinedCampaigns: Array.from(topCampaigns)
+			affinedCampaigns: topCampaigns,
+			nextCampaign
 		};
 
 		return new Response(JSON.stringify(responseObject), {
