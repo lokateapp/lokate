@@ -83,10 +83,8 @@ async function prepareMarketDemo(customerId: string) {
 		id: crypto.randomUUID(),
 		userId,
 		address: 'Bilkent',
-		latitude: 39.900099,
-		longitude: 32.691764
-		// latitude: 39.867891,
-		// longitude: 32.748718
+		latitude: 39.867891,
+		longitude: 32.748718
 	};
 	await db.insert(branches).values(branch1);
 
@@ -140,10 +138,8 @@ async function prepareMarketDemo(customerId: string) {
 		id: crypto.randomUUID(),
 		userId,
 		address: 'Gordion',
-		latitude: 39.867891,
-		longitude: 32.748718
-		// latitude: 39.900099,
-		// longitude: 32.691764
+		latitude: 39.900099,
+		longitude: 32.691764
 	};
 	await db.insert(branches).values(branch2);
 
@@ -341,7 +337,7 @@ async function initializeLokateBeacons(branchId: string) {
 		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
 		major: 1,
 		minor: 1,
-		radius: 0.5,
+		radius: 1.0,
 		name: 'Pink'
 	};
 	await db.insert(beacons).values(beacon1);
@@ -352,7 +348,7 @@ async function initializeLokateBeacons(branchId: string) {
 		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
 		major: 1,
 		minor: 2,
-		radius: 0.5,
+		radius: 1.0,
 		name: 'Red'
 	};
 	await db.insert(beacons).values(beacon2);
@@ -363,7 +359,7 @@ async function initializeLokateBeacons(branchId: string) {
 		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
 		major: 1,
 		minor: 3,
-		radius: 0.5,
+		radius: 1.0,
 		name: 'White'
 	};
 	await db.insert(beacons).values(beacon3);
@@ -374,7 +370,7 @@ async function initializeLokateBeacons(branchId: string) {
 		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
 		major: 1,
 		minor: 4,
-		radius: 0.5,
+		radius: 1.0,
 		name: 'Yellow'
 	};
 	await db.insert(beacons).values(beacon4);
