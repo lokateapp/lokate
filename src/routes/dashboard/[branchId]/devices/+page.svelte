@@ -36,10 +36,12 @@
 
 	let itemOffset = 1;
 	let itemsPerPage = 10;
-	$: items = devices.slice(
-		(itemOffset - 1) * itemsPerPage,
-		(itemOffset - 1) * itemsPerPage + itemsPerPage
-	);
+
+	// $: items = devices.slice(
+	// 	(itemOffset - 1) * itemsPerPage,
+	// 	(itemOffset - 1) * itemsPerPage + itemsPerPage
+	// );
+	let items = devices;
 
 	$: selectedRows = (items && items.map((_, i) => i)) || [];
 	let editRow: number;
