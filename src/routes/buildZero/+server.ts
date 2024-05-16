@@ -365,7 +365,7 @@ async function prepareFairDemo() {
 		height: 1100
 	};
 	await db.insert(floorplans).values(floorplan);
-	let beacons = await initializeLokateBeacons(branch.id);
+	let beacons = await initializeUWBBeacons(branch.id);
 	const placements = await placeBeaconsToFloorplans(beacons, floorplan, fairBeaconLocations);
 	const campaignMappings = await createCampaigns(branch.id, beacons, fairCampaigns);
 	generateRandomEvents(branch.id, floorplan, beacons, placements, campaignMappings, 300); // comment if clustering model will be trained
@@ -417,6 +417,43 @@ async function initializeLokateBeacons(branchId: string) {
 	await db.insert(beacons).values(beacon4);
 
 	return [beacon1, beacon2, beacon3, beacon4];
+}
+
+async function initializeUWBBeacons(branchId: string) {
+	const beacon1 = {
+		id: crypto.randomUUID(),
+		branchId,
+		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
+		major: 1,
+		minor: 2,
+		radius: 3.0,
+		name: 'uwb_caramel'
+	};
+	await db.insert(beacons).values(beacon1);
+
+	const beacon2 = {
+		id: crypto.randomUUID(),
+		branchId,
+		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
+		major: 1,
+		minor: 3,
+		radius: 3.0,
+		name: 'uwb_white'
+	};
+	await db.insert(beacons).values(beacon2);
+
+	const beacon3 = {
+		id: crypto.randomUUID(),
+		branchId,
+		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
+		major: 1,
+		minor: 4,
+		radius: 3.0,
+		name: 'uwb_yellow'
+	};
+	await db.insert(beacons).values(beacon3);
+
+	return [beacon1, beacon2, beacon3];
 }
 
 async function initializePseudoBeacons(
