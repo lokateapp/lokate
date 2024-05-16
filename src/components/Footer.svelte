@@ -62,6 +62,13 @@
 						await fetch('/buildZero?demo=gym');
 					}}>Gym</button
 				>
+				<button
+					class="btn"
+					on:click={async () => {
+						await fetch('/deleteAll');
+						await fetch('/buildZero?demo=fair');
+					}}>Fair</button
+				>
 			</nav>
 		</footer>
 	</div>

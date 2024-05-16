@@ -53,8 +53,11 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 		await prepareMuseumDemo();
 	} else if (demo === 'gym') {
 		await prepareGymDemo();
+	} else if (demo === 'fair') {
+		await prepareFairDemo();
 	} else {
 		await prepareMarketDemo(customer.id);
+		await prepareFairDemo();
 	}
 
 	const responseBody = JSON.stringify('Success!');
@@ -121,16 +124,16 @@ async function prepareMarketDemo(customerId: string) {
 		placements1,
 		campaignMappings1,
 		normalizeBeaconGraph(marketNotNormalizedBeaconGraph),
-		300
+		500
 	);
 	await generateProductGroups(campaignMappings1); // generate only for branch that will be shown on demo app
-	await generateYesterdayEventsForDemoCustomer(
-		customerId,
-		branch1.id,
-		placements1,
-		campaignMappings1,
-		5000
-	); // only for demo
+	// await generateYesterdayEventsForDemoCustomer(
+	// 	customerId,
+	// 	branch1.id,
+	// 	placements1,
+	// 	campaignMappings1,
+	// 	5000
+	// ); // only for demo
 
 	// ---------------------------------------------------------------------
 
@@ -155,7 +158,7 @@ async function prepareMarketDemo(customerId: string) {
 	const beacons2 = await initializePseudoBeacons(branch2.id, 2, 1, 10);
 	const placements2 = await placeBeaconsToFloorplans(beacons2, floorplan2);
 	const campaignMappings2 = await createCampaigns(branch2.id, beacons2);
-	// generateRandomEvents(branch2.id, floorplan2, beacons2, placements2, campaignMappings2, 100); // comment if clustering model will be trained
+	generateRandomEvents(branch2.id, floorplan2, beacons2, placements2, campaignMappings2, 100); // comment if clustering model will be trained
 
 	// ---------------------------------------------------------------------
 
@@ -180,7 +183,7 @@ async function prepareMarketDemo(customerId: string) {
 	const beacons3 = await initializePseudoBeacons(branch3.id, 3, 1, 10);
 	const placements3 = await placeBeaconsToFloorplans(beacons3, floorplan3);
 	const campaignMappings3 = await createCampaigns(branch3.id, beacons3);
-	// generateRandomEvents(branch3.id, floorplan3, beacons3, placements3, campaignMappings3, 100); // comment if clustering model will be trained
+	generateRandomEvents(branch3.id, floorplan3, beacons3, placements3, campaignMappings3, 100); // comment if clustering model will be trained
 
 	// ---------------------------------------------------------------------
 
@@ -205,7 +208,7 @@ async function prepareMarketDemo(customerId: string) {
 	const beacons4 = await initializePseudoBeacons(branch4.id, 4, 1, 10);
 	const placements4 = await placeBeaconsToFloorplans(beacons4, floorplan4);
 	const campaignMappings4 = await createCampaigns(branch4.id, beacons4);
-	// generateRandomEvents(branch4.id, floorplan4, beacons4, placements4, campaignMappings4, 100); // comment if clustering model will be trained
+	generateRandomEvents(branch4.id, floorplan4, beacons4, placements4, campaignMappings4, 100); // comment if clustering model will be trained
 }
 
 // DEMO 2 (Museum):
@@ -328,6 +331,44 @@ async function prepareGymDemo() {
 		height: 1100
 	};
 	await db.insert(floorplans).values(floorplan3);
+}
+
+// DEMO 4 (Fair):
+
+async function prepareFairDemo() {
+	const user = await auth.createUser({
+		key: {
+			providerId: 'username', // auth method
+			providerUserId: 'fair'.toLowerCase(), // unique id when using "username" auth method
+			password: 'fair' // hashed by Lucia
+		},
+		attributes: {
+			username: 'fair'
+		}
+	});
+	const userId: string = user.userId;
+
+	const branch = {
+		id: crypto.randomUUID(),
+		userId,
+		address: 'Bilkent',
+		latitude: 39.867891,
+		longitude: 32.748718
+	};
+	await db.insert(branches).values(branch);
+
+	const floorplan = {
+		id: crypto.randomUUID(),
+		branchId: branch.id,
+		imgPath: '/src/lib/assets/store_plans/fair.jpg',
+		width: 1500,
+		height: 1100
+	};
+	await db.insert(floorplans).values(floorplan);
+	let beacons = await initializeLokateBeacons(branch.id);
+	const placements = await placeBeaconsToFloorplans(beacons, floorplan, fairBeaconLocations);
+	const campaignMappings = await createCampaigns(branch.id, beacons, fairCampaigns);
+	generateRandomEvents(branch.id, floorplan, beacons, placements, campaignMappings, 300); // comment if clustering model will be trained
 }
 
 async function initializeLokateBeacons(branchId: string) {
@@ -891,6 +932,7 @@ const marketCampaigns = [
 	'defter',
 	'cikis'
 ];
+
 // BEER
 // entry -> bebek bezi -> kuruyemis -> bira -> kahve -> exit
 // entry -> 3 -> 6 -> 13 -> 15 -> exit
@@ -923,6 +965,13 @@ const marketNotNormalizedBeaconGraph: number[][] = [
 	/*25*/ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 ];
 
+const fairBeaconLocations = [
+	[100, 100], // uwb_caramel
+	[200, 200], // uwb_white
+	[300, 300] // uwb_yellow
+];
+const fairCampaigns = ['lokate', 'yoldas', 'true_harvest'];
+
 // /* 0*/ [0, 7, 3, 6, 2, 1, 1, 8, 6, 5, 9, 5, 3, 1, 8, 6, 2, 5, 2, 5, 6, 1, 2, 7, 2, 3],
 // /* 1*/ [0, 1, 8, 9, 6, 2, 1, 5, 4, 2, 7, 5, 2, 1, 5, 4, 2, 3, 1, 3, 6, 1, 3, 4, 3, 3],
 // /* 2*/ [0, 5, 1, 6, 8, 3, 1, 2, 1, 3, 3, 2, 2, 1, 3, 1, 1, 1, 1, 4, 5, 1, 1, 3, 4, 2],
@@ -950,35 +999,6 @@ const marketNotNormalizedBeaconGraph: number[][] = [
 // /*24*/ [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 2, 1, 2, 4, 3, 6, 8, 1, 10],
 // /*25*/ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
-// const marketNotNormalizedBeaconGraph: number[][] = [
-// 	/* 0*/ [0, 7, 3, 6, 2, 0, 0, 8, 6, 1, 9, 5, 3, 0, 8, 6, 2, 5, 2, 5, 6, 0, 2, 7, 2, 0],
-// 	/* 1*/ [0, 0, 8, 9, 6, 2, 0, 5, 4, 2, 7, 5, 2, 0, 5, 4, 2, 3, 0, 3, 6, 0, 3, 4, 3, 3],
-// 	/* 2*/ [0, 5, 0, 6, 8, 3, 0, 2, 0, 3, 3, 2, 2, 0, 3, 0, 0, 0, 0, 4, 5, 0, 0, 3, 4, 2],
-// 	/* 3*/ [0, 3, 2, 0, 9, 7, 3, 10, 4, 5, 8, 3, 3, 2, 5, 3, 0, 2, 0, 3, 4, 0, 2, 6, 2, 6],
-// 	/* 4*/ [0, 2, 3, 4, 0, 8, 6, 4, 5, 4, 2, 3, 5, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3],
-// 	/* 5*/ [0, 2, 2, 4, 3, 0, 9, 5, 4, 3, 0, 3, 3, 2, 0, 0, 0, 0, 3, 4, 4, 0, 0, 2, 0, 2],
-// 	/* 6*/ [0, 0, 0, 2, 2, 3, 0, 6, 8, 10, 4, 5, 6, 7, 3, 2, 2, 2, 3, 0, 0, 0, 0, 0, 0, 0],
-// 	/* 7*/ [0, 6, 2, 7, 5, 6, 8, 3, 10, 3, 4, 2, 6, 4, 3, 3, 2, 0, 2, 2, 4, 0, 2, 5, 2, 3],
-// 	/* 8*/ [0, 2, 0, 2, 3, 4, 8, 6, 0, 6, 7, 5, 6, 3, 2, 2, 3, 2, 2, 0, 0, 0, 0, 0, 0, 2],
-// 	/* 9*/ [0, 0, 0, 0, 0, 5, 8, 4, 6, 0, 10, 2, 5, 8, 2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-// 	/*10*/ [0, 7, 3, 5, 2, 0, 6, 6, 8, 2, 0, 7, 5, 0, 5, 2, 2, 2, 3, 3, 5, 2, 0, 4, 2, 4],
-// 	/*11*/ [0, 2, 0, 2, 0, 5, 7, 4, 7, 5, 8, 0, 8, 2, 7, 5, 4, 2, 3, 0, 0, 2, 2, 4, 3, 4],
-// 	/*12*/ [0, 0, 2, 3, 3, 5, 8, 3, 6, 6, 4, 7, 0, 2, 6, 4, 7, 2, 2, 2, 0, 2, 0, 0, 2, 0],
-// 	/*13*/ [0, 0, 0, 0, 2, 4, 5, 3, 5, 10, 2, 2, 3, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-// 	/*14*/ [0, 3, 2, 2, 0, 0, 2, 2, 2, 3, 5, 7, 6, 0, 0, 7, 3, 3, 2, 5, 6, 0, 2, 4, 3, 5],
-// 	/*15*/ [0, 0, 0, 0, 0, 2, 3, 0, 2, 2, 3, 5, 6, 2, 8, 0, 9, 8, 4, 3, 3, 4, 3, 4, 2, 5],
-// 	/*16*/ [0, 0, 0, 0, 0, 0, 2, 0, 2, 2, 3, 4, 6, 2, 3, 8, 0, 7, 8, 3, 2, 7, 2, 3, 0, 2],
-// 	/*17*/ [0, 0, 0, 0, 0, 0, 2, 0, 2, 2, 0, 3, 4, 2, 3, 6, 7, 0, 8, 9, 4, 3, 0, 3, 2, 5],
-// 	/*18*/ [0, 0, 0, 0, 0, 2, 2, 2, 4, 2, 3, 2, 3, 0, 2, 3, 7, 8, 0, 8, 4, 9, 0, 5, 2, 3],
-// 	/*19*/ [0, 2, 0, 0, 0, 0, 2, 0, 2, 3, 2, 3, 2, 0, 6, 5, 5, 8, 8, 0, 10, 6, 2, 4, 5, 7],
-// 	/*20*/ [0, 3, 2, 3, 0, 0, 0, 2, 2, 0, 3, 3, 2, 0, 5, 6, 4, 4, 5, 8, 0, 6, 2, 6, 3, 9],
-// 	/*21*/ [0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 2, 2, 0, 0, 4, 5, 3, 7, 6, 8, 0, 0, 5, 2, 6],
-// 	/*22*/ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 8, 3],
-// 	/*23*/ [0, 3, 2, 4, 2, 0, 0, 0, 0, 0, 3, 2, 2, 0, 4, 3, 2, 4, 2, 3, 8, 6, 7, 0, 24, 7],
-// 	/*24*/ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 2, 0, 2, 4, 3, 6, 8, 0, 10],
-// 	/*25*/ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-// ];
-
 // 2 ROUTES
 // const marketNotNormalizedBeaconGraph: number[][] = [
 // 	/* 0*/ [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -996,6 +1016,36 @@ const marketNotNormalizedBeaconGraph: number[][] = [
 // 	/*12*/ [0, 0, 2, 3, 3, 5, 8, 3, 6, 6, 4, 7, 0, 2, 6, 4, 7, 2, 2, 2, 0, 2, 0, 0, 2, 0],
 // 	/*13*/ [0, 0, 0, 0, 2, 4, 5, 3, 5, 10, 2, 2, 3, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 // 	/*14*/ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+// 	/*15*/ [0, 0, 0, 0, 0, 2, 3, 0, 2, 2, 3, 5, 6, 2, 8, 0, 9, 8, 4, 3, 3, 4, 3, 4, 2, 5],
+// 	/*16*/ [0, 0, 0, 0, 0, 0, 2, 0, 2, 2, 3, 4, 6, 2, 3, 8, 0, 7, 8, 3, 2, 7, 2, 3, 0, 2],
+// 	/*17*/ [0, 0, 0, 0, 0, 0, 2, 0, 2, 2, 0, 3, 4, 2, 3, 6, 7, 0, 8, 9, 4, 3, 0, 3, 2, 5],
+// 	/*18*/ [0, 0, 0, 0, 0, 2, 2, 2, 4, 2, 3, 2, 3, 0, 2, 3, 7, 8, 0, 8, 4, 9, 0, 5, 2, 3],
+// 	/*19*/ [0, 2, 0, 0, 0, 0, 2, 0, 2, 3, 2, 3, 2, 0, 6, 5, 5, 8, 8, 0, 10, 6, 2, 4, 5, 7],
+// 	/*20*/ [0, 3, 2, 3, 0, 0, 0, 2, 2, 0, 3, 3, 2, 0, 5, 6, 4, 4, 5, 8, 0, 6, 2, 6, 3, 9],
+// 	/*21*/ [0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 2, 2, 0, 0, 4, 5, 3, 7, 6, 8, 0, 0, 5, 2, 6],
+// 	/*22*/ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 8, 3],
+// 	/*23*/ [0, 3, 2, 4, 2, 0, 0, 0, 0, 0, 3, 2, 2, 0, 4, 3, 2, 4, 2, 3, 8, 6, 7, 0, 24, 7],
+// 	/*24*/ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 2, 0, 2, 4, 3, 6, 8, 0, 10],
+// 	/*25*/ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+// ];
+
+// LAST TRAINED MODEL
+// const marketNotNormalizedBeaconGraph: number[][] = [
+// 	/* 0*/ [0, 7, 3, 6, 2, 0, 0, 8, 6, 1, 9, 5, 3, 0, 8, 6, 2, 5, 2, 5, 6, 0, 2, 7, 2, 0],
+// 	/* 1*/ [0, 0, 8, 9, 6, 2, 0, 5, 4, 2, 7, 5, 2, 0, 5, 4, 2, 3, 0, 3, 6, 0, 3, 4, 3, 3],
+// 	/* 2*/ [0, 5, 0, 6, 8, 3, 0, 2, 0, 3, 3, 2, 2, 0, 3, 0, 0, 0, 0, 4, 5, 0, 0, 3, 4, 2],
+// 	/* 3*/ [0, 3, 2, 0, 9, 7, 3, 10, 4, 5, 8, 3, 3, 2, 5, 3, 0, 2, 0, 3, 4, 0, 2, 6, 2, 6],
+// 	/* 4*/ [0, 2, 3, 4, 0, 8, 6, 4, 5, 4, 2, 3, 5, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3],
+// 	/* 5*/ [0, 2, 2, 4, 3, 0, 9, 5, 4, 3, 0, 3, 3, 2, 0, 0, 0, 0, 3, 4, 4, 0, 0, 2, 0, 2],
+// 	/* 6*/ [0, 0, 0, 2, 2, 3, 0, 6, 8, 10, 4, 5, 6, 7, 3, 2, 2, 2, 3, 0, 0, 0, 0, 0, 0, 0],
+// 	/* 7*/ [0, 6, 2, 7, 5, 6, 8, 3, 10, 3, 4, 2, 6, 4, 3, 3, 2, 0, 2, 2, 4, 0, 2, 5, 2, 3],
+// 	/* 8*/ [0, 2, 0, 2, 3, 4, 8, 6, 0, 6, 7, 5, 6, 3, 2, 2, 3, 2, 2, 0, 0, 0, 0, 0, 0, 2],
+// 	/* 9*/ [0, 0, 0, 0, 0, 5, 8, 4, 6, 0, 10, 2, 5, 8, 2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+// 	/*10*/ [0, 7, 3, 5, 2, 0, 6, 6, 8, 2, 0, 7, 5, 0, 5, 2, 2, 2, 3, 3, 5, 2, 0, 4, 2, 4],
+// 	/*11*/ [0, 2, 0, 2, 0, 5, 7, 4, 7, 5, 8, 0, 8, 2, 7, 5, 4, 2, 3, 0, 0, 2, 2, 4, 3, 4],
+// 	/*12*/ [0, 0, 2, 3, 3, 5, 8, 3, 6, 6, 4, 7, 0, 2, 6, 4, 7, 2, 2, 2, 0, 2, 0, 0, 2, 0],
+// 	/*13*/ [0, 0, 0, 0, 2, 4, 5, 3, 5, 10, 2, 2, 3, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+// 	/*14*/ [0, 3, 2, 2, 0, 0, 2, 2, 2, 3, 5, 7, 6, 0, 0, 7, 3, 3, 2, 5, 6, 0, 2, 4, 3, 5],
 // 	/*15*/ [0, 0, 0, 0, 0, 2, 3, 0, 2, 2, 3, 5, 6, 2, 8, 0, 9, 8, 4, 3, 3, 4, 3, 4, 2, 5],
 // 	/*16*/ [0, 0, 0, 0, 0, 0, 2, 0, 2, 2, 3, 4, 6, 2, 3, 8, 0, 7, 8, 3, 2, 7, 2, 3, 0, 2],
 // 	/*17*/ [0, 0, 0, 0, 0, 0, 2, 0, 2, 2, 0, 3, 4, 2, 3, 6, 7, 0, 8, 9, 4, 3, 0, 3, 2, 5],

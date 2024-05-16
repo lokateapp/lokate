@@ -69,7 +69,7 @@ export const GET: RequestHandler = async ({ url }) => {
 
 				resultBeacons.push({
 					...beacon,
-					campaignName: campaign[0].name
+					campaignName: campaign[0].name.toLocaleLowerCase()
 				});
 			}
 		}
