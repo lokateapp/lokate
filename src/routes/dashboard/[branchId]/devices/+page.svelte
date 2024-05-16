@@ -26,7 +26,7 @@
 
 	// const SVG_URL =
 	// 	'https://8nudshqewdlruco8.public.blob.vercel-storage.com/1713976455179_beacon-6H4OICwXNmAHIxkAW4iet0Pt4DIhUL.svg';
-	const SVG_URL = '/src/lib/assets/beacon.svg';
+	const SVG_URL = '/static/assets/beacon.svg';
 	const {
 		beacons: devices,
 		floorplan,
