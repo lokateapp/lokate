@@ -425,7 +425,7 @@ async function initializeUWBBeacons(branchId: string) {
 		branchId,
 		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
 		major: 1,
-		minor: 2,
+		minor: 5,
 		radius: 3.0,
 		name: 'uwb_caramel'
 	};
@@ -436,7 +436,7 @@ async function initializeUWBBeacons(branchId: string) {
 		branchId,
 		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
 		major: 1,
-		minor: 3,
+		minor: 6,
 		radius: 3.0,
 		name: 'uwb_white'
 	};
@@ -447,7 +447,7 @@ async function initializeUWBBeacons(branchId: string) {
 		branchId,
 		proximityUUID: '5D72CC30-5C61-4C09-889F-9AE750FA84EC',
 		major: 1,
-		minor: 4,
+		minor: 7,
 		radius: 3.0,
 		name: 'uwb_yellow'
 	};
