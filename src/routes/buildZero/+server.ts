@@ -102,7 +102,7 @@ async function prepareMarketDemo(customerId: string) {
 
 	const lokateBeaconIndexes = [0, 3, 6, 13];
 	let lokateBeacons = await initializeLokateBeacons(branch1.id);
-	let pseudoBeacons = await initializePseudoBeacons(branch1.id, 1, 5, 22);
+	let pseudoBeacons = await initializePseudoBeacons(branch1.id, 1, 8, 22);
 
 	let beacons1 = new Array(26).fill(null);
 
@@ -1007,7 +1007,7 @@ const fairBeaconLocations = [
 	[200, 200], // uwb_white
 	[300, 300] // uwb_yellow
 ];
-const fairCampaigns = ['lokate', 'yoldas', 'true_harvest'];
+const fairCampaigns = ['uwb_caramel', 'uwb_white', 'uwb_yellow'];
 
 // /* 0*/ [0, 7, 3, 6, 2, 1, 1, 8, 6, 5, 9, 5, 3, 1, 8, 6, 2, 5, 2, 5, 6, 1, 2, 7, 2, 3],
 // /* 1*/ [0, 1, 8, 9, 6, 2, 1, 5, 4, 2, 7, 5, 2, 1, 5, 4, 2, 3, 1, 3, 6, 1, 3, 4, 3, 3],
