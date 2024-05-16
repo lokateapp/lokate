@@ -94,7 +94,7 @@ async function prepareMarketDemo(customerId: string) {
 	const floorplan1 = {
 		id: crypto.randomUUID(),
 		branchId: branch1.id,
-		imgPath: '/src/lib/assets/store_plans/market.jpg',
+		imgPath: '/static/assets/store_plans/market.jpg',
 		width: 1000,
 		height: 1200
 	};
@@ -149,7 +149,7 @@ async function prepareMarketDemo(customerId: string) {
 	const floorplan2 = {
 		id: crypto.randomUUID(),
 		branchId: branch2.id,
-		imgPath: '/src/lib/assets/store_plans/market2.jpg',
+		imgPath: '/static/assets/store_plans/market2.jpg',
 		width: 1000,
 		height: 1200
 	};
@@ -174,7 +174,7 @@ async function prepareMarketDemo(customerId: string) {
 	const floorplan3 = {
 		id: crypto.randomUUID(),
 		branchId: branch3.id,
-		imgPath: '/src/lib/assets/store_plans/market3.jpg',
+		imgPath: '/static/assets/store_plans/market3.jpg',
 		width: 1000,
 		height: 1200
 	};
@@ -199,7 +199,7 @@ async function prepareMarketDemo(customerId: string) {
 	const floorplan4 = {
 		id: crypto.randomUUID(),
 		branchId: branch4.id,
-		imgPath: '/src/lib/assets/store_plans/market4.jpg',
+		imgPath: '/static/assets/store_plans/market4.jpg',
 		width: 1000,
 		height: 1200
 	};
@@ -238,7 +238,7 @@ async function prepareMuseumDemo() {
 	const floorplan1 = {
 		id: crypto.randomUUID(),
 		branchId: branch1.id,
-		imgPath: '/src/lib/assets/store_plans/museum.jpg',
+		imgPath: '/static/assets/store_plans/museum.jpg',
 		width: 1000,
 		height: 1200
 	};
@@ -256,7 +256,7 @@ async function prepareMuseumDemo() {
 	const floorplan2 = {
 		id: crypto.randomUUID(),
 		branchId: branch2.id,
-		imgPath: '/src/lib/assets/store_plans/museum2.jpg',
+		imgPath: '/static/assets/store_plans/museum2.jpg',
 		width: 1000,
 		height: 1200
 	};
@@ -290,7 +290,7 @@ async function prepareGymDemo() {
 	const floorplan1 = {
 		id: crypto.randomUUID(),
 		branchId: branch1.id,
-		imgPath: '/src/lib/assets/store_plans/gym.jpg',
+		imgPath: '/static/assets/store_plans/gym.jpg',
 		width: 1500,
 		height: 1100
 	};
@@ -308,7 +308,7 @@ async function prepareGymDemo() {
 	const floorplan2 = {
 		id: crypto.randomUUID(),
 		branchId: branch2.id,
-		imgPath: '/src/lib/assets/store_plans/gym2.jpg',
+		imgPath: '/static/assets/store_plans/gym2.jpg',
 		width: 1500,
 		height: 1100
 	};
@@ -326,7 +326,7 @@ async function prepareGymDemo() {
 	const floorplan3 = {
 		id: crypto.randomUUID(),
 		branchId: branch3.id,
-		imgPath: '/src/lib/assets/store_plans/gym3.jpg',
+		imgPath: '/static/assets/store_plans/gym3.jpg',
 		width: 1500,
 		height: 1100
 	};
@@ -360,7 +360,7 @@ async function prepareFairDemo() {
 	const floorplan = {
 		id: crypto.randomUUID(),
 		branchId: branch.id,
-		imgPath: '/src/lib/assets/store_plans/fair.jpg',
+		imgPath: '/static/assets/store_plans/fair.jpg',
 		width: 1500,
 		height: 1100
 	};
