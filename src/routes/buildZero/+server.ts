@@ -94,7 +94,9 @@ async function prepareMarketDemo(customerId: string) {
 	const floorplan1 = {
 		id: crypto.randomUUID(),
 		branchId: branch1.id,
-		imgPath: '/static/assets/store_plans/market.jpg',
+		// imgPath: '/static/assets/store_plans/market.jpg',
+		imgPath:
+			'https://6h5ykudqz8fkqypc.public.blob.vercel-storage.com/market-Cgl4NOz68moxEXsU4Yqfl4F6P6bZxq.jpg',
 		width: 1000,
 		height: 1200
 	};
